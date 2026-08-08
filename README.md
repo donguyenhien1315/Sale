@@ -1,4 +1,4 @@
-# Cantin AI Next v4.11
+# Cantin AI Next v4.12
 
 App mới hoàn toàn, không phụ thuộc mã nguồn v3.x.
 
@@ -201,3 +201,18 @@ App không xóa dữ liệu cũ. Root hiện tại sẽ được bọc vào cấ
 - AI không còn fuzzy-match `2c` thành một sản phẩm.
 - Chỉ tạo đơn bán ghi nợ khi câu lệnh có tên sản phẩm đầy đủ hoặc alias sản phẩm rõ ràng.
 - Nếu không có sản phẩm rõ ràng, AI tạo khoản nợ thủ công và giữ nguyên nội dung câu làm ghi chú.
+
+
+## v4.12 – Production Stable
+- Rút bottom navigation còn 6 mục: Tổng quan, Bán hàng, Công nợ, Kiểm kho, Mặt hàng, Khác.
+- Nguyên liệu, AI đầy đủ, Nhật ký và Dữ liệu chuyển vào trang Khác; popup AI vẫn luôn sẵn.
+- Công nợ có nút Sửa tên khách thật sự trên giao diện.
+- Lịch sử bán hàng có Sửa đơn: ngày, thanh toán, khách, ghi chú và số lượng từng món.
+- Phiếu nhập kho có Sửa theo chênh lệch, không reset các giao dịch phát sinh sau đó.
+- Mặt hàng bỏ dropdown danh mục dư thừa, giữ chip + tìm kiếm + sắp xếp.
+- Excel: xuất workbook nhiều sheet; nhập chuẩn Products / Customers / Debts.
+- XLSX và OCR được lazy-load chỉ khi người dùng thực sự chọn Excel/ảnh.
+- Gói cập nhật mã nguồn chuyển vào Developer nâng cao.
+- Snapshot giảm còn 12 bản và chỉ giữ 120 giao dịch gần nhất bên trong snapshot để giảm payload Supabase.
+- Thêm lớp validateAIPlan: mọi kế hoạch AI phải qua schema/ID/số lượng/số tiền cơ bản trước khi được execute.
+- Chuẩn hóa version giao diện/backend/cache về 4.12.

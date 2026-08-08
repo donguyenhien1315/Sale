@@ -12,7 +12,7 @@
   <div id="boot" class="boot">Đang đồng bộ dữ liệu…</div>
   <header class="topbar">
     <div>
-      <div class="eyebrow">CANTIN AI NEXT 4.11.2.2</div>
+      <div class="eyebrow">CANTIN AI NEXT 4.12</div>
       <h1 id="storeName">Cửa hàng chính</h1>
     </div>
     <div class="top-actions">
@@ -145,9 +145,6 @@
       </div>
       <div class="toolbar product-toolbar">
         <input id="productSearch" class="search" placeholder="Tìm sản phẩm…">
-        <select id="productCategory">
-          <option value="">Tất cả danh mục</option>
-        </select>
 <select id="productSort"><option value="name">Tên A → Z</option><option value="stock-low">Tồn ít → nhiều</option><option value="stock-high">Tồn nhiều → ít</option></select>
       </div>
       <div class="product-summary" id="productSummary"></div>
@@ -216,9 +213,9 @@
     <section class="page" data-page="data">
       <div class="page-head"><div><div class="eyebrow">DỮ LIỆU</div><h2>Import / Export</h2></div></div>
       <div class="io-grid">
-        <article class="panel"><h3>Dữ liệu cửa hàng</h3><p>Sản phẩm, bán hàng, công nợ, tồn kho, nhập kho, kiểm kho.</p><div class="row"><button id="exportStore" class="primary small">Xuất</button><label class="file-btn">Nhập<input id="importStore" type="file" accept=".json,.node.json" hidden></label></div></article>
+        <article class="panel"><h3>Dữ liệu cửa hàng</h3><p>Sản phẩm, bán hàng, công nợ, tồn kho, nhập kho, kiểm kho.</p><div class="row data-buttons"><button id="exportStore" class="primary small">Xuất JSON</button><label class="file-btn">Nhập JSON<input id="importStore" type="file" accept=".json,.node.json" hidden></label><button id="exportExcel" class="ghost small">Xuất Excel</button><label class="file-btn excel-import">Nhập Excel<input id="importExcel" type="file" accept=".xlsx,.xls" hidden></label></div><p class="hint">Excel nhập chuẩn hỗ trợ sheet <b>Products</b>, <b>Customers</b>, <b>Debts</b>. Các sheet lịch sử khác được xuất để xem/báo cáo nhưng không tự nhập lại nhằm tránh nhân đôi giao dịch.</p><div id="excelStatus" class="hint"></div></article>
         <article class="panel"><h3>Cấu hình ứng dụng</h3><p>Alias AI, hiển thị, cảnh báo và quy tắc tiền.</p><div class="row"><button id="exportConfig" class="primary small">Xuất</button><label class="file-btn">Nhập<input id="importConfig" type="file" accept=".json,.node.json" hidden></label></div></article>
-        <article class="panel"><h3>Gói cập nhật ứng dụng</h3><p>Kiểm tra file Node JSON cập nhật mã nguồn.</p><label class="file-btn">Kiểm tra gói<input id="validatePackage" type="file" accept=".json,.node.json" hidden></label><div id="packageStatus" class="hint"></div></article>
+        <details class="panel developer-panel"><summary><strong>Cài đặt nâng cao / Developer</strong></summary><p class="hint">Chỉ dùng khi kiểm tra gói cập nhật mã nguồn.</p><label class="file-btn">Kiểm tra gói<input id="validatePackage" type="file" accept=".json,.node.json" hidden></label><div id="packageStatus" class="hint"></div></details>
       </div>
       
       <article class="panel recovery-panel">
@@ -240,24 +237,29 @@
 
       <article class="panel"><div class="panel-head"><h3>Cửa hàng</h3><button id="newStore" class="primary small">+ Cửa hàng mới</button></div><div id="stores" class="list"></div></article>
     </section>
+
+    <section class="page" data-page="more">
+      <div class="page-head"><div><div class="eyebrow">KHÁC</div><h2>Công cụ & cài đặt</h2></div></div>
+      <div class="more-grid">
+        <button class="more-card nav-target" data-target="ingredients"><strong>Nguyên liệu</strong><span>Kho và giá nguyên liệu cà phê</span></button>
+        <button class="more-card nav-target" data-target="assistant"><strong>AI đầy đủ</strong><span>Command Center, alias và cài đặt AI</span></button>
+        <button class="more-card nav-target" data-target="activity"><strong>Nhật ký</strong><span>Giao dịch, snapshot và khôi phục</span></button>
+        <button class="more-card nav-target" data-target="data"><strong>Dữ liệu</strong><span>Backup, Excel, import/export và cửa hàng</span></button>
+      </div>
+    </section>
   </main>
 
   <nav class="bottom-nav">
     <button class="nav active" data-target="dashboard">Tổng quan</button>
     <button class="nav" data-target="sales">Bán hàng</button>
     <button class="nav" data-target="debts">Công nợ</button>
-<button class="nav" data-target="audit">Kiểm kho</button>
+    <button class="nav" data-target="audit">Kiểm kho</button>
     <button class="nav" data-target="products">Mặt hàng</button>
-    <button class="nav" data-target="ingredients">Nguyên liệu</button>
-    <button class="nav" data-target="assistant">AI</button>
-    <button class="nav more" data-target="data">Khác</button>
+    <button class="nav more" data-target="more">Khác</button>
   </nav>
 
   <div id="modal" class="modal hidden"><div class="modal-card"><button id="closeModal" class="modal-close">×</button><div id="modalBody"></div></div></div>
   <div id="toast" class="toast"></div>
-
-  <script src="https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.min.js"></script>
-<script src="https://cdn.jsdelivr.net/npm/tesseract.js@5/dist/tesseract.min.js"></script>
 <script type="module" src="/js/app.js"></script>
 
 <button id="aiFab" class="ai-fab" aria-label="Mở trợ lý AI">✨ AI</button>

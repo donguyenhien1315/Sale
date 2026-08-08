@@ -27,7 +27,7 @@ async function readRootRaw(){
   return v;
 }
 
-function emptyStore(name="Cửa hàng chính"){return {meta:{name,createdAt:now(),version:"4.11.2"},config:{money:{under1000MeansThousands:true},ai:{preview:true,safetyMode:"preview",autoIngredientDeduct:false},ui:{compactDebt:true}},products:[],ingredients:[{"id": "ing-ca-phe-phin", "name": "Cà phê phin", "purchasePrice": 1085000, "packageQty": 7000, "unit": "g", "unitCost": 155, "stock": 0, "note": "240g pha được 500ml cà phê phin"}, {"id": "ing-ca-phe-may", "name": "Cà phê máy", "purchasePrice": 234000, "packageQty": 1000, "unit": "g", "unitCost": 234, "stock": 0, "note": "Tạm tính gói 1kg; sửa nếu khác"}, {"id": "ing-bot-kem-muoi", "name": "Bột kem muối", "purchasePrice": 80000, "packageQty": 500, "unit": "g", "unitCost": 160, "stock": 0, "note": "Người dùng cung cấp"}, {"id": "ing-sua-dac", "name": "Sữa đặc", "purchasePrice": 450000, "packageQty": 9120, "unit": "ml", "unitCost": 49.3421052632, "stock": 0, "note": "24 hộp x 380ml"}, {"id": "ing-sua-tuoi", "name": "Sữa tươi", "purchasePrice": 35000, "packageQty": 1000, "unit": "ml", "unitCost": 35, "stock": 0, "note": "1 lít giá 35.000"}, {"id": "ing-duong", "name": "Đường", "purchasePrice": 25000, "packageQty": 1000, "unit": "g", "unitCost": 25, "stock": 0, "note": "Tạm tính 25.000/kg; sửa theo thực tế"}],customers:[],debts:[],sales:[],stockReceipts:[],audits:[],transactions:[],snapshots:[],aliases:[]}}
+function emptyStore(name="Cửa hàng chính"){return {meta:{name,createdAt:now(),version:"4.12"},config:{money:{under1000MeansThousands:true},ai:{preview:true,safetyMode:"preview",autoIngredientDeduct:false},ui:{compactDebt:true}},products:[],ingredients:[{"id": "ing-ca-phe-phin", "name": "Cà phê phin", "purchasePrice": 1085000, "packageQty": 7000, "unit": "g", "unitCost": 155, "stock": 0, "note": "240g pha được 500ml cà phê phin"}, {"id": "ing-ca-phe-may", "name": "Cà phê máy", "purchasePrice": 234000, "packageQty": 1000, "unit": "g", "unitCost": 234, "stock": 0, "note": "Tạm tính gói 1kg; sửa nếu khác"}, {"id": "ing-bot-kem-muoi", "name": "Bột kem muối", "purchasePrice": 80000, "packageQty": 500, "unit": "g", "unitCost": 160, "stock": 0, "note": "Người dùng cung cấp"}, {"id": "ing-sua-dac", "name": "Sữa đặc", "purchasePrice": 450000, "packageQty": 9120, "unit": "ml", "unitCost": 49.3421052632, "stock": 0, "note": "24 hộp x 380ml"}, {"id": "ing-sua-tuoi", "name": "Sữa tươi", "purchasePrice": 35000, "packageQty": 1000, "unit": "ml", "unitCost": 35, "stock": 0, "note": "1 lít giá 35.000"}, {"id": "ing-duong", "name": "Đường", "purchasePrice": 25000, "packageQty": 1000, "unit": "g", "unitCost": 25, "stock": 0, "note": "Tạm tính 25.000/kg; sửa theo thực tế"}],customers:[],debts:[],sales:[],stockReceipts:[],audits:[],transactions:[],snapshots:[],aliases:[]}}
 function ensureStore(s,name){const x=s&&typeof s==="object"?s:{};const e=emptyStore(name);for(const k of Object.keys(e))if(x[k]===undefined)x[k]=clone(e[k]);for(const k of ["products","ingredients","customers","debts","sales","stockReceipts","audits","transactions","snapshots","aliases"])if(!Array.isArray(x[k]))x[k]=[];x.meta={...e.meta,...(x.meta||{})};x.config={...e.config,...(x.config||{})};x.config.ai={...e.config.ai,...(x.config.ai||{})};x.config.money={...e.config.money,...(x.config.money||{})};x.config.ui={...e.config.ui,...(x.config.ui||{})};if(!Array.isArray(x.ingredients)||!x.ingredients.length)x.ingredients=clone([{"id": "ing-ca-phe-phin", "name": "Cà phê phin", "purchasePrice": 1085000, "packageQty": 7000, "unit": "g", "unitCost": 155, "stock": 0, "note": "240g pha được 500ml cà phê phin"}, {"id": "ing-ca-phe-may", "name": "Cà phê máy", "purchasePrice": 234000, "packageQty": 1000, "unit": "g", "unitCost": 234, "stock": 0, "note": "Tạm tính gói 1kg; sửa nếu khác"}, {"id": "ing-bot-kem-muoi", "name": "Bột kem muối", "purchasePrice": 80000, "packageQty": 500, "unit": "g", "unitCost": 160, "stock": 0, "note": "Người dùng cung cấp"}, {"id": "ing-sua-dac", "name": "Sữa đặc", "purchasePrice": 450000, "packageQty": 9120, "unit": "ml", "unitCost": 49.3421052632, "stock": 0, "note": "24 hộp x 380ml"}, {"id": "ing-sua-tuoi", "name": "Sữa tươi", "purchasePrice": 35000, "packageQty": 1000, "unit": "ml", "unitCost": 35, "stock": 0, "note": "1 lít giá 35.000"}, {"id": "ing-duong", "name": "Đường", "purchasePrice": 25000, "packageQty": 1000, "unit": "g", "unitCost": 25, "stock": 0, "note": "Tạm tính 25.000/kg; sửa theo thực tế"}]);for(const i of x.ingredients)i.category=i.category||"Nguyên liệu cà phê";return x}
 
 function dataWeight(root){
@@ -42,7 +42,7 @@ function dataWeight(root){
 function normalizeLegacyStore(input,name="Cửa hàng chính"){
   const src=clone(input||{});
   const out=ensureStore(src);
-  out.meta={...(out.meta||{}),name:out.meta?.name||name,version:"4.11.2"};
+  out.meta={...(out.meta||{}),name:out.meta?.name||name,version:"4.12"};
   // Preserve legacy arrays instead of dropping them.
   if((!Array.isArray(out.audits)||!out.audits.length)&&Array.isArray(src.weeklyAudits)){
     out.audits=src.weeklyAudits.map(a=>({
@@ -117,7 +117,7 @@ async function writeRoot(root){
 
   root.revision=(Number(root.revision)||0)+1;
   const token=uid();
-  root.persist={token,writtenAt:now(),version:"4.11.2"};
+  root.persist={token,writtenAt:now(),version:"4.12"};
 
   await rpc("cantin_write_store_public",{p_data:root});
 
@@ -132,7 +132,14 @@ async function writeRoot(root){
 }
 function active(root){return root.stores.find(s=>s.id===root.activeStoreId)||root.stores[0]}
 function tx(store,type,summary,changes=[]){const t={id:`TX-${Date.now()}-${Math.random().toString(36).slice(2,6).toUpperCase()}`,type,summary,changes,createdAt:now()};store.transactions.push(t);if(store.transactions.length>600)store.transactions=store.transactions.slice(-600);return t}
-function snapshot(store,label){const data=clone(store);data.snapshots=[];store.snapshots.push({id:uid(),label,createdAt:now(),data});if(store.snapshots.length>30)store.snapshots=store.snapshots.slice(-30)}
+function snapshot(store,label){
+  const data=clone(store);data.snapshots=[];
+  // Snapshot chỉ giữ một phần nhật ký gần đây để tránh mỗi lần lưu nhân bản toàn bộ lịch sử giao dịch.
+  data.transactions=(data.transactions||[]).slice(-120);
+  store.snapshots.push({id:uid(),label,createdAt:now(),data});
+  // 12 snapshot gần nhất đủ cho hoàn tác thực tế, giảm đáng kể kích thước payload Supabase.
+  if(store.snapshots.length>12)store.snapshots=store.snapshots.slice(-12)
+}
 function json(data,status=200){return new Response(JSON.stringify(data),{status,headers:{"Content-Type":"application/json; charset=utf-8","Cache-Control":"no-store"}})}
 function bad(m,status=400){throw Object.assign(new Error(m),{status})}
 
@@ -208,6 +215,14 @@ function applyAction(root,action,p){
     case "config.import": {
       st.config={...(st.config||{}),...(p.config||{})};st.config.ai={...(st.config.ai||{}),...(p.config?.ai||{})};
       if(Array.isArray(p.aliases))st.aliases=clone(p.aliases);tx(st,action,"Nhập cấu hình ứng dụng");break;
+    }
+    case "data.tabular.import": {
+      const products=Array.isArray(p.products)?p.products:[],customers=Array.isArray(p.customers)?p.customers:[],debts=Array.isArray(p.debts)?p.debts:[];
+      let pc=0,cc=0,dc=0;
+      for(const row of products){const name=String(row.name||"").trim();if(!name)continue;let x=st.products.find(v=>norm(v.name)===norm(name));const present=v=>v!==undefined&&v!==null&&String(v)!=="";const vals={name,category:String(present(row.category)?row.category:(x?.category||"Khác")),unit:String(present(row.unit)?row.unit:(x?.unit||"cái")),packSize:present(row.packSize)?(qty(row.packSize)||1):(x?.packSize||1),costPrice:present(row.costPrice)?money(row.costPrice):(x?.costPrice||0),salePrice:present(row.salePrice)?money(row.salePrice):(x?.salePrice||0),stock:present(row.stock)?qty(row.stock):(x?.stock||0),minStock:present(row.minStock)?qty(row.minStock):(x?.minStock||0),trackStock:true,active:true};if(x)Object.assign(x,vals);else st.products.push({id:uid(),...vals});pc++}
+      for(const row of customers){const name=String(row.name||"").trim();if(!name)continue;if(!st.customers.some(c=>norm(c.name)===norm(name))){st.customers.push({id:uid(),name,createdAt:now(),active:true});cc++}}
+      for(const row of debts){const customerName=String(row.customer||row.name||"").trim(),amount=money(row.amount);if(!customerName||!amount)continue;let c=st.customers.find(x=>norm(x.name)===norm(customerName));if(!c){c={id:uid(),name:customerName,createdAt:now(),active:true};st.customers.push(c);cc++}const createdAt=row.createdAt||now(),note=String(row.note||"");const exists=st.debts.some(d=>d.customerId===c.id&&String(d.createdAt).slice(0,10)===String(createdAt).slice(0,10)&&(+d.amount||0)===amount&&String(d.note||"")===note);if(exists)continue;const paid=Math.min(money(row.paid),amount);st.debts.push({id:uid(),customerId:c.id,customer:c.name,amount,paid,balance:amount-paid,note,createdAt,payments:[]});dc++}
+      tx(st,action,`Nhập Excel: ${pc} mặt hàng · ${cc} khách mới · ${dc} khoản nợ`);break;
     }
     case "config.update": {st.config={...(st.config||{}),...(p.config||{})};if(p.config?.ai)st.config.ai={...(st.config.ai||{}),...p.config.ai};tx(st,action,"Cập nhật cấu hình ứng dụng");break;}
 
@@ -334,6 +349,18 @@ function applyAction(root,action,p){
       if(!lines.length)bad("Phiếu nhập trống");
       st.stockReceipts.push({id:uid(),createdAt:p.createdAt||now(),note:String(p.note||""),lines});
       tx(st,action,`Nhập kho ${lines.reduce((a,l)=>a+l.quantity,0)} đơn vị`);break;
+    }
+    case "stockin.update": {
+      const receipt=st.stockReceipts.find(r=>r.id===p.id);if(!receipt)bad("Không tìm thấy phiếu nhập");
+      const oldMap=new Map((receipt.lines||[]).map(l=>[l.productId,+l.quantity||0]));
+      const nextMap=new Map();
+      for(const r of p.lines||[]){const pr=st.products.find(x=>x.id===r.productId);if(!pr)continue;const q=qty(r.quantity);if(q>0)nextMap.set(pr.id,q)}
+      const ids=new Set([...oldMap.keys(),...nextMap.keys()]);
+      for(const id of ids){const pr=st.products.find(x=>x.id===id);if(!pr)continue;const delta=(nextMap.get(id)||0)-(oldMap.get(id)||0);if((+pr.stock||0)+delta<0)bad(`Không thể sửa phiếu: ${pr.name} sẽ bị tồn âm`)}
+      for(const id of ids){const pr=st.products.find(x=>x.id===id);if(!pr)continue;pr.stock=(+pr.stock||0)+(nextMap.get(id)||0)-(oldMap.get(id)||0)}
+      receipt.lines=[...nextMap].map(([productId,quantity])=>{const pr=st.products.find(x=>x.id===productId),old=oldMap.get(productId)||0;return {productId,name:pr.name,quantity,cases:0,units:quantity,before:Math.max(0,(+pr.stock||0)-quantity),after:+pr.stock||0,previousQuantity:old}});
+      if(p.createdAt)receipt.createdAt=p.createdAt;receipt.note=String(p.note||"");
+      tx(st,action,`Sửa phiếu nhập ${receipt.lines.length} mặt hàng theo chênh lệch`);break;
     }
     case "stockin.delete": {
       const i=st.stockReceipts.findIndex(r=>r.id===p.id);if(i<0)bad("Không tìm thấy phiếu");
@@ -523,7 +550,23 @@ function ambiguousProduct(st,msg){
   const c=productCandidates(st,msg);if(c.length>=2&&c[0].score<c[1].score+6&&c[0].p.id!==c[1].p.id)return c.slice(0,4).map(x=>x.p);
   return []
 }
-function executePlan(st,plan,message){
+function validateAIPlan(st,plan){
+  if(!plan||typeof plan!=="object")bad("Kế hoạch AI không hợp lệ");
+  const allowed=new Set(["alias.add","batch","config.set","debt.add","debt.batch","debt.correct","debt.pay","inventory.batch","inventory.set","restore.snapshot","sale.create","sale.modify","sale.repeat","stockin","stockin.batch"]);
+  if(!allowed.has(plan.kind))bad("AI tạo loại thao tác chưa được cho phép: "+String(plan.kind||""));
+  const product=id=>{if(id&&!st.products.some(p=>p.id===id))bad("AI tham chiếu mặt hàng không tồn tại")};
+  const customer=id=>{if(id&&!st.customers.some(c=>c.id===id))bad("AI tham chiếu khách hàng không tồn tại")};
+  if(plan.productId)product(plan.productId);if(plan.customerId)customer(plan.customerId);
+  if(plan.kind==="sale.create"){if(!Array.isArray(plan.items)||!plan.items.length)bad("Đơn AI không có sản phẩm");for(const x of plan.items){product(x.productId);if(!(Number(x.quantity)>0))bad("Số lượng AI không hợp lệ")}}
+  if(plan.kind==="debt.add"||plan.kind==="debt.pay"){customer(plan.customerId);if(!(Number(plan.amount)>0))bad("Số tiền AI không hợp lệ")}
+  if(plan.kind==="inventory.batch"||plan.kind==="stockin.batch"){if(!Array.isArray(plan.lines)||!plan.lines.length)bad("Danh sách AI trống");for(const x of plan.lines)product(x.productId)}
+  if(plan.kind==="debt.batch"){customer(plan.customerId);if(!Array.isArray(plan.items)||!plan.items.length)bad("Danh sách nợ AI trống");for(const x of plan.items){if(!(Number(x.amount)>0))bad("Khoản nợ AI không hợp lệ");if(x.productId)product(x.productId)}}
+  if(plan.kind==="batch"){if(!Array.isArray(plan.steps)||!plan.steps.length)bad("Batch AI trống");for(const step of plan.steps)validateAIPlan(st,step)}
+  return plan
+}
+function finalizeAIResponse(st,response){if(response?.type==="plan")validateAIPlan(st,response.plan);return response}
+
+function executePlan(st,plan,message){validateAIPlan(st,plan);
   if(plan.kind==="config.set"){st.config.ai={...(st.config.ai||{}),...(plan.ai||{})};tx(st,"ai.config","AI cập nhật cấu hình");return}
   if(plan.kind==="debt.correct"){const d=st.debts.find(x=>x.id===plan.debtId);if(!d)bad("Không tìm thấy khoản nợ");const old=d.amount;d.amount=+plan.amount||d.amount;d.balance=Math.max(0,d.amount-(+d.paid||0));if(plan.createdAt)d.createdAt=plan.createdAt;if(plan.note!==undefined)d.note=plan.note;if(d.saleId){const s=st.sales.find(x=>x.id===d.saleId);if(s){s.total=d.amount;s.profit=s.total-(+s.costTotal||0);if((s.items||[]).length===1){s.items[0].subtotal=s.total;s.items[0].unitPrice=s.items[0].quantity?s.total/s.items[0].quantity:s.total}}}tx(st,"ai.debt.correct",`AI sửa khoản nợ ${formatMoney(old)} → ${formatMoney(d.amount)}`);return}
   if(plan.kind==="sale.repeat"){const source=st.sales.find(x=>x.id===plan.saleId);if(!source)bad("Không tìm thấy đơn nguồn");const t=saleTotals(st,saleItemsPayload(source));for(const l of t.lines){const p=st.products.find(x=>x.id===l.productId);if(p?.trackStock!==false)p.stock-=l.quantity}const c=source.customerId?st.customers.find(x=>x.id===source.customerId):null,sale={id:uid(),createdAt:now(),items:t.lines,total:t.total,costTotal:t.cost,profit:t.profit,paymentMethod:source.paymentMethod,customerId:c?.id||"",customer:c?.name||"",note:`AI tạo lại từ ${source.id}`};if(sale.paymentMethod==="debt"){if(!c)bad("Đơn nguồn ghi nợ nhưng không còn khách hàng");st.debts.push({id:uid(),customerId:c.id,customer:c.name,amount:sale.total,paid:0,balance:sale.total,note:"Đơn AI tạo lại",createdAt:sale.createdAt,payments:[],saleId:sale.id})}st.sales.push(sale);if(st.config?.ai?.autoIngredientDeduct)adjustIngredientsForItems(st,sale.items,-1);tx(st,"ai.sale.repeat",`AI tạo lại đơn ${formatMoney(sale.total)}`);return}
@@ -887,7 +930,7 @@ export async function onRequest(context){
   try{
     if(path==="/api/bootstrap"&&req.method==="GET"){const root=await readRoot(),s=active(root);return json({revision:root.revision||0,storeId:s.id,store:s.data,stores:root.stores.map(x=>({id:x.id,name:x.name}))})}
     if(path==="/api/action"&&req.method==="POST"){const body=await req.json(),root=await readRoot();if(Number(body.revision)!==Number(root.revision||0))bad("Dữ liệu vừa thay đổi ở thiết bị khác. Hãy đồng bộ lại.",409);applyAction(root,body.action,body.payload||{});const saved=await writeRoot(root),s=active(saved);return json({ok:true,revision:saved.revision,storeId:s.id,store:s.data,stores:saved.stores.map(x=>({id:x.id,name:x.name}))})}
-    if(path==="/api/ai/plan"&&req.method==="POST"){const body=await req.json(),root=await readRoot(),s=root.stores.find(x=>x.id===body.storeId)||active(root);return json(planAI(s.data,String(body.message||""),body.context||{}))}
+    if(path==="/api/ai/plan"&&req.method==="POST"){const body=await req.json(),root=await readRoot(),s=root.stores.find(x=>x.id===body.storeId)||active(root);return json(finalizeAIResponse(s.data,planAI(s.data,String(body.message||""),body.context||{})))}
     if(path==="/api/package/validate"&&req.method==="POST"){const body=await req.json();if(body.format!=="cantin-ai-node-json")bad("Không phải gói Cantin AI");if(!Array.isArray(body.files)||!body.files.length)bad("Gói không có file");return json({ok:true,version:body.version||"không rõ",fileCount:body.files.length})}
     return json({error:"Không tìm thấy API"},404)
   }catch(e){return json({error:e.message||"Lỗi máy chủ"},e.status||500)}

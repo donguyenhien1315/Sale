@@ -273,3 +273,15 @@ body{padding-bottom:calc(78px + env(safe-area-inset-bottom))}
 .debt-payment-card{max-width:100%}
 
 .soft-sep{border:0;border-top:1px solid var(--line);margin:14px 0}.check-line{display:flex!important;flex-direction:row!important;align-items:center;gap:8px}.check-line input{width:auto}.summary-mini-grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:7px;margin:9px 0}.summary-mini-grid>div{display:flex;flex-direction:column;padding:8px;border:1px solid var(--line);border-radius:10px;background:#fff}.summary-mini-grid span{font-size:.72rem;color:var(--muted)}.summary-mini-grid b{font-size:.95rem}.today-summary-card details{margin-top:8px}.today-summary-card summary{font-weight:800;cursor:pointer}.ai-debt-row.selectable{display:grid;grid-template-columns:24px minmax(0,1fr) auto;align-items:center;cursor:pointer}.ai-debt-row.selectable>input{width:18px;height:18px}.ai-debt-row.paid{opacity:.55}.ai-undo-redo{margin-top:7px}#aiOperationHistory{max-height:300px;overflow:auto}
+
+/* v4.12 Production Stable */
+.bottom-nav{display:grid!important;grid-template-columns:repeat(6,1fr)!important;overflow:hidden!important}
+.bottom-nav .nav{min-width:0!important;max-width:none!important;font-size:.7rem!important;padding:9px 1px!important}
+.more-grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:10px}
+.more-card{display:flex;flex-direction:column;gap:5px;text-align:left;border:1px solid var(--line);background:#fff;border-radius:16px;padding:15px;color:var(--text)}
+.more-card strong{font-size:1rem;color:var(--brand)}.more-card span{font-size:.8rem;color:var(--muted);line-height:1.35}
+.product-toolbar{grid-template-columns:minmax(0,1fr) minmax(135px,180px)!important}.product-toolbar .search{grid-column:auto!important}
+.debt-actions-3{grid-template-columns:1fr 1fr auto!important}.debt-actions-3 .editCustomer{border:1px solid var(--line);border-radius:12px;padding:9px 10px}
+.sale-edit-lines,.receipt-edit-lines{display:flex;flex-direction:column;gap:7px;margin:12px 0}.sale-edit-line{display:grid;grid-template-columns:minmax(0,1fr) 100px;gap:8px;align-items:center;padding:7px 0;border-bottom:1px solid var(--line)}
+.sale-edit-line input{text-align:right}.sale-history-row>.row{flex:0 0 auto}.data-buttons{flex-wrap:wrap}.developer-panel summary{cursor:pointer;color:var(--brand)}
+@media(max-width:480px){.more-grid{grid-template-columns:1fr 1fr}.bottom-nav .nav{font-size:.66rem!important}.debt-actions-3{grid-template-columns:1fr 1fr!important}.debt-actions-3 .editCustomer{grid-column:1/-1}.product-toolbar{grid-template-columns:1fr!important}.sale-edit-line{grid-template-columns:minmax(0,1fr) 82px}}

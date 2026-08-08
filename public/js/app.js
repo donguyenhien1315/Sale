@@ -38,7 +38,8 @@ function renderAll(){
 }
 function navigate(page){
   $$(".page").forEach(p=>p.classList.toggle("active",p.dataset.page===page));
-  $$(".nav").forEach(n=>n.classList.toggle("active",n.dataset.target===page));
+  const navPage=["ingredients","assistant","activity","data"].includes(page)?"more":page;
+  $$(".nav").forEach(n=>n.classList.toggle("active",n.dataset.target===navPage));
   window.scrollTo({top:0,behavior:"smooth"});
 }
 $$(".nav,.nav-target").forEach(b=>b.addEventListener("click",()=>navigate(b.dataset.target)));
@@ -199,8 +200,15 @@ function renderSaleCustomers(){
 }
 
 function renderSales(){
-  const arr=[...state.store.sales].reverse().slice(0,100);$("#salesHistory").className=`list${arr.length?"":" empty"}`;$("#salesHistory").innerHTML=arr.length?arr.map(s=>`<div class="list-row" data-id="${s.id}"><div><strong>${money(s.total)}</strong><small>${new Date(s.createdAt).toLocaleString("vi-VN")} · ${esc(s.items.map(i=>i.name+" x"+i.quantity).join(", "))}</small></div><button class="ghost danger-text delete-sale">Xóa</button></div>`).join(""):"Chưa có đơn.";
+  const arr=[...state.store.sales].reverse().slice(0,100);$("#salesHistory").className=`list${arr.length?"":" empty"}`;
+  $("#salesHistory").innerHTML=arr.length?arr.map(s=>`<div class="list-row sale-history-row" data-id="${s.id}"><div><strong>${money(s.total)}</strong><small>${new Date(s.createdAt).toLocaleString("vi-VN")} · ${esc(s.customer||"Khách lẻ")} · ${esc(s.items.map(i=>i.name+" x"+i.quantity).join(", "))}</small></div><div class="row"><button class="ghost edit-sale">Sửa</button><button class="ghost danger-text delete-sale">Xóa</button></div></div>`).join(""):"Chưa có đơn.";
+  $("#salesHistory").querySelectorAll(".edit-sale").forEach(b=>b.onclick=()=>showSaleEdit(state.store.sales.find(s=>s.id===b.closest(".list-row").dataset.id)));
   $("#salesHistory").querySelectorAll(".delete-sale").forEach(b=>b.onclick=async()=>{if(confirm("Xóa đơn này và hoàn lại kho?"))try{await mutate("sale.delete",{id:b.closest(".list-row").dataset.id});toast("Đã xóa đơn")}catch(e){toast(e.message,true)}});
+}
+function showSaleEdit(s){
+  const customers='<option value="">Khách lẻ</option>'+state.store.customers.filter(c=>c.active!==false).map(c=>`<option value="${c.id}" ${c.id===s.customerId?"selected":""}>${esc(c.name)}</option>`).join("");
+  showModal(`<h3>Sửa đơn bán</h3><label>Ngày<input id="editSaleDate" type="datetime-local" value="${dtLocal(s.createdAt)}"></label><label>Thanh toán<select id="editSalePayment"><option value="cash" ${s.paymentMethod==="cash"?"selected":""}>Tiền mặt</option><option value="transfer" ${s.paymentMethod==="transfer"?"selected":""}>Chuyển khoản</option><option value="debt" ${s.paymentMethod==="debt"?"selected":""}>Ghi nợ</option></select></label><label>Khách hàng<select id="editSaleCustomer">${customers}</select></label><label>Ghi chú<input id="editSaleNote" value="${esc(s.note||"")}"></label><div class="sale-edit-lines">${(s.items||[]).map(l=>`<div class="sale-edit-line" data-id="${l.productId}"><span>${esc(l.name)}</span><input class="sale-edit-qty" type="number" min="0" value="${l.quantity}" inputmode="numeric"></div>`).join("")}</div><p class="hint">Nhập 0 để bỏ mặt hàng khỏi đơn.</p><button id="saveSaleEdit" class="primary full">Lưu thay đổi</button>`);
+  $("#saveSaleEdit").onclick=async()=>{const items=$$(".sale-edit-line").map(r=>({productId:r.dataset.id,quantity:Number(r.querySelector(".sale-edit-qty").value)||0})).filter(x=>x.quantity>0);if(!items.length)return toast("Đơn hàng phải còn ít nhất một mặt hàng",true);if($("#editSalePayment").value==="debt"&&!$("#editSaleCustomer").value)return toast("Ghi nợ phải chọn khách",true);try{await mutate("sale.update",{id:s.id,createdAt:new Date($("#editSaleDate").value).toISOString(),paymentMethod:$("#editSalePayment").value,customerId:$("#editSaleCustomer").value,note:$("#editSaleNote").value,items});closeModal();toast("Đã sửa đơn bán")}catch(e){toast(e.message,true)}}
 }
 function parseMoney(v,base=0){let s=String(v||"").trim().toLowerCase().replace(/\s/g,"");const op=s[0],isop="+-*/×÷".includes(op);const cv=x=>{let k=String(x).toLowerCase(),mul=1;if(k.endsWith("k")){mul=1000;k=k.slice(0,-1)}else if(k.endsWith("tr")){mul=1e6;k=k.slice(0,-2)}k=k.replace(/\./g,"").replace(",",".");let n=Number(k)||0;if(!mul||mul===1){if(n>0&&n<1000)mul=1000}return Math.round(n*mul)};if(isop){const n=cv(s.slice(1));return op==="+"?base+n:op==="-"?base-n:(op==="*"||op==="×")?base*n:(op==="/"||op==="÷")?(n?base/n:base):base}return cv(s)}
 
@@ -217,9 +225,10 @@ function toggleCustomer(card){
   if(!box.classList.contains("hidden"))return box.classList.add("hidden");
   const debts=[...state.store.debts.filter(d=>d.customerId===id)].reverse();
   box.innerHTML=`
-    <div class="debt-compact-actions">
+    <div class="debt-compact-actions debt-actions-3">
       <button class="primary addDebtOpen">+ Ghi nợ</button>
       <button class="file-btn payDebtOpen">Trả nợ</button>
+      <button class="ghost editCustomer" data-id="${c.id}">Sửa tên</button>
     </div>
     <div class="debt-history-title"><strong>Lịch sử nợ</strong><span>${debts.length} khoản</span></div>
     <div class="debt-lines">${debts.map(d=>`
@@ -234,11 +243,12 @@ function toggleCustomer(card){
     </div>`;
   box.classList.remove("hidden");
   box.querySelector(".addDebtOpen").onclick=()=>showAddDebt(c);
-  box.querySelector(".payDebtOpen").onclick=()=>showPayment(c);
+  box.querySelector(".payDebtOpen").onclick=()=>showPayment(c);box.querySelector(".editCustomer").onclick=()=>showCustomerRename(c);
   box.querySelectorAll(".debtEdit").forEach(b=>b.onclick=()=>showDebtEdit(state.store.debts.find(d=>d.id===b.closest(".debt-line").dataset.id)));
   box.querySelectorAll(".payment-chip").forEach(b=>b.onclick=()=>{const d=state.store.debts.find(x=>x.id===b.dataset.debt);const p=(d?.payments||[]).find(x=>x.id===b.dataset.pay);if(d&&p)showPaymentEdit(d,p);});
 }
 
+function showCustomerRename(c){showModal(`<h3>Sửa tên khách hàng</h3><label>Tên khách hàng<input id="editCustomerName" value="${esc(c.name)}"></label><button id="saveCustomerName" class="primary full">Lưu tên</button>`);$("#saveCustomerName").onclick=async()=>{const name=$("#editCustomerName").value.trim();if(!name)return toast("Tên khách trống",true);try{await mutate("customer.update",{id:c.id,name});closeModal();toast("Đã đổi tên khách hàng")}catch(err){toast(err.message,true)}}}
 function showAddDebt(c){
   showModal(`<h3>Ghi nợ: ${esc(c.name)}</h3>
     <label>Ngày ghi nợ<input id="modalDebtDate" type="date" value="${todayKey()}"></label>
@@ -291,19 +301,11 @@ function showIngredientForm(x){
   if(x)$("#deleteIngredient").onclick=async()=>{if(confirm("Xóa nguyên liệu này?"))try{await mutate("ingredient.delete",{id:x.id});closeModal();toast("Đã xóa nguyên liệu")}catch(e){toast(e.message,true)}};
 }
 
-function renderProductCategories(){
-  const sel=$("#productCategory");if(!sel)return;
-  const items=state.store.products.filter(p=>p.active!==false);
-  const categories=[...new Set(items.map(p=>String(p.category||"Khác").trim()||"Khác"))].sort((a,b)=>a.localeCompare(b,"vi"));
-  const current=sel.value||categoryState.product||"";
-  sel.innerHTML=`<option value="">Tất cả danh mục</option>`+categories.map(c=>`<option value="${esc(c)}">${esc(c)}</option>`).join("");
-  categoryState.product=categories.includes(current)?current:"";
-  sel.value=categoryState.product;
-  renderCategoryButtons("#productCategoryChips","product",items,()=>{sel.value=categoryState.product;renderProducts()});
-}
+function renderProductCategories(){const items=state.store.products.filter(p=>p.active!==false);renderCategoryButtons("#productCategoryChips","product",items,renderProducts)}
+
 function renderProducts(){
   renderProductCategories();
-  const q=norm($("#productSearch").value),sort=$("#productSort")?.value||"name",category=$("#productCategory")?.value||"";
+  const q=norm($("#productSearch").value),sort=$("#productSort")?.value||"name",category=categoryState.product||"";
   let arr=state.store.products.filter(p=>(!q||norm(p.name+" "+p.category).includes(q))&&(!category||String(p.category||"Khác")===category));
   arr=[...arr].sort((a,b)=>sort==="stock-low"?(a.stock-b.stock):sort==="stock-high"?(b.stock-a.stock):a.name.localeCompare(b.name,"vi"));
   const totalStock=arr.reduce((sum,p)=>sum+(Number(p.stock)||0),0);
@@ -350,9 +352,13 @@ function showDirectStockAdjust(p){
 
 function showProductForm(p){showModal(`<h3>${p?"Chỉnh":"Thêm"} sản phẩm</h3><div class="form-grid"><label>Tên<input id="pName" value="${esc(p?.name||"")}"></label><label>Nhóm<select id="pCat"><option>Cà phê</option><option>Nước</option><option>Bánh Oishi</option><option>Kem</option><option>Khác</option>${p?.category&&!["Cà phê","Nước","Bánh Oishi","Kem","Khác"].includes(p.category)?`<option selected>${esc(p.category)}</option>`:""}</select></label><label>Đơn vị<input id="pUnit" value="${esc(p?.unit||"chai")}"></label><label>Quy cách<input id="pPack" value="${p?.packSize||1}" inputmode="numeric"></label><label>Giá nhập/đv<input id="pCost" value="${p?.costPrice||0}" inputmode="numeric"></label><label>Giá bán<input id="pSale" value="${p?.salePrice||0}" inputmode="numeric"></label><label>Tồn hiện tại<input id="pStock" value="${p?.stock||0}" inputmode="numeric"></label><label>Tồn tối thiểu<input id="pMin" value="${p?.minStock||0}" inputmode="numeric"></label></div><div class="row"><button id="saveProduct" class="primary">Lưu</button>${p?'<button id="deleteProduct" class="file-btn" style="background:#b42318">Xóa</button>':""}</div>`);if(p&&[...$("#pCat").options].some(o=>o.value===p.category))$("#pCat").value=p.category;$("#saveProduct").onclick=async()=>{const payload={id:p?.id,name:$("#pName").value,category:$("#pCat").value,unit:$("#pUnit").value,packSize:+$("#pPack").value||1,costPrice:parseMoney($("#pCost").value),salePrice:parseMoney($("#pSale").value),stock:+$("#pStock").value||0,minStock:+$("#pMin").value||0};try{await mutate(p?"product.update":"product.create",payload);closeModal();toast("Đã lưu sản phẩm")}catch(e){toast(e.message,true)}};if(p)$("#deleteProduct").onclick=async()=>{if(confirm("Xóa mặt hàng?"))try{await mutate("product.delete",{id:p.id});closeModal();toast("Đã xóa")}catch(e){toast(e.message,true)}}}
 
-function renderStockin(){const q=norm($("#stockinSearch").value),category=renderCategoryButtons("#stockinCategoryChips","stockin",state.store.products.filter(p=>p.trackStock!==false&&p.active!==false),renderStockin),arr=state.store.products.filter(p=>p.trackStock!==false&&p.active!==false&&(!q||norm(p.name+" "+p.category).includes(q))&&(!category||String(p.category||"Khác")===category));$("#stockinProducts").innerHTML=arr.length?arr.map(p=>`<div class="stockin-row" data-id="${p.id}"><div><strong>${esc(p.name)}</strong><small>Tồn ${num(p.stock)} · ${num(p.packSize)} / thùng</small></div><input class="cases" type="number" min="0" placeholder="Thùng"><input class="units" type="number" min="0" placeholder="Lẻ"></div>`).join(""):`<div class="hint">Không có mặt hàng phù hợp.</div>`;const hist=[...state.store.stockReceipts].reverse().slice(0,100);$("#stockinHistory").className=`list${hist.length?"":" empty"}`;$("#stockinHistory").innerHTML=hist.length?hist.map(r=>`<div class="list-row" data-id="${r.id}"><div><strong>${new Date(r.createdAt).toLocaleString("vi-VN")}</strong><small>${esc(r.note||"Phiếu nhập")} · ${r.lines.length} mặt hàng</small></div><button class="ghost danger-text deleteReceipt">Xóa</button></div>`).join(""):"Chưa có phiếu.";$("#stockinHistory").querySelectorAll(".deleteReceipt").forEach(b=>b.onclick=async()=>{if(confirm("Xóa phiếu và trừ lại kho?"))try{await mutate("stockin.delete",{id:b.closest(".list-row").dataset.id});toast("Đã xóa phiếu")}catch(e){toast(e.message,true)}})}
+function renderStockin(){const q=norm($("#stockinSearch").value),category=renderCategoryButtons("#stockinCategoryChips","stockin",state.store.products.filter(p=>p.trackStock!==false&&p.active!==false),renderStockin),arr=state.store.products.filter(p=>p.trackStock!==false&&p.active!==false&&(!q||norm(p.name+" "+p.category).includes(q))&&(!category||String(p.category||"Khác")===category));$("#stockinProducts").innerHTML=arr.length?arr.map(p=>`<div class="stockin-row" data-id="${p.id}"><div><strong>${esc(p.name)}</strong><small>Tồn ${num(p.stock)} · ${num(p.packSize)} / thùng</small></div><input class="cases" type="number" min="0" placeholder="Thùng"><input class="units" type="number" min="0" placeholder="Lẻ"></div>`).join(""):`<div class="hint">Không có mặt hàng phù hợp.</div>`;const hist=[...state.store.stockReceipts].reverse().slice(0,100);$("#stockinHistory").className=`list${hist.length?"":" empty"}`;$("#stockinHistory").innerHTML=hist.length?hist.map(r=>`<div class="list-row" data-id="${r.id}"><div><strong>${new Date(r.createdAt).toLocaleString("vi-VN")}</strong><small>${esc(r.note||"Phiếu nhập")} · ${r.lines.length} mặt hàng</small></div><div class="row"><button class="ghost editReceipt">Sửa</button><button class="ghost danger-text deleteReceipt">Xóa</button></div></div>`).join(""):"Chưa có phiếu.";$("#stockinHistory").querySelectorAll(".editReceipt").forEach(b=>b.onclick=()=>showStockinEdit(state.store.stockReceipts.find(r=>r.id===b.closest(".list-row").dataset.id)));$("#stockinHistory").querySelectorAll(".deleteReceipt").forEach(b=>b.onclick=async()=>{if(confirm("Xóa phiếu và trừ lại kho?"))try{await mutate("stockin.delete",{id:b.closest(".list-row").dataset.id});toast("Đã xóa phiếu")}catch(e){toast(e.message,true)}})}
 $("#stockinSearch").oninput=renderStockin;$("#saveStockin").onclick=async()=>{const lines=$$("#stockinProducts .stockin-row").map(r=>({productId:r.dataset.id,cases:+r.querySelector(".cases").value||0,units:+r.querySelector(".units").value||0})).filter(x=>x.cases||x.units);if(!lines.length)return toast("Chưa nhập số lượng",true);try{await mutate("stockin.create",{createdAt:new Date($("#stockinDate").value).toISOString(),note:$("#stockinNote").value,lines});toast("Đã nhập kho")}catch(e){toast(e.message,true)}};
 
+function showStockinEdit(r){
+  showModal(`<h3>Sửa phiếu nhập kho</h3><label>Ngày nhập<input id="editReceiptDate" type="datetime-local" value="${dtLocal(r.createdAt)}"></label><label>Ghi chú<input id="editReceiptNote" value="${esc(r.note||"")}"></label><div class="receipt-edit-lines">${(r.lines||[]).map(l=>`<div class="sale-edit-line" data-id="${l.productId}"><span>${esc(l.name||state.store.products.find(p=>p.id===l.productId)?.name||"")}</span><input class="receipt-edit-qty" type="number" min="0" value="${l.quantity}" inputmode="numeric"></div>`).join("")}</div><p class="hint">Sửa theo tổng số lượng nhập. Hệ thống chỉ cộng/trừ phần chênh lệch để không phá các giao dịch phát sinh sau phiếu.</p><button id="saveReceiptEdit" class="primary full">Lưu phiếu nhập</button>`);
+  $("#saveReceiptEdit").onclick=async()=>{const lines=$$(".sale-edit-line").map(x=>({productId:x.dataset.id,quantity:Number(x.querySelector(".receipt-edit-qty").value)||0})).filter(x=>x.quantity>0);if(!lines.length)return toast("Phiếu nhập phải còn ít nhất một mặt hàng",true);try{await mutate("stockin.update",{id:r.id,createdAt:new Date($("#editReceiptDate").value).toISOString(),note:$("#editReceiptNote").value,lines});closeModal();toast("Đã sửa phiếu nhập")}catch(e){toast(e.message,true)}}
+}
 function renderAudit(){const q=norm($("#auditSearch").value),category=renderCategoryButtons("#auditCategoryChips","audit",state.store.products.filter(p=>p.trackStock!==false&&p.active!==false),renderAudit),arr=state.store.products.filter(p=>p.trackStock!==false&&p.active!==false&&(!q||norm(p.name+" "+p.category).includes(q))&&(!category||String(p.category||"Khác")===category));$("#auditProducts").innerHTML=arr.length?arr.map(p=>`<div class="audit-row" data-id="${p.id}"><div><strong>${esc(p.name)}</strong><small>${esc(p.category||"Khác")} · tồn hệ thống ${num(p.stock)} ${esc(p.unit||"")}</small></div><input class="actual" type="number" min="0" value="${p.stock}" inputmode="numeric"></div>`).join(""):`<div class="hint">Không có mặt hàng phù hợp.</div>`;const hist=[...state.store.audits].reverse().slice(0,100);$("#auditHistory").className=`list${hist.length?"":" empty"}`;$("#auditHistory").innerHTML=hist.length?hist.map(a=>`<div class="list-row" data-id="${a.id}"><div><strong>${new Date(a.createdAt).toLocaleString("vi-VN")}</strong><small>${esc(a.note||"Kiểm kho")} · ${a.lines.length} mặt hàng</small></div><button class="ghost editAudit">Sửa</button></div>`).join(""):"Chưa có lần kiểm kho.";$("#auditHistory").querySelectorAll(".editAudit").forEach(b=>b.onclick=()=>showAuditEdit(state.store.audits.find(a=>a.id===b.closest(".list-row").dataset.id)))}
 $("#auditSearch").oninput=renderAudit;$("#saveAudit").onclick=async()=>{const lines=$$("#auditProducts .audit-row").map(r=>({productId:r.dataset.id,actual:+r.querySelector(".actual").value||0}));if(!lines.length)return toast("Không có mặt hàng để kiểm kho",true);try{await mutate("audit.create",{note:$("#auditNote").value,lines});toast("Đã chốt kiểm kho")}catch(e){toast(e.message,true)}};
 function showAuditEdit(a){showModal(`<h3>Chỉnh đơn kiểm kho</h3><label>Ghi chú<input id="auditEditNote" value="${esc(a.note||"")}"></label>${a.lines.map(l=>`<label>${esc(l.name)}<input class="auditEditActual" data-id="${l.productId}" type="number" value="${l.actual}"></label>`).join("")}<div class="row"><button id="saveAuditEdit" class="primary">Lưu</button><button id="deleteAudit" class="file-btn" style="background:#b42318">Xóa</button></div>`);$("#saveAuditEdit").onclick=async()=>{const lines=$$(".auditEditActual").map(i=>({productId:i.dataset.id,actual:+i.value||0}));try{await mutate("audit.update",{id:a.id,note:$("#auditEditNote").value,lines});closeModal();toast("Đã sửa kiểm kho")}catch(e){toast(e.message,true)}};$("#deleteAudit").onclick=async()=>{if(confirm("Xóa đơn kiểm kho?"))try{await mutate("audit.delete",{id:a.id});closeModal();toast("Đã xóa")}catch(e){toast(e.message,true)}}}
@@ -435,18 +441,22 @@ $("#addAliasBtn")?.addEventListener("click",()=>{
   $("#saveAlias").onclick=async()=>{try{await mutate("alias.add",{alias:$("#aliasName").value,productId:$("#aliasProduct").value});closeModal();toast("AI đã ghi nhớ tên gọi")}catch(e){toast(e.message,true)}}
 });
 
+const externalScripts=new Map();
+function loadExternalScript(src,test){if(test())return Promise.resolve();if(externalScripts.has(src))return externalScripts.get(src);const p=new Promise((resolve,reject)=>{const s=document.createElement("script");s.src=src;s.async=true;s.onload=()=>test()?resolve():reject(new Error("Thư viện tải xong nhưng không khởi tạo"));s.onerror=()=>reject(new Error("Không tải được thư viện ngoài"));document.head.appendChild(s)});externalScripts.set(src,p);return p}
+const ensureXLSX=()=>loadExternalScript("https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.min.js",()=>!!window.XLSX);
+const ensureTesseract=()=>loadExternalScript("https://cdn.jsdelivr.net/npm/tesseract.js@5/dist/tesseract.min.js",()=>!!window.Tesseract);
+
 async function analyzeAIFile(file){
   const status=$("#aiFileStatus");status.textContent=`Đang đọc ${file.name}…`;
   try{
     let text="";
     if(file.type.startsWith("image/")){
-      if(!window.Tesseract)throw new Error("Chưa tải được bộ đọc ảnh OCR");
-      status.textContent="AI đang đọc chữ trong ảnh…";
+      status.textContent="Đang tải bộ đọc ảnh…";await ensureTesseract();status.textContent="AI đang đọc chữ trong ảnh…";
       const result=await window.Tesseract.recognize(file,"vie+eng");
       text=result.data.text||"";
     }else if(/\.xlsx?$|\.xls$/i.test(file.name)){
-      if(!window.XLSX)throw new Error("Chưa tải được bộ đọc Excel");
-      const wb=window.XLSX.read(await file.arrayBuffer(),{type:"array"});
+      await ensureXLSX();
+      const wb=window.XLSX.read(await file.arrayBuffer(),{type:"array",cellDates:true});
       text=wb.SheetNames.slice(0,3).map(n=>`[Sheet ${n}]\n`+window.XLSX.utils.sheet_to_csv(wb.Sheets[n])).join("\n").slice(0,12000);
     }else if(/\.csv$/i.test(file.name)){
       text=(await file.text()).slice(0,12000);
@@ -468,6 +478,24 @@ function download(obj,name){
   setTimeout(()=>URL.revokeObjectURL(url),3000);
 }
 async function readFile(f){return JSON.parse(await f.text())}
+function sheetRows(){
+  const st=state.store;
+  return {
+    Products:(st.products||[]).map(p=>({name:p.name,category:p.category,unit:p.unit,packSize:p.packSize,costPrice:p.costPrice,salePrice:p.salePrice,stock:p.stock,minStock:p.minStock,active:p.active!==false})),
+    Customers:(st.customers||[]).map(c=>({name:c.name,active:c.active!==false,totalDebt:customerDebt(c.id)})),
+    Debts:(st.debts||[]).map(d=>({customer:d.customer||st.customers.find(c=>c.id===d.customerId)?.name||"",amount:d.amount,paid:d.paid,balance:d.balance,note:d.note,createdAt:d.createdAt,saleId:d.saleId||""})),
+    Sales:(st.sales||[]).map(s=>({id:s.id,createdAt:s.createdAt,customer:s.customer||"",paymentMethod:s.paymentMethod,total:s.total,costTotal:s.costTotal,profit:s.profit,note:s.note||"",items:(s.items||[]).map(i=>`${i.name} x${i.quantity}`).join(" | ")})),
+    StockReceipts:(st.stockReceipts||[]).flatMap(r=>(r.lines||[]).map(l=>({receiptId:r.id,createdAt:r.createdAt,note:r.note||"",product:l.name||st.products.find(p=>p.id===l.productId)?.name||"",quantity:l.quantity}))),
+    Audits:(st.audits||[]).flatMap(a=>(a.lines||[]).map(l=>({auditId:a.id,createdAt:a.createdAt,note:a.note||"",product:l.name||st.products.find(p=>p.id===l.productId)?.name||"",before:l.before,actual:l.actual,delta:l.delta})))
+  }
+}
+async function exportExcel(){await ensureXLSX();const wb=window.XLSX.utils.book_new();for(const [name,rows] of Object.entries(sheetRows()))window.XLSX.utils.book_append_sheet(wb,window.XLSX.utils.json_to_sheet(rows),name);window.XLSX.writeFile(wb,`cantin-${todayKey()}.xlsx`)}
+function normalizeExcelKey(k){return norm(k).replace(/[^a-z0-9]+/g,"")}
+function mapExcelRows(rows,type){const m=v=>v===""||v===undefined||v===null?undefined:(typeof v==="number"?v:parseMoney(v));return rows.map(raw=>{const r={};for(const [k,v] of Object.entries(raw))r[normalizeExcelKey(k)]=v;if(type==="products")return {name:r.name||r.ten||r.sanpham||r.mathang,category:r.category||r.danhmuc,unit:r.unit||r.donvi,packSize:r.packsize||r.quycach,costPrice:m(r.costprice||r.gianhap),salePrice:m(r.saleprice||r.giaban),stock:r.stock||r.ton||r.tonkho,minStock:r.minstock||r.tonthieutoi};if(type==="customers")return {name:r.name||r.ten||r.khachhang};const d=r.createdat||r.ngay;return {customer:r.customer||r.khachhang||r.ten,amount:m(r.amount||r.sotien||r.tongno),paid:m(r.paid||r.datra),note:r.note||r.ghichu||r.monno,createdAt:d instanceof Date?d.toISOString():d}}).filter(x=>type==="debts"?x.customer&&x.amount:x.name)}
+async function importExcelFile(file){await ensureXLSX();const wb=window.XLSX.read(await file.arrayBuffer(),{type:"array",cellDates:true}),get=name=>{const n=wb.SheetNames.find(x=>norm(x)===norm(name));return n?window.XLSX.utils.sheet_to_json(wb.Sheets[n],{defval:""}):[]};const products=mapExcelRows(get("Products"),"products"),customers=mapExcelRows(get("Customers"),"customers"),debts=mapExcelRows(get("Debts"),"debts");if(!products.length&&!customers.length&&!debts.length)throw new Error("Không tìm thấy sheet Products / Customers / Debts");if(!confirm(`Nhập Excel: ${products.length} mặt hàng · ${customers.length} khách · ${debts.length} khoản nợ? Hệ thống sẽ tạo snapshot trước khi ghi.`))return;await mutate("data.tabular.import",{products,customers,debts});$("#excelStatus").textContent=`Đã nhập ${products.length} mặt hàng · ${customers.length} khách · ${debts.length} khoản nợ.`}
+$("#exportExcel")?.addEventListener("click",()=>exportExcel().catch(e=>toast(e.message,true)));
+$("#importExcel")?.addEventListener("change",async e=>{const f=e.target.files?.[0];if(!f)return;try{await importExcelFile(f);toast("Đã nhập Excel")}catch(err){$("#excelStatus").textContent=err.message;toast(err.message,true)}e.target.value=""});
+
 $("#exportStore").onclick=()=>download({format:"cantin-ai-next-store",version:1,store:state.store},`cantin-store-${todayKey()}.node.json`);
 $("#importStore").onchange=async e=>{const f=e.target.files[0];if(!f)return;try{const o=await readFile(f);if(o.format!=="cantin-ai-next-store")throw new Error("Sai định dạng");await mutate("store.import",{store:o.store});toast("Đã nhập dữ liệu")}catch(x){toast(x.message,true)}e.target.value=""};
 $("#exportConfig").onclick=()=>download({format:"cantin-ai-next-config",version:1,config:state.store.config,aliases:state.store.aliases},`cantin-config-${todayKey()}.node.json`);
@@ -513,7 +541,7 @@ $("#runRecovery")?.addEventListener("click",async()=>{
   }catch(e){toast(e.message,true)}
 });
 $("#downloadEmergencyBackup")?.addEventListener("click",()=>{
-  const payload={format:"cantin-ai-emergency-backup",version:"4.8.2",exportedAt:new Date().toISOString(),data:state.store};
+  const payload={format:"cantin-ai-emergency-backup",version:"4.12",exportedAt:new Date().toISOString(),data:state.store};
   download(payload,`cantin-backup-${todayKey()}.json`);
   toast("Đã tạo file backup");
 });
@@ -540,11 +568,5 @@ function closeAiPopup(){$("#aiPopup").classList.add("hidden");$("#aiPopup").setA
 $("#aiFab")?.addEventListener("click",openAiPopup);$("#closeAiPopup")?.addEventListener("click",closeAiPopup);$("#aiPopup")?.addEventListener("click",e=>{if(e.target.id==="aiPopup")closeAiPopup()});
 $("#sendAiPopup")?.addEventListener("click",()=>sendAIPopup($("#aiPopupInput").value));$("#aiPopupInput")?.addEventListener("keydown",e=>{if(e.key==="Enter"&&!e.shiftKey){e.preventDefault();sendAIPopup(e.target.value)}});
 $$("[data-popup-prompt]").forEach(b=>b.onclick=()=>sendAIPopup(b.dataset.popupPrompt));
-$("#openFullAi")?.addEventListener("click",()=>{closeAiPopup();$$(".nav-item").find(x=>x.dataset.page==="assistant")?.click()});
+$("#openFullAi")?.addEventListener("click",()=>{closeAiPopup();navigate("assistant")});
 
-document.addEventListener("click",e=>{
-  const b=e.target.closest?.(".editCustomer");if(!b)return;
-  const row=b.closest("[data-id]"),id=row?.dataset.id,c=state.store?.customers?.find(x=>x.id===id);if(!c)return;
-  showModal(`<h3>Sửa tên khách hàng</h3><label>Tên khách hàng<input id="editCustomerName" value="${esc(c.name)}"></label><button id="saveCustomerName" class="primary full">Lưu tên</button>`);
-  $("#saveCustomerName").onclick=async()=>{try{await mutate("customer.update",{id,name:$("#editCustomerName").value});closeModal();toast("Đã đổi tên khách hàng")}catch(err){toast(err.message,true)}}
-});
