@@ -34,7 +34,7 @@ function renderAll(){
   $("#storeName").textContent=state.store.meta?.name||"Cửa hàng";
   $("#storeSelect").innerHTML=state.stores.map(s=>`<option value="${s.id}" ${s.id===state.storeId?"selected":""}>${esc(s.name)}</option>`).join("");
   $("#saleDate").value=$("#saleDate").value||dtLocal();$("#stockinDate").value=$("#stockinDate").value||dtLocal();
-  renderDashboard();renderIngredients();renderProducts();renderSales();renderCustomers();renderStockin();renderAudit();renderTransactions();renderSnapshots();renderStores();renderQuickProducts();renderCart();
+  renderDataSafety();renderDashboard();renderIngredients();renderProducts();renderSales();renderCustomers();renderStockin();renderAudit();renderTransactions();renderSnapshots();renderStores();renderQuickProducts();renderCart();
 }
 function navigate(page){
   $$(".page").forEach(p=>p.classList.toggle("active",p.dataset.page===page));
@@ -58,6 +58,14 @@ function dashboardData(){
   const low=state.store.products.filter(p=>p.active!==false&&p.trackStock!==false&&(+p.stock||0)<= (+p.minStock||0));
   return {rev,profit,debt,low};
 }
+
+function renderDataSafety(){
+  const b=$("#dataSafetyBanner");if(!b||!state.store)return;
+  const empty=(state.store.products?.length||0)+(state.store.customers?.length||0)+(state.store.debts?.length||0)+(state.store.sales?.length||0)===0;
+  b.classList.toggle("hidden",!empty);
+}
+$("#goRecovery")?.addEventListener("click",()=>navigate("data"));
+
 function renderDashboard(){
   const d=dashboardData();$("#todayRevenue").textContent=money(d.rev);$("#todayProfit").textContent=money(d.profit);$("#totalDebt").textContent=money(d.debt);$("#lowStockCount").textContent=d.low.length;
   const insights=[];
@@ -303,6 +311,41 @@ $$(".inventory-subtabs .subtab").forEach(btn=>btn.addEventListener("click",()=>{
   $$('[data-subpage^="audit-"]').forEach(p=>p.classList.toggle("active",p.dataset.subpage===key));
   if(key==="audit-stockin")renderStockin();else renderAudit();
 }));
+
+
+let pendingRecoveryData=null;
+$("#recoveryFile")?.addEventListener("change",async e=>{
+  const f=e.target.files?.[0]; if(!f)return;
+  try{
+    const raw=JSON.parse(await f.text());
+    const store=raw?.data||raw?.store||raw;
+    if(!store || typeof store!=="object") throw new Error("File không hợp lệ");
+    const p=(store.products||[]).length,c=(store.customers||[]).length,d=(store.debts||[]).length,s=(store.sales||[]).length;
+    pendingRecoveryData=store;
+    $("#recoveryPreview").innerHTML=`<strong>${esc(f.name)}</strong><br>${p} mặt hàng · ${c} khách hàng · ${d} khoản nợ · ${s} đơn bán`;
+    $("#runRecovery").disabled=false;
+  }catch(err){
+    pendingRecoveryData=null;
+    $("#recoveryPreview").textContent="Không đọc được file backup: "+err.message;
+    $("#runRecovery").disabled=true;
+  }
+});
+$("#runRecovery")?.addEventListener("click",async()=>{
+  if(!pendingRecoveryData)return;
+  if(!confirm("Khôi phục dữ liệu từ file này? Hệ thống sẽ tạo snapshot hiện tại trước khi thay dữ liệu."))return;
+  try{
+    await mutate("recovery.import",{data:pendingRecoveryData});
+    pendingRecoveryData=null;
+    $("#recoveryFile").value="";
+    $("#recoveryPreview").textContent="Khôi phục thành công.";
+    $("#runRecovery").disabled=true;
+    toast("Đã khôi phục dữ liệu");
+  }catch(e){toast(e.message,true)}
+});
+$("#downloadEmergencyBackup")?.addEventListener("click",()=>{
+  const payload={format:"cantin-ai-emergency-backup",version:"4.8",exportedAt:new Date().toISOString(),data:state.store};
+  downloadJson(`cantin-backup-${todayKey()}.json`,payload);
+});
 
 boot();
 
