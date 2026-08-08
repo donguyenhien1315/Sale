@@ -169,6 +169,8 @@ $("#dashboardProfitCard")?.addEventListener("click",showProfitDetail);
 
 
 const categoryState={sale:"",stockin:"",audit:"",product:""};
+
+const auditDraft={};
 function renderCategoryButtons(chipsId,key,items,rerender){
   const chips=$(chipsId);if(!chips)return "";
   const activeItems=(items||[]).filter(p=>p.active!==false);
@@ -482,9 +484,10 @@ function auditLinePeriodMetric(audit,line){
 function auditPeriodMonthReport(key){
   const sales=(state.store.sales||[]).filter(s=>String(s.createdAt).slice(0,7)===key);
   let actualRevenue=0,actualProfit=0;for(const s of sales){actualRevenue+=+s.total||0;actualProfit+=+s.profit||0}
-  const rows=[];let derivedRevenue=0,derivedProfit=0,lossCost=0,unclassifiedQty=0,baselineQty=0,surplusQty=0;
-  for(const a of state.store.audits||[]){if(a.periodKey!==key)continue;for(const l of a.lines||[]){const x=auditLinePeriodMetric(a,l);if(!x.prev){baselineQty+=x.unexplained;continue}derivedRevenue+=x.revenue;derivedProfit+=x.profit;lossCost+=x.lossCost;surplusQty+=x.surplus;if(x.type==="unclassified")unclassifiedQty+=x.unexplained;if(x.unexplained>0||x.surplus>0)rows.push(x)}}
-  return {key,sales,actualRevenue,actualProfit,derivedRevenue,derivedProfit,lossCost,unclassifiedQty,baselineQty,surplusQty,estimatedRevenue:actualRevenue+derivedRevenue,estimatedProfit:actualProfit+derivedProfit-lossCost,rows}
+  const rows=[];let derivedRevenue=0,derivedProfit=0,lossCost=0,unclassifiedQty=0,baselineQty=0,surplusQty=0,auditCount=0,auditedLineCount=0;
+  const auditedProductIds=new Set(),baselineProductIds=new Set();
+  for(const a of state.store.audits||[]){if(a.periodKey!==key)continue;auditCount++;for(const l of a.lines||[]){auditedLineCount++;auditedProductIds.add(l.productId);const x=auditLinePeriodMetric(a,l);if(!x.prev){baselineProductIds.add(l.productId);baselineQty+=x.unexplained;continue}derivedRevenue+=x.revenue;derivedProfit+=x.profit;lossCost+=x.lossCost;surplusQty+=x.surplus;if(x.type==="unclassified")unclassifiedQty+=x.unexplained;if(x.unexplained>0||x.surplus>0)rows.push(x)}}
+  return {key,sales,actualRevenue,actualProfit,derivedRevenue,derivedProfit,lossCost,unclassifiedQty,baselineQty,surplusQty,auditCount,auditedLineCount,auditedProductCount:auditedProductIds.size,baselineProductCount:baselineProductIds.size,estimatedRevenue:actualRevenue+derivedRevenue,estimatedProfit:actualProfit+derivedProfit-lossCost,rows}
 }
 function renderAuditPeriodReport(){
   const box=$("#auditPeriodReport"),key=$("#auditReportMonth")?.value;if(!box||!key||!state.store)return;
@@ -496,13 +499,18 @@ function renderAuditPeriodReport(){
     <div class="period-total"><span>Tổng doanh thu tháng</span><b>${money(r.estimatedRevenue)}</b><small>Ước tính theo kỳ kiểm kho</small></div>
     <div><span>Lợi nhuận ước tính</span><b>${money(r.estimatedProfit)}</b><small>Đã trừ hao hụt đã phân loại</small></div>
   </div>
+  <div class="audit-count-summary">
+    <span><b>${r.auditedProductCount}</b> mặt hàng đã lưu trong kiểm kho kỳ này</span>
+    <span><b>${r.auditCount}</b> phiếu kiểm kho</span>
+    <span><b>${derivedRows.length}</b> mặt hàng có bán chưa ghi nhận</span>
+  </div>
   <div class="period-flags">
     ${r.lossCost?`<span class="period-flag loss">Hao hụt theo giá vốn: ${money(r.lossCost)}</span>`:""}
     ${r.unclassifiedQty?`<span class="period-flag warn">${num(r.unclassifiedQty)} SP chưa phân loại</span>`:""}
     ${r.baselineQty?`<span class="period-flag neutral">Phiếu đầu tiên còn lại là mốc gốc, không tính ${num(r.baselineQty)} SP chênh lệch trước mốc</span>`:""}
     ${!r.unclassifiedQty&&!r.baselineQty&&!r.lossCost?`<span class="period-flag good">Các kỳ đã phân loại đầy đủ</span>`:""}
   </div>
-  <details class="period-details"><summary>Bán chưa ghi nhận từ kiểm kho (${derivedRows.length})</summary>
+  <details class="period-details"><summary>Bán chưa ghi nhận từ kiểm kho (${derivedRows.length} mặt hàng — không phải tổng số mặt hàng đã kiểm)</summary>
     <div class="period-derived-list">${derivedRows.length?derivedRows.map(x=>`<div class="period-derived-row"><div><strong>${esc(x.p?.name||x.line.name||"Sản phẩm")}</strong><small>${new Date(x.prev.createdAt).toLocaleDateString("vi-VN")} → ${new Date(x.audit.createdAt).toLocaleDateString("vi-VN")} · ${num(x.unexplained)} ${esc(x.p?.unit||"")}</small></div><b>${money(x.revenue)}</b></div>`).join(""):'<div class="hint">Không có doanh thu suy ra trong kỳ này.</div>'}</div>
   </details>
   <p class="hint period-method">Phần suy ra dùng <b>tồn hệ thống trước kiểm − tồn thực tế</b>. Tồn hệ thống đã trừ các đơn bán và cộng các phiếu nhập, nên phần này không cộng trùng với đơn đã ghi.</p>`;
@@ -511,11 +519,17 @@ $("#auditReportMonth")?.addEventListener("change",renderAuditPeriodReport);
 $("#auditDate")?.addEventListener("change",()=>{$("#auditPeriodMonth").value=defaultAuditPeriodKey($("#auditDate").value)});
 
 function renderAudit(){
-  const q=norm($("#auditSearch").value),category=renderCategoryButtons("#auditCategoryChips","audit",state.store.products.filter(p=>p.trackStock!==false&&p.active!==false),renderAudit),arr=state.store.products.filter(p=>p.trackStock!==false&&p.active!==false&&(!q||norm(p.name+" "+p.category).includes(q))&&(!category||String(p.category||"Khác")===category));
-  $("#auditProducts").innerHTML=arr.length?arr.map(p=>`<div class="audit-row" data-id="${p.id}"><div><strong>${esc(p.name)}</strong><small>${esc(p.category||"Khác")} · tồn hệ thống ${num(p.stock)} ${esc(p.unit||"")}</small></div><input class="actual" type="number" min="0" value="${p.stock}" inputmode="numeric"></div>`).join(""):`<div class="hint">Không có mặt hàng phù hợp.</div>`;
+  const q=norm($("#auditSearch").value),category=renderCategoryButtons("#auditCategoryChips","audit",state.store.products.filter(p=>p.trackStock!==false&&p.active!==false),renderAudit),all=state.store.products.filter(p=>p.trackStock!==false&&p.active!==false),arr=all.filter(p=>(!q||norm(p.name+" "+p.category).includes(q))&&(!category||String(p.category||"Khác")===category));
+  $("#auditProducts").innerHTML=arr.length?arr.map(p=>{const actual=Object.prototype.hasOwnProperty.call(auditDraft,p.id)?auditDraft[p.id]:p.stock;return `<div class="audit-row" data-id="${p.id}"><div><strong>${esc(p.name)}</strong><small>${esc(p.category||"Khác")} · tồn hệ thống ${num(p.stock)} ${esc(p.unit||"")}</small></div><input class="actual" type="number" min="0" value="${actual}" inputmode="numeric"></div>`}).join(""):`<div class="hint">Không có mặt hàng phù hợp.</div>`;
+  $$("#auditProducts .audit-row").forEach(r=>{const input=r.querySelector(".actual");input.oninput=()=>{auditDraft[r.dataset.id]=Math.max(0,+input.value||0)}});
+
+  const savedDraftCount=Object.keys(auditDraft).length;
+  const draftInfo=$("#auditDraftInfo");
+  if(draftInfo)draftInfo.innerHTML=`Phiếu hiện tại sẽ lưu <b>${all.length} mặt hàng</b>${savedDraftCount?` · đã nhập/chỉnh ${savedDraftCount} mặt hàng qua các bộ lọc`:""}. Đổi danh mục không làm mất số đã nhập.`;
+
   const hist=[...state.store.audits].sort((a,b)=>String(b.createdAt).localeCompare(String(a.createdAt))).slice(0,100);
   $("#auditHistory").className=`list${hist.length?"":" empty"}`;
-  $("#auditHistory").innerHTML=hist.length?hist.map(a=>{const metrics=(a.lines||[]).map(l=>auditLinePeriodMetric(a,l)),derived=metrics.reduce((z,x)=>z+x.revenue,0),loss=metrics.reduce((z,x)=>z+x.lossCost,0),unclassified=metrics.reduce((z,x)=>z+(x.type==="unclassified"&&x.prev?x.unexplained:0),0);return `<div class="list-row audit-history-row" data-id="${a.id}"><div><strong>${new Date(a.createdAt).toLocaleString("vi-VN")}</strong><small>Kỳ ${periodLabel(a.periodKey)} · ${a.lines.length} mặt hàng${derived?` · suy ra ${money(derived)}`:""}${loss?` · hao hụt ${money(loss)}`:""}${unclassified?` · ${num(unclassified)} SP chưa phân loại`:""}</small><small>${esc(a.note||"Kiểm kho")}</small></div><button class="ghost editAudit">Sửa</button></div>`}).join(""):"Chưa có lần kiểm kho.";
+  $("#auditHistory").innerHTML=hist.length?hist.map(a=>{const metrics=(a.lines||[]).map(l=>auditLinePeriodMetric(a,l)),derived=metrics.reduce((z,x)=>z+x.revenue,0),loss=metrics.reduce((z,x)=>z+x.lossCost,0),unclassified=metrics.reduce((z,x)=>z+(x.type==="unclassified"&&x.prev?x.unexplained:0),0);return `<div class="list-row audit-history-row" data-id="${a.id}"><div><strong>${new Date(a.createdAt).toLocaleString("vi-VN")}</strong><small>Kỳ ${periodLabel(a.periodKey)} · <b>${a.lines.length} mặt hàng đã lưu</b>${derived?` · suy ra ${money(derived)}`:""}${loss?` · hao hụt ${money(loss)}`:""}${unclassified?` · ${num(unclassified)} SP chưa phân loại`:""}</small><small>${esc(a.note||"Kiểm kho")}</small></div><button class="ghost editAudit">Sửa</button></div>`}).join(""):"Chưa có lần kiểm kho.";
   $("#auditHistory").querySelectorAll(".editAudit").forEach(b=>b.onclick=()=>showAuditEdit(state.store.audits.find(a=>a.id===b.closest(".list-row").dataset.id)));
 }
 $("#auditSearch").oninput=renderAudit;
@@ -592,10 +606,17 @@ $("#resetAllAuditsBtn")?.addEventListener("click",()=>{
 });
 
 $("#saveAudit").onclick=async()=>{
-  const lines=$$("#auditProducts .audit-row").map(r=>({productId:r.dataset.id,actual:+r.querySelector(".actual").value||0,reconcileType:$("#auditDefaultReconcile").value}));
+  const all=state.store.products.filter(p=>p.trackStock!==false&&p.active!==false);
+  const lines=all.map(p=>({productId:p.id,actual:Object.prototype.hasOwnProperty.call(auditDraft,p.id)?Math.max(0,+auditDraft[p.id]||0):Math.max(0,+p.stock||0),reconcileType:$("#auditDefaultReconcile").value}));
   if(!lines.length)return toast("Không có mặt hàng để kiểm kho",true);
   const createdAt=$("#auditDate").value?new Date($("#auditDate").value).toISOString():new Date().toISOString(),periodKey=$("#auditPeriodMonth").value||defaultAuditPeriodKey(createdAt);
-  try{await mutate("audit.create",{createdAt,periodKey,defaultReconcileType:$("#auditDefaultReconcile").value,note:$("#auditNote").value,lines});$("#auditNote").value="";toast(`Đã chốt kiểm kho · kỳ ${periodLabel(periodKey)}`)}catch(e){toast(e.message,true)}
+  try{
+    await mutate("audit.create",{createdAt,periodKey,defaultReconcileType:$("#auditDefaultReconcile").value,note:$("#auditNote").value,lines});
+    for(const k of Object.keys(auditDraft))delete auditDraft[k];
+    $("#auditNote").value="";
+    renderAudit();
+    toast(`Đã chốt kiểm kho ${lines.length} mặt hàng · kỳ ${periodLabel(periodKey)}`)
+  }catch(e){toast(e.message,true)}
 };
 function showAuditEdit(a){
   const lineHtml=(a.lines||[]).map(l=>{const x=auditLinePeriodMetric(a,l),type=l.reconcileType||"unclassified";return `<div class="audit-edit-period-line" data-id="${l.productId}"><div class="audit-edit-title"><strong>${esc(l.name)}</strong><small>Hệ thống trước kiểm ${num(l.before)} → thực tế ${num(l.actual)}${x.prev?` · chênh giảm ${num(x.unexplained)}`:" · mốc kiểm đầu tiên"}</small></div><label>Tồn thực tế<input class="auditEditActual" type="number" value="${l.actual}" min="0"></label><label>Phân loại chênh lệch<select class="auditEditType"><option value="unrecorded_sale" ${type==="unrecorded_sale"?"selected":""}>Bán chưa ghi nhận</option><option value="loss" ${type==="loss"?"selected":""}>Hao hụt / hỏng / mất</option><option value="adjustment" ${type==="adjustment"?"selected":""}>Điều chỉnh khác</option><option value="unclassified" ${type==="unclassified"?"selected":""}>Chưa phân loại</option></select></label></div>`}).join("");
