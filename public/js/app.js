@@ -60,8 +60,9 @@ function dashboardData(){
 }
 
 
-function updateFab(target){const fab=$("#contextFab");if(!fab)return;fab.classList.remove("hidden");const cfg={customers:()=>$("#addCustomerBtn")?.click(),audit:()=>$('.inventory-subtabs [data-subtab="audit-stockin"]')?.click(),products:()=>$("#addProductBtn")?.click(),ingredients:()=>$("#addIngredientBtn")?.click(),expenses:()=>$("#addExpenseBtn")?.click()};if(cfg[target])fab.onclick=cfg[target];else{fab.classList.add("hidden");fab.onclick=null}}
+function updateFab(target){const fab=$("#contextFab");if(!fab)return;fab.classList.remove("hidden");const cfg={debts:()=>$("#addCustomerBtn")?.click(),audit:()=>$('.inventory-subtabs [data-subtab="audit-stockin"]')?.click(),products:()=>$("#addProductBtn")?.click(),ingredients:()=>$("#addIngredientBtn")?.click(),expenses:()=>$("#addExpenseBtn")?.click()};if(cfg[target])fab.onclick=cfg[target];else{fab.classList.add("hidden");fab.onclick=null}}
 function goPage(target){
+  if(target==="customers")target="debts";
   $$(".page").forEach(p=>p.classList.toggle("active",p.dataset.page===target));
   $$(".bottom-nav .nav").forEach(n=>{
     const mapped=target==="products"||target==="ingredients"?"audit":target==="expenses"?"dashboard":target==="data"||target==="activity"?"assistant":target;
@@ -69,6 +70,7 @@ function goPage(target){
   });
   window.scrollTo({top:0,behavior:"smooth"});
   if(target==="expenses"){renderExpenses();renderFinanceReport();}
+  if(target==="debts")renderCustomers();
   if(target==="audit")renderAudit();
   if(target==="products")renderProducts();
   if(target==="ingredients")renderIngredients();updateFab(target);
@@ -207,10 +209,13 @@ function parseMoney(v,base=0){let s=String(v||"").trim().toLowerCase().replace(/
 
 function customerDebt(id){return state.store.debts.filter(d=>d.customerId===id).reduce((a,d)=>a+(+d.balance||0),0)}
 function renderCustomers(){
+  if(!$("#customers")||!$("#debtSearch")||!$("#debtSort"))return;
+  state.store.customers=Array.isArray(state.store.customers)?state.store.customers:[];
+  state.store.debts=Array.isArray(state.store.debts)?state.store.debts:[];
   const q=norm($("#debtSearch").value),sort=$("#debtSort").value;let arr=state.store.customers.filter(c=>!q||norm(c.name).includes(q)).map(c=>({...c,debtBalance:customerDebt(c.id)}));
   arr.sort((a,b)=>sort==="debt"?b.debtBalance-a.debtBalance:sort==="za"?b.name.localeCompare(a.name,"vi"):a.name.localeCompare(b.name,"vi"));
   $("#debtPageTotal").textContent=money(arr.reduce((a,c)=>a+c.debtBalance,0));$("#saleCustomer").innerHTML=`<option value="">Chọn khách</option>`+state.store.customers.map(c=>`<option value="${c.id}">${esc(c.name)}${customerDebt(c.id)?` — ${money(customerDebt(c.id))}`:""}</option>`).join("");
-  $("#customers").innerHTML=arr.map(c=>`<article class="customer-item" data-id="${c.id}"><div class="customer-summary"><strong>${esc(c.name)}</strong><strong>${money(c.debtBalance)} ›</strong></div><div class="customer-detail hidden"></div></article>`).join("");
+  $("#customers").innerHTML=arr.length?arr.map(c=>`<article class="customer-item" data-id="${c.id}"><div class="customer-summary"><strong>${esc(c.name)}</strong><strong>${money(c.debtBalance)} ›</strong></div><div class="customer-detail hidden"></div></article>`).join(""):'<div class="panel empty-state"><strong>Chưa có khách hàng</strong><p class="hint">Bấm + để thêm khách mới.</p></div>';
   $("#customers").querySelectorAll(".customer-summary").forEach(s=>s.onclick=()=>toggleCustomer(s.parentElement));
 }
 function toggleCustomer(card){
@@ -493,7 +498,7 @@ $$(".warehouse-jump").forEach(b=>b.addEventListener("click",()=>goPage(b.dataset
 $$(".back-to-warehouse").forEach(b=>b.addEventListener("click",()=>goPage("audit")));
 $$(".more-jump").forEach(b=>b.addEventListener("click",()=>goPage(b.dataset.jump)));
 $$(".back-to-more").forEach(b=>b.addEventListener("click",()=>goPage("assistant")));
-$("#miniDebtLink")?.addEventListener("click",()=>goPage("customers"));
+$("#miniDebtLink")?.addEventListener("click",()=>goPage("debts"));
 $("#miniLowLink")?.addEventListener("click",()=>goPage("products"));
 
 boot();
