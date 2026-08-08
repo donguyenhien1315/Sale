@@ -1,4 +1,4 @@
-# Cantin AI Next v4.2
+# Cantin AI Next v4.4
 
 App mới hoàn toàn, không phụ thuộc mã nguồn v3.x.
 
@@ -42,3 +42,18 @@ App không xóa dữ liệu cũ. Root hiện tại sẽ được bọc vào cấ
 - Điều chỉnh tồn độc lập KHÔNG tạo đơn bán, không thay doanh thu/lợi nhuận, không tạo kiểm kho, không ảnh hưởng công nợ.
 - Mọi lần chỉnh chỉ được ghi vào transaction log để truy vết.
 - Lọc tồn ít → nhiều / nhiều → ít.
+
+
+## v4.3
+- Đưa mục **Mặt hàng** ra thanh điều hướng dưới để dễ tìm trên iPhone/iPad.
+- Bộ lọc danh mục dạng nút: Tất cả, Cà phê, Nước, Bánh Oishi, Kem và các danh mục tự tạo.
+- Dropdown danh mục + tìm kiếm + sắp xếp tồn.
+- Hiện số lượng mặt hàng, tổng tồn và số mặt hàng sắp/hết theo danh mục.
+- Mỗi mặt hàng hiện badge danh mục.
+
+
+## v4.4
+- Công nợ rút gọn: mở khách hàng chỉ hiện 2 nút Ghi nợ / Trả nợ và lịch sử.
+- Form nhập tiền chỉ mở khi bấm Ghi nợ hoặc Trả nợ.
+- Bộ lọc danh mục được thêm ở Bán hàng, Nhập kho, Kiểm kho, Quản lý mặt hàng.
+- Nguyên liệu cũng có bộ lọc nhóm.
