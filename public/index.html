@@ -12,7 +12,7 @@
   <div id="boot" class="boot">Đang đồng bộ dữ liệu…</div>
   <header class="topbar">
     <div>
-      <div class="eyebrow">CANTIN AI NEXT 4.12.2</div>
+      <div class="eyebrow">CANTIN AI NEXT 4.12.4</div>
       <h1 id="storeName">Cửa hàng chính</h1>
     </div>
     <div class="top-actions">
@@ -118,7 +118,13 @@
         </div>
         <div id="auditPeriodReport"></div>
       </article>
-      <article class="panel"><div class="panel-head"><h3>Lịch sử kiểm kho</h3></div><div id="auditHistory" class="list empty"></div></article>
+      <article class="panel">
+        <div class="panel-head">
+          <div><h3>Lịch sử kiểm kho</h3><p class="hint">Có thể reset toàn bộ để bắt đầu một mốc kiểm kho mới.</p></div>
+          <button id="resetAllAuditsBtn" class="danger-outline small">Reset kiểm kho</button>
+        </div>
+        <div id="auditHistory" class="list empty"></div>
+      </article>
     
       </div>
       <div class="subpage" data-subpage="audit-stockin">

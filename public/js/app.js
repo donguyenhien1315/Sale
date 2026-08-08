@@ -489,7 +489,8 @@ function auditPeriodMonthReport(key){
 function renderAuditPeriodReport(){
   const box=$("#auditPeriodReport"),key=$("#auditReportMonth")?.value;if(!box||!key||!state.store)return;
   const r=auditPeriodMonthReport(key),derivedRows=r.rows.filter(x=>x.type==="unrecorded_sale"&&x.unexplained>0).sort((a,b)=>b.revenue-a.revenue);
-  box.innerHTML=`<div class="period-summary-grid">
+  const recalculatedAt=new Date().toLocaleTimeString("vi-VN",{hour:"2-digit",minute:"2-digit",second:"2-digit"});
+  box.innerHTML=`<div class="period-recalc-note">Đã tính lại từ dữ liệu hiện tại · ${recalculatedAt}</div><div class="period-summary-grid">
     <div><span>Doanh thu từ đơn</span><b>${money(r.actualRevenue)}</b><small>Chính xác theo ngày bán</small></div>
     <div><span>Suy ra từ kiểm kho</span><b>${money(r.derivedRevenue)}</b><small>Không gán vào từng ngày</small></div>
     <div class="period-total"><span>Tổng doanh thu tháng</span><b>${money(r.estimatedRevenue)}</b><small>Ước tính theo kỳ kiểm kho</small></div>
@@ -498,7 +499,7 @@ function renderAuditPeriodReport(){
   <div class="period-flags">
     ${r.lossCost?`<span class="period-flag loss">Hao hụt theo giá vốn: ${money(r.lossCost)}</span>`:""}
     ${r.unclassifiedQty?`<span class="period-flag warn">${num(r.unclassifiedQty)} SP chưa phân loại</span>`:""}
-    ${r.baselineQty?`<span class="period-flag neutral">Phiếu đầu tiên là mốc gốc, không tính ${num(r.baselineQty)} SP chênh lệch</span>`:""}
+    ${r.baselineQty?`<span class="period-flag neutral">Phiếu đầu tiên còn lại là mốc gốc, không tính ${num(r.baselineQty)} SP chênh lệch trước mốc</span>`:""}
     ${!r.unclassifiedQty&&!r.baselineQty&&!r.lossCost?`<span class="period-flag good">Các kỳ đã phân loại đầy đủ</span>`:""}
   </div>
   <details class="period-details"><summary>Bán chưa ghi nhận từ kiểm kho (${derivedRows.length})</summary>
@@ -518,6 +519,39 @@ function renderAudit(){
   $("#auditHistory").querySelectorAll(".editAudit").forEach(b=>b.onclick=()=>showAuditEdit(state.store.audits.find(a=>a.id===b.closest(".list-row").dataset.id)));
 }
 $("#auditSearch").oninput=renderAudit;
+
+$("#resetAllAuditsBtn")?.addEventListener("click",()=>{
+  const count=(state.store.audits||[]).length;
+  if(!count)return toast("Không có lịch sử kiểm kho để reset");
+  showModal(`<h3>Reset toàn bộ kiểm kho</h3>
+    <div class="reset-warning">
+      <strong>Sẽ xóa ${count} phiếu kiểm kho</strong>
+      <p>Hệ thống sẽ xóa toàn bộ lịch sử kiểm kho và toàn bộ doanh thu/lợi nhuận suy ra từ kiểm kho.</p>
+      <ul>
+        <li>Giữ nguyên tồn kho hiện tại.</li>
+        <li>Giữ nguyên đơn bán thật.</li>
+        <li>Giữ nguyên công nợ, khách hàng, sản phẩm và phiếu nhập kho.</li>
+        <li>Tự tạo snapshot trước khi reset.</li>
+        <li>Lần kiểm kho tiếp theo sẽ là mốc đầu tiên mới và chưa tạo doanh thu suy ra.</li>
+      </ul>
+    </div>
+    <label class="confirm-reset-label">Nhập <b>RESET</b> để xác nhận<input id="confirmAuditResetText" autocomplete="off" placeholder="RESET"></label>
+    <button id="confirmAuditResetBtn" class="danger full" disabled>Reset an toàn</button>`);
+  const input=$("#confirmAuditResetText"),btn=$("#confirmAuditResetBtn");
+  input.oninput=()=>{btn.disabled=input.value.trim().toUpperCase()!=="RESET"};
+  btn.onclick=async()=>{
+    if(input.value.trim().toUpperCase()!=="RESET")return;
+    btn.disabled=true;btn.textContent="Đang reset…";
+    try{
+      await mutate("audit.reset.safe",{});
+      closeModal();
+      if($("#auditReportMonth"))$("#auditReportMonth").value=monthKeyLocal(new Date());
+      renderAuditPeriodReport();renderDashboard();renderAudit();
+      toast("Đã reset toàn bộ kiểm kho an toàn");
+    }catch(e){btn.disabled=false;btn.textContent="Reset an toàn";toast(e.message,true)}
+  };
+});
+
 $("#saveAudit").onclick=async()=>{
   const lines=$$("#auditProducts .audit-row").map(r=>({productId:r.dataset.id,actual:+r.querySelector(".actual").value||0,reconcileType:$("#auditDefaultReconcile").value}));
   if(!lines.length)return toast("Không có mặt hàng để kiểm kho",true);
@@ -528,7 +562,7 @@ function showAuditEdit(a){
   const lineHtml=(a.lines||[]).map(l=>{const x=auditLinePeriodMetric(a,l),type=l.reconcileType||"unclassified";return `<div class="audit-edit-period-line" data-id="${l.productId}"><div class="audit-edit-title"><strong>${esc(l.name)}</strong><small>Hệ thống trước kiểm ${num(l.before)} → thực tế ${num(l.actual)}${x.prev?` · chênh giảm ${num(x.unexplained)}`:" · mốc kiểm đầu tiên"}</small></div><label>Tồn thực tế<input class="auditEditActual" type="number" value="${l.actual}" min="0"></label><label>Phân loại chênh lệch<select class="auditEditType"><option value="unrecorded_sale" ${type==="unrecorded_sale"?"selected":""}>Bán chưa ghi nhận</option><option value="loss" ${type==="loss"?"selected":""}>Hao hụt / hỏng / mất</option><option value="adjustment" ${type==="adjustment"?"selected":""}>Điều chỉnh khác</option><option value="unclassified" ${type==="unclassified"?"selected":""}>Chưa phân loại</option></select></label></div>`}).join("");
   showModal(`<h3>Chỉnh đơn kiểm kho</h3><div class="form-grid"><label>Ngày kiểm<input value="${dtLocal(a.createdAt)}" disabled></label><label>Kỳ doanh thu<input id="auditEditPeriod" type="month" value="${esc(a.periodKey||"")}"></label><label class="wide">Ghi chú<input id="auditEditNote" value="${esc(a.note||"")}"></label></div><p class="hint">Chỉ “Bán chưa ghi nhận” được cộng vào doanh thu kỳ. “Hao hụt” chỉ tính chi phí hao hụt; “Điều chỉnh khác” không tính doanh thu.</p><div class="audit-edit-period-list">${lineHtml}</div><div class="row"><button id="saveAuditEdit" class="primary">Lưu</button><button id="deleteAudit" class="file-btn" style="background:#b42318">Xóa</button></div>`);
   $("#saveAuditEdit").onclick=async()=>{const lines=$$(".audit-edit-period-line").map(r=>({productId:r.dataset.id,actual:+r.querySelector(".auditEditActual").value||0,reconcileType:r.querySelector(".auditEditType").value}));try{await mutate("audit.update",{id:a.id,periodKey:$("#auditEditPeriod").value,note:$("#auditEditNote").value,lines});closeModal();toast("Đã sửa kiểm kho và cập nhật kỳ doanh thu")}catch(e){toast(e.message,true)}};
-  $("#deleteAudit").onclick=async()=>{if(confirm("Xóa đơn kiểm kho? Tồn hiện tại sẽ được hoàn tác theo phần chênh lệch của phiếu này."))try{await mutate("audit.delete",{id:a.id});closeModal();toast("Đã xóa kiểm kho")}catch(e){toast(e.message,true)}}
+  $("#deleteAudit").onclick=async()=>{if(confirm("Xóa đơn kiểm kho? Doanh thu suy ra của kỳ sẽ được tính lại ngay. Nếu đây là phiếu cũ và đã có lần kiểm kho sau đó, tồn hiện tại sẽ được giữ nguyên."))try{const deletedPeriod=a.periodKey||$("#auditReportMonth")?.value||"";await mutate("audit.delete",{id:a.id});if(deletedPeriod&&$("#auditReportMonth"))$("#auditReportMonth").value=deletedPeriod;renderAuditPeriodReport();renderDashboard();closeModal();toast(`Đã xóa kiểm kho${deletedPeriod?` · đã tính lại kỳ ${periodLabel(deletedPeriod)}`:""}`)}catch(e){toast(e.message,true)}}
 }
 
 function renderTransactions(){const arr=[...state.store.transactions].reverse().slice(0,200);$("#transactions").className=`list${arr.length?"":" empty"}`;$("#transactions").innerHTML=arr.length?arr.map(t=>`<div class="list-row"><div><strong>${esc(t.summary)}</strong><small>${new Date(t.createdAt).toLocaleString("vi-VN")} · ${esc(t.id)}</small></div></div>`).join(""):"Chưa có giao dịch."}

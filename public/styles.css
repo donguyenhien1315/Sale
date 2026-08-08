@@ -347,3 +347,13 @@ body{padding-bottom:calc(78px + env(safe-area-inset-bottom))}
 .period-method{margin-top:10px;padding:9px;border-radius:10px;background:#f6f9f8}.audit-history-row>div{display:flex;flex-direction:column}
 .audit-edit-period-list{display:flex;flex-direction:column;gap:10px;margin:10px 0}.audit-edit-period-line{display:grid;grid-template-columns:minmax(0,1.3fr) minmax(110px,.7fr) minmax(150px,1fr);gap:8px;align-items:end;border:1px solid var(--line);border-radius:12px;padding:10px;background:#fbfdfc}.audit-edit-title{display:flex;flex-direction:column;align-self:center}.audit-edit-title small{color:var(--muted);font-size:.7rem}
 @media(max-width:600px){.audit-period-report-panel .panel-head{align-items:stretch;flex-direction:column}#auditReportMonth{width:100%}.period-summary-grid{grid-template-columns:1fr 1fr;gap:6px}.audit-edit-period-line{grid-template-columns:1fr}}
+
+.period-recalc-note{font-size:.68rem;color:var(--muted);margin-bottom:7px;text-align:right}
+
+.danger-outline{border:1px solid #d92d20;background:#fff;color:#b42318;font-weight:800;border-radius:10px;padding:8px 10px}
+.danger-outline.small{font-size:.75rem;padding:7px 9px}
+.danger{border:0;background:#b42318;color:white;font-weight:800;border-radius:10px;padding:11px 14px}
+.danger:disabled{opacity:.45}
+.reset-warning{border:1px solid #f0b9b3;background:#fff8f7;border-radius:12px;padding:12px;margin:8px 0 12px}
+.reset-warning strong{color:#b42318}.reset-warning p{margin:6px 0}.reset-warning ul{margin:8px 0 0;padding-left:20px;color:#5f6e6b;font-size:.85rem;line-height:1.5}
+.confirm-reset-label{margin-top:10px}
