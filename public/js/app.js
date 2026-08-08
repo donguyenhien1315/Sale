@@ -127,6 +127,22 @@ function financeForDate(store,key){
 function renderWeekChart(){const box=$("#weekChart");if(!box)return;const rows=[],now=new Date();for(let i=6;i>=0;i--){const d=new Date(now);d.setDate(d.getDate()-i);const key=isoKey(d),f=financeForDate(state.store,key);rows.push({label:`${d.getDate()}/${d.getMonth()+1}`,revenue:f.revenue,expense:f.cashOut,profit:f.net})}const max=Math.max(1,...rows.flatMap(x=>[x.revenue,x.expense,Math.max(0,x.profit)]));box.innerHTML=rows.map(x=>`<div class="week-col"><div class="week-bars"><i class="bar revenue" style="height:${Math.max(2,x.revenue/max*70)}px"></i><i class="bar expense" style="height:${Math.max(2,x.expense/max*70)}px"></i><i class="bar profit" style="height:${Math.max(2,Math.max(0,x.profit)/max*70)}px"></i></div><small>${x.label}</small></div>`).join("")}
 
 
+
+function renderFinanceDashboard(){
+  const f=financeForDate(state.store,todayKey());
+  if($("#financeRevenueToday"))$("#financeRevenueToday").textContent=money(f.revenue);
+  if($("#cashInToday"))$("#cashInToday").textContent=money(f.cashIn);
+  if($("#expenseTodayDash"))$("#expenseTodayDash").textContent=money(f.cashOut);
+  if($("#grossProfitToday"))$("#grossProfitToday").textContent=money(f.gross);
+  if($("#netProfitToday"))$("#netProfitToday").textContent=money(f.net);
+  if($("#cashFlowToday"))$("#cashFlowToday").textContent=money(f.cashFlow);
+  const debt=(state.store.debts||[]).reduce((s,d)=>s+(Number(d.balance)||0),0);
+  const low=(state.store.products||[]).filter(p=>p.trackStock!==false&&(Number(p.stock)||0)<=(Number(p.minStock)||0)).length;
+  if($("#miniDebtValue"))$("#miniDebtValue").textContent=money(debt);
+  if($("#miniLowValue"))$("#miniLowValue").textContent=low;
+  renderWeekChart();
+}
+
 function renderDashboard(){renderFinanceDashboard();
   const d=dashboardData();$("#todayRevenue").textContent=money(d.rev);$("#todayProfit").textContent=money(d.profit);$("#totalDebt").textContent=money(d.debt);$("#lowStockCount").textContent=d.low.length;
   const insights=[];
