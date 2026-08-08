@@ -12,7 +12,7 @@
   <div id="boot" class="boot">Đang đồng bộ dữ liệu…</div>
   <header class="topbar">
     <div>
-      <div class="eyebrow">CANTIN AI NEXT 4.12</div>
+      <div class="eyebrow">CANTIN AI NEXT 4.12.1</div>
       <h1 id="storeName">Cửa hàng chính</h1>
     </div>
     <div class="top-actions">
@@ -31,8 +31,8 @@
 <main>
     <section class="page active" data-page="dashboard">
       <div class="stats">
-        <button class="stat nav-target" data-target="sales"><span>Doanh thu hôm nay</span><strong id="todayRevenue">0 ₫</strong></button>
-        <button class="stat nav-target" data-target="sales"><span>Lợi nhuận hôm nay</span><strong id="todayProfit">0 ₫</strong></button>
+        <button id="dashboardRevenueCard" class="stat stat-detail"><span>Doanh thu hôm nay</span><strong id="todayRevenue">0 ₫</strong><small>Chạm để xem chi tiết</small></button>
+        <button id="dashboardProfitCard" class="stat stat-detail"><span>Lợi nhuận hôm nay</span><strong id="todayProfit">0 ₫</strong><small>Chạm để xem chi tiết</small></button>
         <button class="stat nav-target" data-target="debts"><span>Tổng công nợ</span><strong id="totalDebt">0 ₫</strong></button>
         <button class="stat nav-target" data-target="products"><span>Sắp hết hàng</span><strong id="lowStockCount">0</strong></button>
       </div>
@@ -74,6 +74,11 @@
       <div class="toolbar">
         <input id="debtSearch" class="search" placeholder="Tìm khách hàng…">
         <select id="debtSort"><option value="az">A → Z</option><option value="za">Z → A</option><option value="debt">Nợ cao → thấp</option></select>
+      </div>
+      <div id="debtStatusFilters" class="debt-status-filters">
+        <button class="debt-filter active" data-filter="all">Tất cả <span id="debtCountAll">0</span></button>
+        <button class="debt-filter" data-filter="owing">Còn nợ <span id="debtCountOwing">0</span></button>
+        <button class="debt-filter" data-filter="paid">Đã trả <span id="debtCountPaid">0</span></button>
       </div>
       <div class="debt-total"><span>Tổng còn nợ</span><strong id="debtPageTotal">0 ₫</strong></div>
       <div id="customers" class="customer-list"></div>

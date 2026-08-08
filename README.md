@@ -1,4 +1,4 @@
-# Cantin AI Next v4.12
+# Cantin AI Next v4.12.1
 
 App mới hoàn toàn, không phụ thuộc mã nguồn v3.x.
 
@@ -216,3 +216,11 @@ App không xóa dữ liệu cũ. Root hiện tại sẽ được bọc vào cấ
 - Snapshot giảm còn 12 bản và chỉ giữ 120 giao dịch gần nhất bên trong snapshot để giảm payload Supabase.
 - Thêm lớp validateAIPlan: mọi kế hoạch AI phải qua schema/ID/số lượng/số tiền cơ bản trước khi được execute.
 - Chuẩn hóa version giao diện/backend/cache về 4.12.
+
+
+## v4.12.1 – Dashboard Drill-down + Debt Filters
+- Chạm ô Doanh thu hôm nay mở bottom sheet chi tiết: số đơn, số sản phẩm, giá trị trung bình/đơn, phương thức thanh toán, doanh thu theo nhóm, top sản phẩm, doanh thu theo giờ và so với hôm qua.
+- Chạm ô Lợi nhuận hôm nay mở bottom sheet: doanh thu, giá vốn, biên lợi nhuận, lợi nhuận theo nhóm, top mặt hàng lợi nhuận cao, cảnh báo biên lợi nhuận thấp và so với hôm qua.
+- Công nợ có bộ lọc Tất cả / Còn nợ / Đã trả.
+- Khách còn nợ hiển thị tên và số tiền màu đỏ.
+- Khoản nợ còn dư trong chi tiết khách cũng hiển thị màu đỏ.

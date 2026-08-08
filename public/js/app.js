@@ -18,7 +18,8 @@ async function api(path,opts={}){
 }
 function toast(msg,error=false){const t=$("#toast");t.textContent=msg;t.className=`toast show${error?" error":""}`;clearTimeout(t._x);t._x=setTimeout(()=>t.className="toast",2600)}
 function showModal(html){$("#modalBody").innerHTML=html;$("#modal").classList.remove("hidden")}
-function closeModal(){$("#modal").classList.add("hidden")}
+function showBottomSheet(html,kind="detail"){$("#modal").classList.add("bottom-sheet",`sheet-${kind}`);showModal(html)}
+function closeModal(){$("#modal").classList.add("hidden");$("#modal").className="modal hidden"}
 $("#closeModal").onclick=closeModal;
 
 async function boot(){
@@ -60,6 +61,91 @@ function dashboardData(){
   return {rev,profit,debt,low};
 }
 
+function localDayKey(date=new Date()){const p=n=>String(n).padStart(2,"0");return `${date.getFullYear()}-${p(date.getMonth()+1)}-${p(date.getDate())}`}
+function salesForDay(date=new Date()){const key=localDayKey(date);return state.store.sales.filter(s=>String(s.createdAt).slice(0,10)===key)}
+function aggregateSales(sales){
+  const pay={cash:0,transfer:0,debt:0},categories=new Map(),products=new Map(),hours=new Map();
+  let revenue=0,profit=0,cost=0,qty=0;
+  for(const s of sales){
+    revenue+=+s.total||0;profit+=+s.profit||0;cost+=+s.costTotal||0;
+    pay[s.paymentMethod]=(+pay[s.paymentMethod]||0)+(+s.total||0);
+    const hour=new Date(s.createdAt).getHours();
+    hours.set(hour,(hours.get(hour)||0)+(+s.total||0));
+    for(const l of s.items||[]){
+      const q=+l.quantity||0,sub=+l.subtotal||q*(+l.unitPrice||0),lineProfit=q*((+l.unitPrice||0)-(+l.costPrice||0));
+      qty+=q;
+      const cat=l.category||state.store.products.find(p=>p.id===l.productId)?.category||"Khác";
+      const c=categories.get(cat)||{name:cat,revenue:0,profit:0,qty:0};
+      c.revenue+=sub;c.profit+=lineProfit;c.qty+=q;categories.set(cat,c);
+      const p=products.get(l.productId)||{id:l.productId,name:l.name||state.store.products.find(x=>x.id===l.productId)?.name||"Sản phẩm",revenue:0,profit:0,qty:0};
+      p.revenue+=sub;p.profit+=lineProfit;p.qty+=q;products.set(l.productId,p);
+    }
+  }
+  return {
+    revenue,profit,cost,qty,orders:sales.length,pay,
+    categories:[...categories.values()].sort((a,b)=>b.revenue-a.revenue),
+    products:[...products.values()].sort((a,b)=>b.revenue-a.revenue),
+    profitProducts:[...products.values()].sort((a,b)=>b.profit-a.profit),
+    hours:[...hours.entries()].sort((a,b)=>a[0]-b[0]).map(([hour,revenue])=>({hour,revenue}))
+  };
+}
+function dashboardComparePercent(current,previous){
+  if(!previous)return current?null:0;
+  return (current-previous)/previous*100;
+}
+function compareBadge(current,previous,label="hôm qua"){
+  const pct=dashboardComparePercent(current,previous);
+  if(pct===null)return `<span class="compare neutral">Chưa có dữ liệu ${label}</span>`;
+  const cls=pct>0?"up":pct<0?"down":"neutral";
+  const arrow=pct>0?"↑":pct<0?"↓":"→";
+  return `<span class="compare ${cls}">${arrow} ${Math.abs(pct).toFixed(1)}% so với ${label}</span>`;
+}
+function dashboardSheetData(){
+  const today=salesForDay(new Date()),yd=new Date();yd.setDate(yd.getDate()-1);
+  return {today:aggregateSales(today),yesterday:aggregateSales(salesForDay(yd)),sales:today};
+}
+function paymentLabel(k){return k==="cash"?"Tiền mặt":k==="transfer"?"Chuyển khoản":"Ghi nợ"}
+function renderMiniBars(rows,valueKey="revenue",limit=6){
+  const arr=(rows||[]).slice(0,limit),max=Math.max(1,...arr.map(x=>+x[valueKey]||0));
+  return arr.map(x=>`<div class="mini-bar-row"><div><strong>${esc(x.name)}</strong><small>${valueKey==="profit"?money(x.profit):money(x.revenue)}${x.qty?` · ${num(x.qty)} SP`:""}</small></div><span class="mini-bar"><i style="width:${Math.max(4,(+x[valueKey]||0)/max*100)}%"></i></span></div>`).join("")||'<div class="hint">Chưa có dữ liệu.</div>'
+}
+function showRevenueDetail(){
+  const {today,yesterday,sales}=dashboardSheetData();
+  const paymentRows=Object.entries(today.pay).filter(([,v])=>v>0).map(([k,v])=>`<div class="detail-kv"><span>${paymentLabel(k)}</span><strong>${money(v)}</strong></div>`).join("")||'<div class="hint">Chưa có thanh toán hôm nay.</div>';
+  const hourMax=Math.max(1,...today.hours.map(x=>x.revenue));
+  const hours=today.hours.map(x=>`<div class="hour-bar"><span>${String(x.hour).padStart(2,"0")}h</span><i style="height:${Math.max(8,x.revenue/hourMax*72)}px"></i><small>${money(x.revenue)}</small></div>`).join("")||'<div class="hint">Chưa có dữ liệu theo giờ.</div>';
+  showBottomSheet(`<div class="sheet-head"><div><div class="eyebrow">CHI TIẾT HÔM NAY</div><h2>Doanh thu ${money(today.revenue)}</h2></div>${compareBadge(today.revenue,yesterday.revenue)}</div>
+    <div class="detail-grid">
+      <div><span>Số đơn</span><b>${today.orders}</b></div><div><span>Sản phẩm</span><b>${num(today.qty)}</b></div>
+      <div><span>Giá trị TB/đơn</span><b>${money(today.orders?today.revenue/today.orders:0)}</b></div><div><span>Lợi nhuận</span><b>${money(today.profit)}</b></div>
+    </div>
+    <h3>Thanh toán</h3><div class="detail-list">${paymentRows}</div>
+    <h3>Doanh thu theo nhóm</h3><div class="mini-bars">${renderMiniBars(today.categories,"revenue",8)}</div>
+    <h3>Sản phẩm doanh thu cao</h3><div class="mini-bars">${renderMiniBars(today.products,"revenue",5)}</div>
+    <h3>Doanh thu theo giờ</h3><div class="hour-bars">${hours}</div>
+    <div class="sheet-actions"><button id="openTodaySales" class="primary full">Xem toàn bộ đơn hàng hôm nay (${sales.length})</button></div>`,"revenue");
+  $("#openTodaySales").onclick=()=>{closeModal();navigate("sales");document.querySelector("#salesHistory")?.scrollIntoView({behavior:"smooth",block:"start"})};
+}
+function showProfitDetail(){
+  const {today,yesterday}=dashboardSheetData(),margin=today.revenue?today.profit/today.revenue*100:0;
+  const lowMargin=today.products.map(x=>{
+    const p=state.store.products.find(y=>y.id===x.id),sale=+p?.salePrice||0,cost=+p?.costPrice||0,m=sale?sale-cost:0,rate=sale?m/sale*100:0;
+    return {...x,sale,cost,rate}
+  }).filter(x=>x.sale>0&&x.rate<20).sort((a,b)=>a.rate-b.rate).slice(0,6);
+  showBottomSheet(`<div class="sheet-head"><div><div class="eyebrow">PHÂN TÍCH HÔM NAY</div><h2>Lợi nhuận ${money(today.profit)}</h2></div>${compareBadge(today.profit,yesterday.profit)}</div>
+    <div class="detail-grid">
+      <div><span>Doanh thu</span><b>${money(today.revenue)}</b></div><div><span>Giá vốn</span><b>${money(today.cost)}</b></div>
+      <div><span>Biên lợi nhuận</span><b>${margin.toFixed(1)}%</b></div><div><span>Số đơn</span><b>${today.orders}</b></div>
+    </div>
+    <h3>Lợi nhuận theo nhóm</h3><div class="mini-bars">${renderMiniBars([...today.categories].sort((a,b)=>b.profit-a.profit),"profit",8)}</div>
+    <h3>Mặt hàng lời nhiều nhất</h3><div class="mini-bars">${renderMiniBars(today.profitProducts,"profit",5)}</div>
+    <h3>Cảnh báo biên lợi nhuận thấp</h3>
+    <div class="detail-list">${lowMargin.length?lowMargin.map(x=>`<div class="detail-kv warning"><div><strong>${esc(x.name)}</strong><small>Giá vốn ${money(x.cost)} · bán ${money(x.sale)}</small></div><b>${x.rate.toFixed(1)}%</b></div>`).join(""):'<div class="hint">Không có mặt hàng bán hôm nay có biên dưới 20%.</div>'}</div>
+    <div class="sheet-actions"><button id="openProfitSales" class="primary full">Xem các đơn hàng hôm nay</button></div>`,"profit");
+  $("#openProfitSales").onclick=()=>{closeModal();navigate("sales");document.querySelector("#salesHistory")?.scrollIntoView({behavior:"smooth",block:"start"})};
+}
+
+
 function renderDataSafety(){
   const b=$("#dataSafetyBanner");if(!b||!state.store)return;
   const empty=(state.store.products?.length||0)+(state.store.customers?.length||0)+(state.store.debts?.length||0)+(state.store.sales?.length||0)===0;
@@ -77,6 +163,8 @@ function renderDashboard(){
   const tx=[...state.store.transactions].reverse().slice(0,5);$("#recentTx").className=`list${tx.length?"":" empty"}`;$("#recentTx").innerHTML=tx.length?tx.map(t=>`<div class="list-row"><div><strong>${esc(t.summary)}</strong><small>${new Date(t.createdAt).toLocaleString("vi-VN")}</small></div></div>`).join(""):"Chưa có thao tác.";
 }
 $("#refreshInsights").onclick=renderDashboard;
+$("#dashboardRevenueCard")?.addEventListener("click",showRevenueDetail);
+$("#dashboardProfitCard")?.addEventListener("click",showProfitDetail);
 
 
 
@@ -212,12 +300,24 @@ function showSaleEdit(s){
 }
 function parseMoney(v,base=0){let s=String(v||"").trim().toLowerCase().replace(/\s/g,"");const op=s[0],isop="+-*/×÷".includes(op);const cv=x=>{let k=String(x).toLowerCase(),mul=1;if(k.endsWith("k")){mul=1000;k=k.slice(0,-1)}else if(k.endsWith("tr")){mul=1e6;k=k.slice(0,-2)}k=k.replace(/\./g,"").replace(",",".");let n=Number(k)||0;if(!mul||mul===1){if(n>0&&n<1000)mul=1000}return Math.round(n*mul)};if(isop){const n=cv(s.slice(1));return op==="+"?base+n:op==="-"?base-n:(op==="*"||op==="×")?base*n:(op==="/"||op==="÷")?(n?base/n:base):base}return cv(s)}
 
+let debtStatusFilter="all";
 function customerDebt(id){return state.store.debts.filter(d=>d.customerId===id).reduce((a,d)=>a+(+d.balance||0),0)}
+function customerHadDebt(id){return state.store.debts.some(d=>d.customerId===id)}
+function renderDebtStatusFilters(base){
+  const all=base.length,owing=base.filter(c=>c.debtBalance>0).length,paid=base.filter(c=>c.debtBalance<=0&&c.hadDebt).length;
+  $("#debtCountAll").textContent=all;$("#debtCountOwing").textContent=owing;$("#debtCountPaid").textContent=paid;
+  $$("#debtStatusFilters .debt-filter").forEach(b=>b.classList.toggle("active",b.dataset.filter===debtStatusFilter));
+}
 function renderCustomers(){
-  const q=norm($("#debtSearch").value),sort=$("#debtSort").value;let arr=state.store.customers.filter(c=>!q||norm(c.name).includes(q)).map(c=>({...c,debtBalance:customerDebt(c.id)}));
+  const q=norm($("#debtSearch").value),sort=$("#debtSort").value;
+  let base=state.store.customers.filter(c=>!q||norm(c.name).includes(q)).map(c=>({...c,debtBalance:customerDebt(c.id),hadDebt:customerHadDebt(c.id)}));
+  renderDebtStatusFilters(base);
+  let arr=base.filter(c=>debtStatusFilter==="owing"?c.debtBalance>0:debtStatusFilter==="paid"?c.debtBalance<=0&&c.hadDebt:true);
   arr.sort((a,b)=>sort==="debt"?b.debtBalance-a.debtBalance:sort==="za"?b.name.localeCompare(a.name,"vi"):a.name.localeCompare(b.name,"vi"));
-  $("#debtPageTotal").textContent=money(arr.reduce((a,c)=>a+c.debtBalance,0));$("#saleCustomer").innerHTML=`<option value="">Chọn khách</option>`+state.store.customers.map(c=>`<option value="${c.id}">${esc(c.name)}${customerDebt(c.id)?` — ${money(customerDebt(c.id))}`:""}</option>`).join("");
-  $("#customers").innerHTML=arr.map(c=>`<article class="customer-item" data-id="${c.id}"><div class="customer-summary"><strong>${esc(c.name)}</strong><strong>${money(c.debtBalance)} ›</strong></div><div class="customer-detail hidden"></div></article>`).join("");
+  $("#debtPageTotal").textContent=money(arr.reduce((a,c)=>a+c.debtBalance,0));
+  $("#saleCustomer").innerHTML=`<option value="">Chọn khách</option>`+state.store.customers.map(c=>`<option value="${c.id}">${esc(c.name)}${customerDebt(c.id)?` — ${money(customerDebt(c.id))}`:""}</option>`).join("");
+  $("#customers").className=`customer-list${arr.length?"":" empty"}`;
+  $("#customers").innerHTML=arr.length?arr.map(c=>`<article class="customer-item ${c.debtBalance>0?"has-debt":"paid-debt"}" data-id="${c.id}"><div class="customer-summary"><strong class="${c.debtBalance>0?"debt-red":""}">${esc(c.name)}</strong><strong class="${c.debtBalance>0?"debt-red":""}">${c.debtBalance>0?money(c.debtBalance):c.hadDebt?"Đã trả":"0 ₫"} ›</strong></div><div class="customer-detail hidden"></div></article>`).join(""):`<div class="hint">Không có khách hàng phù hợp bộ lọc.</div>`;
   $("#customers").querySelectorAll(".customer-summary").forEach(s=>s.onclick=()=>toggleCustomer(s.parentElement));
 }
 function toggleCustomer(card){
@@ -234,7 +334,7 @@ function toggleCustomer(card){
     <div class="debt-lines">${debts.map(d=>`
       <div class="debt-line debt-history-block" data-id="${d.id}">
         <div class="debt-main">
-          <strong>${d.balance>0?`Còn ${money(d.balance)}`:"Đã trả"} <span class="debt-original">/ ${money(d.amount)}</span></strong>
+          <strong class="${d.balance>0?"debt-red":""}">${d.balance>0?`Còn ${money(d.balance)}`:"Đã trả"} <span class="debt-original">/ ${money(d.amount)}</span></strong>
           <small>${new Date(d.createdAt).toLocaleDateString("vi-VN")} · ${esc(d.note||"Không có ghi chú")}</small>
           ${(d.payments||[]).length?`<div class="payments-mini">${(d.payments||[]).map(p=>`<button class="payment-chip" data-debt="${d.id}" data-pay="${p.id}">${new Date(p.createdAt).toLocaleDateString("vi-VN")} · ${money(p.amount)}</button>`).join("")}</div>`:""}
         </div>
@@ -268,7 +368,7 @@ function showAddDebt(c){
 function showPayment(c){const total=customerDebt(c.id);showModal(`<h3>${esc(c.name)} trả nợ</h3><p class="hint">Tổng còn nợ: <strong>${money(total)}</strong>. Số tiền được điền sẵn toàn bộ, có thể sửa nếu chỉ trả một phần.</p><label>Ngày trả<input id="payDate" type="date" value="${todayKey()}"></label><label>Số tiền<input id="payMoney" value="${total}" inputmode="numeric"></label><label>Ghi chú<input id="payNote"></label><button id="doPay" class="primary full">Xác nhận</button>`);$("#doPay").onclick=async()=>{const amount=parseMoney($("#payMoney").value,total);try{await mutate("debt.pay",{customerId:c.id,amount,note:$("#payNote").value,createdAt:$("#payDate").value+"T12:00:00"});closeModal();toast("Đã ghi nhận trả nợ")}catch(e){toast(e.message,true)}}}
 function showDebtEdit(d){showModal(`<h3>Chỉnh khoản nợ</h3><label>Ngày ghi nợ<input id="editDebtDate" type="date" value="${String(d.createdAt).slice(0,10)}"></label><label>Số tiền<input id="editDebtMoney" value="${d.amount}"></label><label>Ghi chú / món nợ<input id="editDebtNote" value="${esc(d.note||"")}"></label><div class="row"><button id="saveDebtEdit" class="primary">Lưu</button><button id="deleteDebt" class="file-btn" style="background:#b42318">Xóa</button></div>`);$("#saveDebtEdit").onclick=async()=>{try{await mutate("debt.update",{id:d.id,amount:parseMoney($("#editDebtMoney").value,d.amount),note:$("#editDebtNote").value,createdAt:$("#editDebtDate").value+"T12:00:00"});closeModal();toast("Đã sửa khoản nợ")}catch(e){toast(e.message,true)}};$("#deleteDebt").onclick=async()=>{if(confirm("Xóa khoản nợ này?"))try{await mutate("debt.delete",{id:d.id});closeModal();toast("Đã xóa")}catch(e){toast(e.message,true)}}}
 function showPaymentEdit(d,p){showModal(`<h3>Chỉnh lần trả nợ</h3><p class="hint">${esc(d.customer||"")} · khoản nợ ${money(d.amount)}</p><label>Ngày trả<input id="editPayDate" type="date" value="${String(p.createdAt).slice(0,10)}"></label><label>Số tiền<input id="editPayMoney" value="${p.amount}" inputmode="numeric"></label><label>Ghi chú<input id="editPayNote" value="${esc(p.note||"")}"></label><div class="row"><button id="savePayEdit" class="primary">Lưu</button><button id="deletePay" class="file-btn" style="background:#b42318">Xóa lần trả</button></div>`);$("#savePayEdit").onclick=async()=>{try{await mutate("debt.payment.update",{debtId:d.id,paymentId:p.id,amount:parseMoney($("#editPayMoney").value,p.amount),note:$("#editPayNote").value,createdAt:$("#editPayDate").value+"T12:00:00"});closeModal();toast("Đã sửa lần trả nợ")}catch(e){toast(e.message,true)}};$("#deletePay").onclick=async()=>{if(confirm("Xóa lần trả nợ này? Số còn nợ sẽ tăng lại."))try{await mutate("debt.payment.delete",{debtId:d.id,paymentId:p.id});closeModal();toast("Đã xóa lần trả nợ")}catch(e){toast(e.message,true)}}}
-$("#debtSearch").oninput=renderCustomers;$("#debtSort").onchange=renderCustomers;
+$("#debtSearch").oninput=renderCustomers;$("#debtSort").onchange=renderCustomers;$$("#debtStatusFilters .debt-filter").forEach(b=>b.onclick=()=>{debtStatusFilter=b.dataset.filter;renderCustomers()});
 $("#addCustomerBtn").onclick=()=>{showModal(`<h3>Thêm khách hàng</h3><label>Tên<input id="newCustomerName"></label><button id="saveCustomer" class="primary full">Lưu</button>`);$("#saveCustomer").onclick=async()=>{try{await mutate("customer.create",{name:$("#newCustomerName").value});closeModal();toast("Đã thêm khách")}catch(e){toast(e.message,true)}}};
 
 
