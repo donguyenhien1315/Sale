@@ -13,19 +13,102 @@ async function rpc(name,payload){
   const text=await r.text();let data=null;try{data=text?JSON.parse(text):null}catch{data=text}
   if(!r.ok)throw new Error(data?.message||String(data||"Lỗi Supabase"));return data;
 }
-function emptyStore(name="Cửa hàng chính"){return {meta:{name,createdAt:now(),version:"4.7"},config:{money:{under1000MeansThousands:true},ai:{preview:true},ui:{compactDebt:true}},products:[],ingredients:[{"id": "ing-ca-phe-phin", "name": "Cà phê phin", "purchasePrice": 1085000, "packageQty": 7000, "unit": "g", "unitCost": 155, "stock": 0, "note": "240g pha được 500ml cà phê phin"}, {"id": "ing-ca-phe-may", "name": "Cà phê máy", "purchasePrice": 234000, "packageQty": 1000, "unit": "g", "unitCost": 234, "stock": 0, "note": "Tạm tính gói 1kg; sửa nếu khác"}, {"id": "ing-bot-kem-muoi", "name": "Bột kem muối", "purchasePrice": 80000, "packageQty": 500, "unit": "g", "unitCost": 160, "stock": 0, "note": "Người dùng cung cấp"}, {"id": "ing-sua-dac", "name": "Sữa đặc", "purchasePrice": 450000, "packageQty": 9120, "unit": "ml", "unitCost": 49.3421052632, "stock": 0, "note": "24 hộp x 380ml"}, {"id": "ing-sua-tuoi", "name": "Sữa tươi", "purchasePrice": 35000, "packageQty": 1000, "unit": "ml", "unitCost": 35, "stock": 0, "note": "1 lít giá 35.000"}, {"id": "ing-duong", "name": "Đường", "purchasePrice": 25000, "packageQty": 1000, "unit": "g", "unitCost": 25, "stock": 0, "note": "Tạm tính 25.000/kg; sửa theo thực tế"}],customers:[],debts:[],sales:[],stockReceipts:[],audits:[],transactions:[],snapshots:[],aliases:[]}}
+async function readRootRaw(){return await rpc("cantin_read_store_public",{});}
+
+function emptyStore(name="Cửa hàng chính"){return {meta:{name,createdAt:now(),version:"4.8"},config:{money:{under1000MeansThousands:true},ai:{preview:true},ui:{compactDebt:true}},products:[],ingredients:[{"id": "ing-ca-phe-phin", "name": "Cà phê phin", "purchasePrice": 1085000, "packageQty": 7000, "unit": "g", "unitCost": 155, "stock": 0, "note": "240g pha được 500ml cà phê phin"}, {"id": "ing-ca-phe-may", "name": "Cà phê máy", "purchasePrice": 234000, "packageQty": 1000, "unit": "g", "unitCost": 234, "stock": 0, "note": "Tạm tính gói 1kg; sửa nếu khác"}, {"id": "ing-bot-kem-muoi", "name": "Bột kem muối", "purchasePrice": 80000, "packageQty": 500, "unit": "g", "unitCost": 160, "stock": 0, "note": "Người dùng cung cấp"}, {"id": "ing-sua-dac", "name": "Sữa đặc", "purchasePrice": 450000, "packageQty": 9120, "unit": "ml", "unitCost": 49.3421052632, "stock": 0, "note": "24 hộp x 380ml"}, {"id": "ing-sua-tuoi", "name": "Sữa tươi", "purchasePrice": 35000, "packageQty": 1000, "unit": "ml", "unitCost": 35, "stock": 0, "note": "1 lít giá 35.000"}, {"id": "ing-duong", "name": "Đường", "purchasePrice": 25000, "packageQty": 1000, "unit": "g", "unitCost": 25, "stock": 0, "note": "Tạm tính 25.000/kg; sửa theo thực tế"}],customers:[],debts:[],sales:[],stockReceipts:[],audits:[],transactions:[],snapshots:[],aliases:[]}}
 function ensureStore(s,name){const x=s&&typeof s==="object"?s:{};const e=emptyStore(name);for(const k of Object.keys(e))if(x[k]===undefined)x[k]=clone(e[k]);for(const k of ["products","ingredients","customers","debts","sales","stockReceipts","audits","transactions","snapshots","aliases"])if(!Array.isArray(x[k]))x[k]=[];x.meta={...e.meta,...(x.meta||{})};x.config={...e.config,...(x.config||{})};if(!Array.isArray(x.ingredients)||!x.ingredients.length)x.ingredients=clone([{"id": "ing-ca-phe-phin", "name": "Cà phê phin", "purchasePrice": 1085000, "packageQty": 7000, "unit": "g", "unitCost": 155, "stock": 0, "note": "240g pha được 500ml cà phê phin"}, {"id": "ing-ca-phe-may", "name": "Cà phê máy", "purchasePrice": 234000, "packageQty": 1000, "unit": "g", "unitCost": 234, "stock": 0, "note": "Tạm tính gói 1kg; sửa nếu khác"}, {"id": "ing-bot-kem-muoi", "name": "Bột kem muối", "purchasePrice": 80000, "packageQty": 500, "unit": "g", "unitCost": 160, "stock": 0, "note": "Người dùng cung cấp"}, {"id": "ing-sua-dac", "name": "Sữa đặc", "purchasePrice": 450000, "packageQty": 9120, "unit": "ml", "unitCost": 49.3421052632, "stock": 0, "note": "24 hộp x 380ml"}, {"id": "ing-sua-tuoi", "name": "Sữa tươi", "purchasePrice": 35000, "packageQty": 1000, "unit": "ml", "unitCost": 35, "stock": 0, "note": "1 lít giá 35.000"}, {"id": "ing-duong", "name": "Đường", "purchasePrice": 25000, "packageQty": 1000, "unit": "g", "unitCost": 25, "stock": 0, "note": "Tạm tính 25.000/kg; sửa theo thực tế"}]);for(const i of x.ingredients)i.category=i.category||"Nguyên liệu cà phê";return x}
+
+function dataWeight(root){
+  try{
+    return (root.stores||[]).reduce((sum,s)=>{
+      const d=s.data||{};
+      return sum+(d.products?.length||0)+(d.customers?.length||0)+(d.debts?.length||0)+(d.sales?.length||0)+(d.audits?.length||0)+(d.stockReceipts?.length||0);
+    },0)
+  }catch{return 0}
+}
+
+function normalizeLegacyStore(input,name="Cửa hàng chính"){
+  const src=clone(input||{});
+  const out=ensureStore(src);
+  out.meta={...(out.meta||{}),name:out.meta?.name||name,version:"4.8"};
+  // Preserve legacy arrays instead of dropping them.
+  if((!Array.isArray(out.audits)||!out.audits.length)&&Array.isArray(src.weeklyAudits)){
+    out.audits=src.weeklyAudits.map(a=>({
+      id:a.id||uid(),
+      createdAt:a.createdAt||now(),
+      note:a.note||"Kiểm kho cũ",
+      source:a.source||"legacy_weekly_audit",
+      lines:(a.lines||[]).map(l=>({
+        productId:l.productId||"",
+        name:l.name||"",
+        unit:l.unit||"",
+        before:Number(l.stockBefore ?? l.openingStock ?? l.recordedQty ?? 0),
+        actual:Number(l.endingStock ?? l.recordedQty ?? 0),
+        delta:Number((l.endingStock ?? l.recordedQty ?? 0)-(l.stockBefore ?? l.openingStock ?? l.recordedQty ?? 0))
+      }))
+    }));
+  }
+  if(!Array.isArray(out.stockAdjustments)&&Array.isArray(src.stockAdjustments))out.stockAdjustments=clone(src.stockAdjustments);
+  if(!Array.isArray(out.weeklyAudits)&&Array.isArray(src.weeklyAudits))out.weeklyAudits=clone(src.weeklyAudits);
+  if(!Array.isArray(out.weeklyTemplate)&&Array.isArray(src.weeklyTemplate))out.weeklyTemplate=clone(src.weeklyTemplate);
+  return out;
+}
 function normalizeRoot(raw){
-  if(raw?.__nextV4===true&&Array.isArray(raw.stores)){raw.stores=raw.stores.map(s=>({...s,data:ensureStore(s.data,s.name)}));if(!raw.stores.length){const id=uid();raw.stores=[{id,name:"Cửa hàng chính",data:emptyStore()}];raw.activeStoreId=id}if(!raw.stores.some(s=>s.id===raw.activeStoreId))raw.activeStoreId=raw.stores[0].id;return raw}
-  const id=uid();let seed=raw?.__multiStore&&Array.isArray(raw.stores)?raw.stores.find(s=>s.id===raw.activeStoreId)?.data:raw;seed=ensureStore(seed||{},"Cửa hàng chính");
-  return {__nextV4:true,revision:0,activeStoreId:id,stores:[{id,name:seed.meta?.name||"Cửa hàng chính",createdAt:now(),data:seed}],persist:{token:"",writtenAt:""}}
+  // Already v4 root: preserve every store.
+  if(raw&&raw.__nextV4&&Array.isArray(raw.stores)&&raw.stores.length){
+    const stores=raw.stores.map((s,i)=>({
+      id:s.id||uid(),
+      name:s.name||s.data?.meta?.name||`Cửa hàng ${i+1}`,
+      createdAt:s.createdAt||now(),
+      data:normalizeLegacyStore(s.data||{},s.name||`Cửa hàng ${i+1}`)
+    }));
+    const activeStoreId=stores.some(s=>s.id===raw.activeStoreId)?raw.activeStoreId:stores[0].id;
+    return {...raw,__nextV4:true,revision:Number(raw.revision)||0,activeStoreId,stores,backups:Array.isArray(raw.backups)?raw.backups:[]};
+  }
+
+  // Legacy multi-store v2/v3: preserve ALL stores, not only active store.
+  if(raw&&raw.__multiStore&&Array.isArray(raw.stores)&&raw.stores.length){
+    const stores=raw.stores.map((s,i)=>({
+      id:s.id||uid(),
+      name:s.name||s.data?.meta?.name||`Cửa hàng ${i+1}`,
+      createdAt:s.createdAt||now(),
+      data:normalizeLegacyStore(s.data||{},s.name||`Cửa hàng ${i+1}`)
+    }));
+    const activeStoreId=stores.some(s=>s.id===raw.activeStoreId)?raw.activeStoreId:stores[0].id;
+    return {__nextV4:true,revision:Number(raw.revision)||0,activeStoreId,stores,backups:[]};
+  }
+
+  // Plain legacy single-store object.
+  if(raw&&typeof raw==="object"){
+    const data=normalizeLegacyStore(raw,raw.meta?.name||"Cửa hàng chính");
+    const id=raw.id||"store-main";
+    return {__nextV4:true,revision:0,activeStoreId:id,stores:[{id,name:data.meta?.name||"Cửa hàng chính",createdAt:raw.meta?.createdAt||now(),data}],backups:[]};
+  }
+
+  // Only when there is truly no data at all, create blank store.
+  const data=ensureStore({}); const id="store-main";
+  return {__nextV4:true,revision:0,activeStoreId:id,stores:[{id,name:"Cửa hàng chính",createdAt:now(),data}],backups:[]};
 }
 async function readRoot(){return normalizeRoot(await rpc("cantin_read_store_public",{}))}
 async function writeRoot(root){
-  root.revision=(Number(root.revision)||0)+1;const token=uid();root.persist={token,writtenAt:now()};
+  const current=await readRootRaw().catch(()=>null);
+  if(current&&dataWeight(current)>10&&dataWeight(root)===0)throw new Error("Đã chặn ghi dữ liệu trắng đè lên dữ liệu hiện có.");
+  root.backups=Array.isArray(root.backups)?root.backups:[];
+  if(current&&typeof current==="object"){
+    // Keep lightweight rolling backups of the complete root before writes.
+    const snap={id:uid(),createdAt:now(),reason:"auto_before_write",data:clone(current)};
+    root.backups.push(snap);
+    if(root.backups.length>10)root.backups=root.backups.slice(-10);
+  }
+  root.revision=(Number(root.revision)||0)+1;
+  const token=uid(); root._lastWriteToken=token;
   await rpc("cantin_write_store_public",{p_data:root});
-  for(let i=0;i<3;i++){const check=normalizeRoot(await rpc("cantin_read_store_public",{}));if(check.persist?.token===token)return check;await new Promise(r=>setTimeout(r,100*(i+1)))}
-  throw new Error("Supabase chưa xác nhận lưu dữ liệu.");
+  for(let i=0;i<3;i++){
+    const check=await readRootRaw();
+    if(check&&check._lastWriteToken===token&&Number(check.revision)===Number(root.revision))return check;
+    await new Promise(r=>setTimeout(r,120));
+  }
+  throw new Error("Không xác nhận được dữ liệu đã lưu. Hệ thống dừng để tránh mất dữ liệu.");
 }
 function active(root){return root.stores.find(s=>s.id===root.activeStoreId)||root.stores[0]}
 function tx(store,type,summary,changes=[]){const t={id:`TX-${Date.now()}-${Math.random().toString(36).slice(2,6).toUpperCase()}`,type,summary,changes,createdAt:now()};store.transactions.push(t);if(store.transactions.length>600)store.transactions=store.transactions.slice(-600);return t}
@@ -44,6 +127,15 @@ function applyAction(root,action,p){
   const st=active(root).data;
   if(action!=="snapshot.create"&&action!=="snapshot.restore"&&action!=="store.switch")snapshot(st,`Trước: ${action}`);
   switch(action){
+    case "recovery.import": {
+      const current=active(root).data;
+      const imported=normalizeLegacyStore(p.data||{},"Dữ liệu khôi phục");
+      current.snapshots=Array.isArray(current.snapshots)?current.snapshots:[];
+      current.snapshots.push({id:uid(),createdAt:now(),note:"Tự động trước khôi phục",data:(()=>{const x=clone(current);x.snapshots=[];return x})()});
+      active(root).data=imported;
+      tx(active(root).data,action,"Khôi phục dữ liệu từ backup");
+      break
+    }
     case "store.switch": if(!root.stores.some(s=>s.id===p.id))bad("Không tìm thấy cửa hàng");root.activeStoreId=p.id;break;
     case "store.create": {const id=uid(),name=String(p.name||"Cửa hàng mới").trim()||"Cửa hàng mới";root.stores.push({id,name,createdAt:now(),data:emptyStore(name)});root.activeStoreId=id;break}
     case "store.import": {const s=ensureStore(clone(p.store||{}),active(root).name);active(root).data=s;break}
