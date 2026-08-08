@@ -77,6 +77,19 @@ function goPage(target){
 }
 function renderFinanceReport(){const range=financeRange(),f=financeForRange(state.store,range),debt=(state.store.debts||[]).reduce((s,d)=>s+(Number(d.balance)||0),0);[["#reportRevenue",f.revenue],["#reportCashIn",f.cashIn],["#reportCogs",f.cogs],["#reportOpex",f.opEx],["#reportGross",f.gross],["#reportNet",f.net],["#reportCashFlow",f.cashFlow],["#reportDebt",debt]].forEach(([id,v])=>{if($(id))$(id).textContent=money(v)});if($("#revenueBreakdown")){const sales=f.sales,cash=sales.filter(s=>String(s.paymentMethod||s.payment||"cash").toLowerCase()==="cash").reduce((a,s)=>a+saleRevenue(s),0),transfer=sales.filter(s=>String(s.paymentMethod||s.payment||"").toLowerCase()==="transfer").reduce((a,s)=>a+saleRevenue(s),0),debtSales=sales.filter(s=>["debt","credit"].includes(String(s.paymentMethod||s.payment||"").toLowerCase())).reduce((a,s)=>a+saleRevenue(s),0),paidDebt=debtPaymentsCash(state.store).filter(x=>inRange(x.createdAt,range)).reduce((a,x)=>a+x.amount,0);$("#revenueBreakdown").innerHTML=`<div><span>Tiền mặt bán hàng</span><strong>${money(cash)}</strong></div><div><span>Chuyển khoản bán hàng</span><strong>${money(transfer)}</strong></div><div><span>Bán ghi nợ</span><strong>${money(debtSales)}</strong></div><div><span>Thu nợ</span><strong>${money(paidDebt)}</strong></div>`}const cats=categoryProfit(state.store,range);if($("#profitByCategory"))$("#profitByCategory").innerHTML=cats.length?cats.map((x,i)=>`<button class="profit-category" data-i="${i}"><span>${esc(x.category)}</span><strong>${money(x.profit)}</strong><small>DT ${money(x.revenue)}</small></button>`).join(""):'<div class="hint">Chưa có dữ liệu bán hàng.</div>';if($("#profitByProduct"))$("#profitByProduct").innerHTML="";$$(".profit-category").forEach(b=>b.onclick=()=>{const x=cats[Number(b.dataset.i)];$("#profitByProduct").innerHTML=[...x.products.values()].sort((a,b)=>b.profit-a.profit).map(p=>`<div class="finance-breakdown-row"><span>${esc(p.name)}</span><strong>${money(p.profit)}</strong></div>`).join("")});renderSuppliers();renderBudgets()}
 
+
+function safeDateText(v,withTime=true){
+  if(!v)return "Chưa có ngày";
+  let d=new Date(v);
+  if(Number.isNaN(d.getTime())){
+    const s=String(v).trim();
+    const m=s.match(/^(\d{4})-(\d{2})-(\d{2})$/);
+    if(m)d=new Date(Number(m[1]),Number(m[2])-1,Number(m[3]));
+  }
+  if(Number.isNaN(d.getTime()))return "Ngày không hợp lệ";
+  return withTime?d.toLocaleString("vi-VN"):d.toLocaleDateString("vi-VN");
+}
+
 function dateKeyOf(v){return String(v||"").slice(0,10)}
 function monthKeyOf(v){return String(v||"").slice(0,7)}
 function saleRevenue(s){return Number(s.total||s.revenue||0)}
@@ -517,7 +530,54 @@ function updateStockinTotalCost(){
 }
 
 function renderStockin(){const q=norm($("#stockinSearch").value),arr=state.store.products.filter(p=>p.trackStock!==false&&(!q||norm(p.name).includes(q)));$("#stockinProducts").innerHTML=arr.map(p=>`<div class="stockin-row" data-id="${p.id}"><div><strong>${esc(p.name)}</strong><small>Tồn ${num(p.stock)} · ${num(p.packSize)} / thùng · giá nhập ${money(productPurchasePackCost(p))}/thùng</small></div><input class="cases" type="number" min="0" placeholder="Thùng"><input class="units" type="number" min="0" placeholder="Lẻ"><input class="purchasePackCost" type="number" min="0" value="${productPurchasePackCost(p)}" placeholder="Giá/thùng"></div>`).join("");$$("#stockinProducts .cases, #stockinProducts .units, #stockinProducts .purchasePackCost").forEach(i=>i.addEventListener("input",updateStockinTotalCost));updateStockinTotalCost();
-  const hist=[...state.store.stockReceipts].reverse().slice(0,100);$("#stockinHistory").className=`list${hist.length?"":" empty"}`;$("#stockinHistory").innerHTML=hist.length?hist.map(r=>`<div class="list-row" data-id="${r.id}"><div><strong>${new Date(r.createdAt).toLocaleString("vi-VN")}</strong><small>${esc(r.note||"Phiếu nhập")} · ${r.lines.length} mặt hàng</small></div><button class="ghost danger-text deleteReceipt">Xóa</button></div>`).join(""):"Chưa có phiếu.";$("#stockinHistory").querySelectorAll(".deleteReceipt").forEach(b=>b.onclick=async()=>{if(confirm("Xóa phiếu và trừ lại kho?"))try{await mutate("stockin.delete",{id:b.closest(".list-row").dataset.id});toast("Đã xóa phiếu")}catch(e){toast(e.message,true)}})}
+  const hist=[...state.store.stockReceipts].reverse().slice(0,100);$("#stockinHistory").className=`list${hist.length?"":" empty"}`;$("#stockinHistory").innerHTML=hist.length?hist.map(r=>`<div class="list-row" data-id="${r.id}"><div><strong>${safeDateText(r.createdAt)}</strong><small>${esc(r.note||"Phiếu nhập")} · ${r.lines.length} mặt hàng · ${money(r.totalCost||0)}</small></div><div class="row-actions"><button class="ghost editReceipt">Sửa</button><button class="ghost danger-text deleteReceipt">Xóa</button></div></div>`).join(""):"Chưa có phiếu.";$("#stockinHistory").querySelectorAll(".editReceipt").forEach(b=>b.onclick=()=>showStockinEdit(state.store.stockReceipts.find(r=>r.id===b.closest(".list-row").dataset.id)));
+$("#stockinHistory").querySelectorAll(".deleteReceipt").forEach(b=>b.onclick=async()=>{if(confirm("Xóa phiếu và trừ lại kho?"))try{await mutate("stockin.delete",{id:b.closest(".list-row").dataset.id});toast("Đã xóa phiếu")}catch(e){toast(e.message,true)}})}
+
+function showStockinEdit(r){
+  if(!r)return;
+  const dateVal=(()=>{const d=new Date(r.createdAt);return Number.isNaN(d.getTime())?todayKey():dateKeyOf(r.createdAt)})();
+  const suppliers=state.store.suppliers||[];
+  showModal(`<h3>Chỉnh phiếu nhập</h3>
+    <div class="form-grid">
+      <label>Ngày nhập<input id="editStockinDate" type="date" value="${dateVal}"></label>
+      <label>Nhà cung cấp<select id="editStockinSupplier"><option value="">Không chọn</option>${suppliers.map(s=>`<option value="${s.id}" ${s.id===r.supplierId?"selected":""}>${esc(s.name)}</option>`).join("")}</select></label>
+      <label>Thanh toán<select id="editStockinStatus"><option value="paid" ${r.paymentStatus!=="unpaid"?"selected":""}>Đã thanh toán</option><option value="unpaid" ${r.paymentStatus==="unpaid"?"selected":""}>Chưa thanh toán</option></select></label>
+      <label>Phương thức<select id="editStockinMethod"><option value="cash" ${r.method!=="transfer"?"selected":""}>Tiền mặt</option><option value="transfer" ${r.method==="transfer"?"selected":""}>Chuyển khoản</option></select></label>
+      <label class="wide">Ghi chú<input id="editStockinNote" value="${esc(r.note||"")}"></label>
+    </div>
+    <div class="edit-stockin-lines">
+      ${(r.lines||[]).map(l=>{const p=state.store.products.find(x=>x.id===l.productId)||{};const pack=Math.max(1,Number(l.packSize||p.packSize)||1);const packCost=Number(l.packCost||p.purchasePackPrice||p.purchasePrice||p.costPrice||0);return `<div class="edit-stockin-line" data-product="${l.productId}">
+        <div><strong>${esc(p.name||l.name||"Mặt hàng")}</strong><small>${pack} ${esc(p.unit||"đv")}/thùng</small></div>
+        <label>Thùng<input class="eCases" type="number" min="0" value="${Number(l.cases)||0}"></label>
+        <label>Lẻ<input class="eUnits" type="number" min="0" value="${Number(l.units)||0}"></label>
+        <label>Giá/thùng<input class="ePackCost" type="number" min="0" value="${packCost}"></label>
+      </div>`}).join("")}
+    </div>
+    <div class="stockin-cost-card"><div><small>Tổng tiền sau sửa</small><strong id="editStockinTotal">${money(r.totalCost||0)}</strong></div></div>
+    <button id="saveStockinEdit" class="primary full">Lưu thay đổi</button>`);
+  const recalc=()=>{
+    let total=0;
+    $$(".edit-stockin-line").forEach(row=>{
+      const p=state.store.products.find(x=>x.id===row.dataset.product)||{};
+      const pack=Math.max(1,Number(p.packSize)||1),cases=Math.max(0,Number(row.querySelector(".eCases").value)||0),units=Math.max(0,Number(row.querySelector(".eUnits").value)||0),packCost=Math.max(0,Number(row.querySelector(".ePackCost").value)||0);
+      total+=cases*packCost+units*(packCost/pack);
+    });
+    $("#editStockinTotal").textContent=money(total);
+  };
+  $$(".edit-stockin-line input").forEach(i=>i.addEventListener("input",recalc));
+  $("#saveStockinEdit").onclick=async()=>{
+    const lines=$$(".edit-stockin-line").map(row=>{
+      const p=state.store.products.find(x=>x.id===row.dataset.product)||{},pack=Math.max(1,Number(p.packSize)||1),cases=Math.max(0,Number(row.querySelector(".eCases").value)||0),units=Math.max(0,Number(row.querySelector(".eUnits").value)||0),packCost=Math.max(0,Number(row.querySelector(".ePackCost").value)||0);
+      const qty=cases*pack+units,unitCost=packCost/pack,cost=cases*packCost+units*unitCost;
+      return {productId:row.dataset.product,cases,units,qty,packSize:pack,packCost,unitCost,cost};
+    }).filter(x=>x.qty>0);
+    try{
+      await mutate("stockin.update",{id:r.id,createdAt:$("#editStockinDate").value+"T05:00:00.000Z",note:$("#editStockinNote").value,supplierId:$("#editStockinSupplier").value,paymentStatus:$("#editStockinStatus").value,method:$("#editStockinMethod").value,lines,totalCost:lines.reduce((s,x)=>s+x.cost,0)});
+      closeModal();toast("Đã cập nhật phiếu nhập");
+    }catch(e){toast(e.message,true)}
+  };
+}
+
 $("#stockinSearch").oninput=renderStockin;$("#saveStockin").onclick=async()=>{
   const lines=calcStockinLinesFromUI();
   if(!lines.length)return toast("Chưa nhập số lượng",true);

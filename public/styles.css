@@ -167,3 +167,10 @@ main{max-width:1100px;margin:auto;padding:14px}.page{display:none}.page.active{d
 /* v5.1.5 - giá nhập theo thùng */
 .stockin-row .purchasePackCost{min-width:120px}
 .stockin-row .purchasePackCost::placeholder{font-size:.82rem}
+
+/* v5.1.8 - chỉnh phiếu nhập */
+.row-actions{display:flex;gap:6px;align-items:center}
+.edit-stockin-lines{display:grid;gap:8px;margin:12px 0}
+.edit-stockin-line{display:grid;grid-template-columns:minmax(180px,1fr) 80px 80px 130px;gap:8px;align-items:end;padding:10px 0;border-bottom:1px solid var(--line)}
+.edit-stockin-line label{font-size:.78rem}
+@media(max-width:700px){.edit-stockin-line{grid-template-columns:1fr 1fr}.edit-stockin-line>div{grid-column:1/-1}.edit-stockin-line label:last-child{grid-column:1/-1}}
