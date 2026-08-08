@@ -13,7 +13,7 @@ async function rpc(name,payload){
   const text=await r.text();let data=null;try{data=text?JSON.parse(text):null}catch{data=text}
   if(!r.ok)throw new Error(data?.message||String(data||"Lỗi Supabase"));return data;
 }
-function emptyStore(name="Cửa hàng chính"){return {meta:{name,createdAt:now(),version:"5.1.9-recovery"},config:{money:{under1000MeansThousands:true},ai:{preview:true},ui:{compactDebt:true}},products:[],expenses:[],suppliers:[],payables:[],budgets:[],ingredients:[{"id": "ing-ca-phe-phin", "name": "Cà phê phin", "purchasePrice": 1085000, "packageQty": 7000, "unit": "g", "unitCost": 155, "stock": 0, "note": "240g pha được 500ml cà phê phin"}, {"id": "ing-ca-phe-may", "name": "Cà phê máy", "purchasePrice": 234000, "packageQty": 1000, "unit": "g", "unitCost": 234, "stock": 0, "note": "Tạm tính gói 1kg; sửa nếu khác"}, {"id": "ing-bot-kem-muoi", "name": "Bột kem muối", "purchasePrice": 80000, "packageQty": 500, "unit": "g", "unitCost": 160, "stock": 0, "note": "Người dùng cung cấp"}, {"id": "ing-sua-dac", "name": "Sữa đặc", "purchasePrice": 450000, "packageQty": 9120, "unit": "ml", "unitCost": 49.3421052632, "stock": 0, "note": "24 hộp x 380ml"}, {"id": "ing-sua-tuoi", "name": "Sữa tươi", "purchasePrice": 35000, "packageQty": 1000, "unit": "ml", "unitCost": 35, "stock": 0, "note": "1 lít giá 35.000"}, {"id": "ing-duong", "name": "Đường", "purchasePrice": 25000, "packageQty": 1000, "unit": "g", "unitCost": 25, "stock": 0, "note": "Tạm tính 25.000/kg; sửa theo thực tế"}],customers:[],debts:[],sales:[],stockReceipts:[],audits:[],transactions:[],snapshots:[],aliases:[]}}
+function emptyStore(name="Cửa hàng chính"){return {meta:{name,createdAt:now(),version:"5.2.2-recovery"},config:{money:{under1000MeansThousands:true},ai:{preview:true},ui:{compactDebt:true}},products:[],expenses:[],suppliers:[],payables:[],budgets:[],ingredients:[{"id": "ing-ca-phe-phin", "name": "Cà phê phin", "purchasePrice": 1085000, "packageQty": 7000, "unit": "g", "unitCost": 155, "stock": 0, "note": "240g pha được 500ml cà phê phin"}, {"id": "ing-ca-phe-may", "name": "Cà phê máy", "purchasePrice": 234000, "packageQty": 1000, "unit": "g", "unitCost": 234, "stock": 0, "note": "Tạm tính gói 1kg; sửa nếu khác"}, {"id": "ing-bot-kem-muoi", "name": "Bột kem muối", "purchasePrice": 80000, "packageQty": 500, "unit": "g", "unitCost": 160, "stock": 0, "note": "Người dùng cung cấp"}, {"id": "ing-sua-dac", "name": "Sữa đặc", "purchasePrice": 450000, "packageQty": 9120, "unit": "ml", "unitCost": 49.3421052632, "stock": 0, "note": "24 hộp x 380ml"}, {"id": "ing-sua-tuoi", "name": "Sữa tươi", "purchasePrice": 35000, "packageQty": 1000, "unit": "ml", "unitCost": 35, "stock": 0, "note": "1 lít giá 35.000"}, {"id": "ing-duong", "name": "Đường", "purchasePrice": 25000, "packageQty": 1000, "unit": "g", "unitCost": 25, "stock": 0, "note": "Tạm tính 25.000/kg; sửa theo thực tế"}],customers:[],debts:[],sales:[],stockReceipts:[],audits:[],transactions:[],snapshots:[],aliases:[]}}
 function ensureStore(s,name){const x=s&&typeof s==="object"?s:{};const e=emptyStore(name);for(const k of Object.keys(e))if(x[k]===undefined)x[k]=clone(e[k]);for(const k of ["products","ingredients","customers","debts","sales","stockReceipts","audits","expenses","suppliers","payables","budgets","transactions","snapshots","aliases"])if(!Array.isArray(x[k]))x[k]=[];x.meta={...e.meta,...(x.meta||{})};x.config={...e.config,...(x.config||{})};if(!Array.isArray(x.ingredients)||!x.ingredients.length)x.ingredients=clone([{"id": "ing-ca-phe-phin", "name": "Cà phê phin", "purchasePrice": 1085000, "packageQty": 7000, "unit": "g", "unitCost": 155, "stock": 0, "note": "240g pha được 500ml cà phê phin"}, {"id": "ing-ca-phe-may", "name": "Cà phê máy", "purchasePrice": 234000, "packageQty": 1000, "unit": "g", "unitCost": 234, "stock": 0, "note": "Tạm tính gói 1kg; sửa nếu khác"}, {"id": "ing-bot-kem-muoi", "name": "Bột kem muối", "purchasePrice": 80000, "packageQty": 500, "unit": "g", "unitCost": 160, "stock": 0, "note": "Người dùng cung cấp"}, {"id": "ing-sua-dac", "name": "Sữa đặc", "purchasePrice": 450000, "packageQty": 9120, "unit": "ml", "unitCost": 49.3421052632, "stock": 0, "note": "24 hộp x 380ml"}, {"id": "ing-sua-tuoi", "name": "Sữa tươi", "purchasePrice": 35000, "packageQty": 1000, "unit": "ml", "unitCost": 35, "stock": 0, "note": "1 lít giá 35.000"}, {"id": "ing-duong", "name": "Đường", "purchasePrice": 25000, "packageQty": 1000, "unit": "g", "unitCost": 25, "stock": 0, "note": "Tạm tính 25.000/kg; sửa theo thực tế"}]);for(const i of x.ingredients)i.category=i.category||"Nguyên liệu cà phê";
 for(const r of x.stockReceipts){
   if(!r.createdAt||Number.isNaN(Date.parse(r.createdAt))){
@@ -44,23 +44,27 @@ return x}
 function normalizeRoot(raw){
   if(!raw||typeof raw!=="object")bad("Không đọc được dữ liệu gốc từ Supabase",503);
   if(raw?.__nextV4===true&&Array.isArray(raw.stores)){
-    if(!raw.stores.length)bad("Supabase đang có danh sách cửa hàng rỗng",409);
+    if(!raw.stores.length){
+      const id=uid();
+      return {__nextV4:true,revision:Number(raw.revision)||0,activeStoreId:id,stores:[{id,name:"Cửa hàng chính",createdAt:now(),data:emptyStore()}],persist:raw.persist||{token:"",writtenAt:""},recoveryLocked:true,recoveryReason:"Danh sách cửa hàng trong Supabase đang rỗng"};
+    }
     raw.stores=raw.stores.map(s=>({...s,data:ensureStore(s.data,s.name)}));
     if(!raw.stores.some(s=>s.id===raw.activeStoreId))raw.activeStoreId=raw.stores[0].id;
     return raw;
   }
   if(raw?.__multiStore===true&&Array.isArray(raw.stores)){
-    if(!raw.stores.length)bad("Dữ liệu multi-store cũ đang rỗng",409);
-    const oldActive=raw.stores.find(s=>s.id===raw.activeStoreId)||raw.stores[0];
-    const id=oldActive.id||uid();
-    const seed=ensureStore(oldActive.data||{} ,oldActive.name||"Cửa hàng chính");
-    return {__nextV4:true,revision:Number(raw.revision)||0,activeStoreId:id,stores:[{id,name:oldActive.name||seed.meta?.name||"Cửa hàng chính",createdAt:oldActive.createdAt||now(),data:seed}],persist:raw.persist||{token:"",writtenAt:""}};
+    if(!raw.stores.length){
+      const id=uid();
+      return {__nextV4:true,revision:Number(raw.revision)||0,activeStoreId:id,stores:[{id,name:"Cửa hàng chính",createdAt:now(),data:emptyStore()}],persist:raw.persist||{token:"",writtenAt:""},recoveryLocked:true,recoveryReason:"Dữ liệu multi-store cũ đang rỗng"};
+    }
+    const converted=raw.stores.map(s=>({id:s.id||uid(),name:s.name||"Cửa hàng",createdAt:s.createdAt||now(),data:ensureStore(s.data||{},s.name||"Cửa hàng")}));
+    const activeId=converted.some(s=>s.id===raw.activeStoreId)?raw.activeStoreId:converted[0].id;
+    return {__nextV4:true,revision:Number(raw.revision)||0,activeStoreId:activeId,stores:converted,persist:raw.persist||{token:"",writtenAt:""}};
   }
   const seed=ensureStore(raw,"Cửa hàng chính");
-  const hasData=(seed.products?.length||0)+(seed.customers?.length||0)+(seed.debts?.length||0);
-  if(!hasData)bad("Dữ liệu Supabase hiện đang rỗng",409);
   const id=uid();
-  return {__nextV4:true,revision:Number(raw.revision)||0,activeStoreId:id,stores:[{id,name:seed.meta?.name||"Cửa hàng chính",createdAt:now(),data:seed}],persist:raw.persist||{token:"",writtenAt:""}};
+  const locked=(seed.products?.length||0)+(seed.customers?.length||0)+(seed.debts?.length||0)===0;
+  return {__nextV4:true,revision:Number(raw.revision)||0,activeStoreId:id,stores:[{id,name:seed.meta?.name||"Cửa hàng chính",createdAt:now(),data:seed}],persist:raw.persist||{token:"",writtenAt:""},recoveryLocked:locked,recoveryReason:locked?"Supabase đang trả về cửa hàng rỗng":""};
 }
 async function readRoot(){return normalizeRoot(await rpc("cantin_read_store_public",{}))}
 async function writeRoot(root){
@@ -216,9 +220,21 @@ export async function onRequest(context){
   globalThis.__ENV=context.env||{};
   const url=new URL(context.request.url),path=url.pathname,req=context.request;
   try{
-    if(path==="/api/bootstrap"&&req.method==="GET"){const root=await readRoot(),s=active(root);return json({revision:root.revision||0,storeId:s.id,store:s.data,stores:root.stores.map(x=>({id:x.id,name:x.name}))})}
-    if(path==="/api/recovery/export"&&req.method==="GET"){const root=await readRoot(),s=active(root);return json({format:"cantin-ai-recovery",version:"5.1.9-recovery",exportedAt:now(),revision:root.revision||0,storeId:s.id,store:s.data,stores:root.stores.map(x=>({id:x.id,name:x.name}))})}
-    if(path==="/api/action"&&req.method==="POST"){const body=await req.json(),root=await readRoot();if(Number(body.revision)!==Number(root.revision||0))bad("Dữ liệu vừa thay đổi ở thiết bị khác. Hãy đồng bộ lại.",409);applyAction(root,body.action,body.payload||{});const saved=await writeRoot(root),s=active(saved);return json({ok:true,revision:saved.revision,storeId:s.id,store:s.data,stores:saved.stores.map(x=>({id:x.id,name:x.name}))})}
+    if(path==="/api/bootstrap"&&req.method==="GET"){const root=await readRoot(),s=active(root);return json({revision:root.revision||0,storeId:s.id,store:s.data,stores:root.stores.map(x=>({id:x.id,name:x.name})),recoveryLocked:!!root.recoveryLocked,recoveryReason:root.recoveryReason||""})}
+    if(path==="/api/recovery/export"&&req.method==="GET"){const root=await readRoot(),s=active(root);return json({format:"cantin-ai-recovery",version:"5.2.2",exportedAt:now(),revision:root.revision||0,storeId:s.id,store:s.data,stores:root.stores.map(x=>({id:x.id,name:x.name}))})}
+    if(path==="/api/recovery/restore"&&req.method==="POST"){
+      const body=await req.json();
+      const incoming=ensureStore(clone(body.store||{}),"Cửa hàng chính");
+      const counts=(incoming.products?.length||0)+(incoming.customers?.length||0)+(incoming.debts?.length||0);
+      if(!counts)bad("File khôi phục đang rỗng",400);
+      const current=await readRoot();
+      const id=current?.activeStoreId||uid();
+      const name=incoming.meta?.name||"Cửa hàng chính";
+      const root={__nextV4:true,revision:Number(current?.revision)||0,activeStoreId:id,stores:[{id,name,createdAt:now(),data:incoming}],persist:current?.persist||{token:"",writtenAt:""}};
+      const saved=await writeRoot(root),s=active(saved);
+      return json({ok:true,revision:saved.revision,storeId:s.id,store:s.data,stores:saved.stores.map(x=>({id:x.id,name:x.name}))});
+    }
+    if(path==="/api/action"&&req.method==="POST"){const body=await req.json(),root=await readRoot();if(root.recoveryLocked)bad("Recovery đang khóa ghi dữ liệu. Hãy khôi phục dữ liệu trước.",423);if(Number(body.revision)!==Number(root.revision||0))bad("Dữ liệu vừa thay đổi ở thiết bị khác. Hãy đồng bộ lại.",409);applyAction(root,body.action,body.payload||{});const saved=await writeRoot(root),s=active(saved);return json({ok:true,revision:saved.revision,storeId:s.id,store:s.data,stores:saved.stores.map(x=>({id:x.id,name:x.name}))})}
     if(path==="/api/ai/plan"&&req.method==="POST"){const body=await req.json(),root=await readRoot(),s=root.stores.find(x=>x.id===body.storeId)||active(root);return json(planAI(s.data,String(body.message||"")))}
     if(path==="/api/package/validate"&&req.method==="POST"){const body=await req.json();if(body.format!=="cantin-ai-node-json")bad("Không phải gói Cantin AI");if(!Array.isArray(body.files)||!body.files.length)bad("Gói không có file");return json({ok:true,version:body.version||"không rõ",fileCount:body.files.length})}
     return json({error:"Không tìm thấy API"},404)
