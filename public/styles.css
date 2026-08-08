@@ -38,7 +38,7 @@ main{max-width:1100px;margin:auto;padding:14px}.page{display:none}.page.active{d
 @media(max-width:600px){.product-manage-row{align-items:flex-start;flex-direction:column}.direct-stock-control{width:100%;justify-content:flex-start}}
 
 /* v4.3 - danh mục mặt hàng */
-.bottom-nav{grid-template-columns:repeat(9,minmax(64px,1fr));overflow-x:auto}
+.bottom-nav{grid-template-columns:repeat(8,minmax(64px,1fr));overflow-x:auto}
 .category-filter-wrap{overflow-x:auto;margin:0 0 10px;padding-bottom:2px}
 .category-chips{display:flex;gap:7px;min-width:max-content}
 .category-chip{border:1px solid var(--line);background:#fff;border-radius:999px;padding:8px 11px;font-weight:700;color:var(--muted)}
@@ -62,3 +62,12 @@ main{max-width:1100px;margin:auto;padding:14px}.page{display:none}.page.active{d
 .customer-detail{padding:12px}
 .customer-detail .debt-line{padding:11px 0}
 @media(max-width:560px){.product-filter-bar{grid-template-columns:1fr}.debt-compact-actions{grid-template-columns:1fr 1fr}}
+
+/* v4.5 */
+.product-filter-bar{grid-template-columns:minmax(0,1fr) minmax(140px,180px) minmax(150px,220px)}
+.product-toolbar{grid-template-columns:minmax(180px,1fr) minmax(130px,180px) minmax(150px,220px) minmax(130px,180px)}
+.subtabs{display:flex;gap:8px;margin:0 0 12px;padding:4px;background:#eaf3f1;border-radius:14px}
+.subtab{flex:1;border:0;background:transparent;border-radius:10px;padding:10px;font-weight:800;color:var(--muted)}
+.subtab.active{background:#fff;color:var(--brand);box-shadow:0 2px 8px rgba(0,0,0,.06)}
+.subpage{display:none}.subpage.active{display:block}
+@media(max-width:760px){.product-filter-bar{grid-template-columns:1fr}.product-toolbar{grid-template-columns:1fr 1fr}.product-toolbar .search{grid-column:1/-1}}

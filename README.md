@@ -1,4 +1,4 @@
-# Cantin AI Next v4.4
+# Cantin AI Next v4.5
 
 App mới hoàn toàn, không phụ thuộc mã nguồn v3.x.
 
@@ -57,3 +57,10 @@ App không xóa dữ liệu cũ. Root hiện tại sẽ được bọc vào cấ
 - Form nhập tiền chỉ mở khi bấm Ghi nợ hoặc Trả nợ.
 - Bộ lọc danh mục được thêm ở Bán hàng, Nhập kho, Kiểm kho, Quản lý mặt hàng.
 - Nguyên liệu cũng có bộ lọc nhóm.
+
+
+## v4.5
+- Bộ lọc lấy trực tiếp từ dữ liệu sản phẩm.
+- Thêm bộ lọc **Tất cả mặt hàng / từng mặt hàng cụ thể** ở Bán hàng, Nhập kho, Kiểm kho, Quản lý mặt hàng.
+- Nhập kho được gộp vào Kiểm kho thành 2 tab con: Kiểm kho | Nhập kho.
+- Bỏ nút Nhập kho riêng khỏi thanh điều hướng dưới.

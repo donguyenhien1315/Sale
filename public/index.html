@@ -12,7 +12,7 @@
   <div id="boot" class="boot">Đang đồng bộ dữ liệu…</div>
   <header class="topbar">
     <div>
-      <div class="eyebrow">CANTIN AI NEXT 4.4</div>
+      <div class="eyebrow">CANTIN AI NEXT 4.5</div>
       <h1 id="storeName">Cửa hàng chính</h1>
     </div>
     <div class="top-actions">
@@ -45,6 +45,7 @@
         <div class="product-filter-bar">
           <input id="saleSearch" class="search" placeholder="Tìm sản phẩm…">
           <select id="saleCategory"><option value="">Tất cả danh mục</option></select>
+          <select id="saleProductFilter"><option value="">Tất cả mặt hàng</option></select>
         </div>
         <div id="saleCategoryChips" class="category-chips compact-chips"></div>
         <div id="quickProducts" class="product-grid"></div>
@@ -71,9 +72,30 @@
       </div>
       <div class="debt-total"><span>Tổng còn nợ</span><strong id="debtPageTotal">0 ₫</strong></div>
       <div id="customers" class="customer-list"></div>
-    </section>
+    </section><section class="page" data-page="audit">
+      <div class="subtabs inventory-subtabs">
+        <button class="subtab active" data-subtab="audit-check">Kiểm kho</button>
+        <button class="subtab" data-subtab="audit-stockin">Nhập kho</button>
+      </div>
+      <div class="subpage active" data-subpage="audit-check">
 
-    <section class="page" data-page="stockin">
+      <div class="page-head"><div><div class="eyebrow">KIỂM KHO</div><h2>Kiểm kho nhanh</h2></div></div>
+      <article class="panel">
+        <div class="product-filter-bar">
+          <input id="auditSearch" class="search" placeholder="Tìm sản phẩm…">
+          <select id="auditCategory"><option value="">Tất cả danh mục</option></select>
+          <select id="auditProductFilter"><option value="">Tất cả mặt hàng</option></select>
+        </div>
+        <div id="auditCategoryChips" class="category-chips compact-chips"></div>
+        <div id="auditProducts" class="audit-list"></div>
+        <label>Ghi chú<input id="auditNote" placeholder="VD: kiểm cuối tuần"></label>
+        <button id="saveAudit" class="primary full">Chốt kiểm kho</button>
+      </article>
+      <article class="panel"><div class="panel-head"><h3>Lịch sử kiểm kho</h3></div><div id="auditHistory" class="list empty"></div></article>
+    
+      </div>
+      <div class="subpage" data-subpage="audit-stockin">
+
       <div class="page-head"><div><div class="eyebrow">NHẬP KHO</div><h2>Phiếu nhập kho</h2></div></div>
       <article class="panel">
         <div class="form-grid">
@@ -83,28 +105,16 @@
         <div class="product-filter-bar">
           <input id="stockinSearch" class="search" placeholder="Tìm mặt hàng để nhập…">
           <select id="stockinCategory"><option value="">Tất cả danh mục</option></select>
+          <select id="stockinProductFilter"><option value="">Tất cả mặt hàng</option></select>
         </div>
         <div id="stockinCategoryChips" class="category-chips compact-chips"></div>
         <div id="stockinProducts" class="stockin-list"></div>
         <button id="saveStockin" class="primary full">Lưu phiếu nhập</button>
       </article>
       <article class="panel"><div class="panel-head"><h3>Lịch sử nhập kho</h3></div><div id="stockinHistory" class="list empty"></div></article>
-    </section>
-
-    <section class="page" data-page="audit">
-      <div class="page-head"><div><div class="eyebrow">KIỂM KHO</div><h2>Kiểm kho nhanh</h2></div></div>
-      <article class="panel">
-        <div class="product-filter-bar">
-          <input id="auditSearch" class="search" placeholder="Tìm sản phẩm…">
-          <select id="auditCategory"><option value="">Tất cả danh mục</option></select>
-        </div>
-        <div id="auditCategoryChips" class="category-chips compact-chips"></div>
-        <div id="auditProducts" class="audit-list"></div>
-        <label>Ghi chú<input id="auditNote" placeholder="VD: kiểm cuối tuần"></label>
-        <button id="saveAudit" class="primary full">Chốt kiểm kho</button>
-      </article>
-      <article class="panel"><div class="panel-head"><h3>Lịch sử kiểm kho</h3></div><div id="auditHistory" class="list empty"></div></article>
-    </section>
+    
+      </div>
+</section>
 
 
     <section class="page" data-page="ingredients">
@@ -137,6 +147,7 @@
         <select id="productCategory">
           <option value="">Tất cả danh mục</option>
         </select>
+        <select id="productItemFilter"><option value="">Tất cả mặt hàng</option></select>
         <select id="productSort"><option value="name">Tên A → Z</option><option value="stock-low">Tồn ít → nhiều</option><option value="stock-high">Tồn nhiều → ít</option></select>
       </div>
       <div class="product-summary" id="productSummary"></div>
@@ -178,8 +189,7 @@
     <button class="nav active" data-target="dashboard">Tổng quan</button>
     <button class="nav" data-target="sales">Bán hàng</button>
     <button class="nav" data-target="debts">Công nợ</button>
-    <button class="nav" data-target="stockin">Nhập kho</button>
-    <button class="nav" data-target="audit">Kiểm kho</button>
+<button class="nav" data-target="audit">Kiểm kho</button>
     <button class="nav" data-target="products">Mặt hàng</button>
     <button class="nav" data-target="ingredients">Nguyên liệu</button>
     <button class="nav" data-target="assistant">AI</button>
