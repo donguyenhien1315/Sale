@@ -12,7 +12,7 @@
   <div id="boot" class="boot">Đang đồng bộ dữ liệu…</div>
   <header class="topbar">
     <div>
-      <div class="eyebrow">CANTIN AI NEXT 4.2</div>
+      <div class="eyebrow">CANTIN AI NEXT 4.3</div>
       <h1 id="storeName">Cửa hàng chính</h1>
     </div>
     <div class="top-actions">
@@ -113,10 +113,17 @@
         <strong>Điều chỉnh tồn độc lập</strong>
         <p class="hint">Thay đổi số lượng ở đây chỉ cập nhật tồn kho của mặt hàng. Không tạo đơn bán, không thay doanh thu/lợi nhuận, không tạo kiểm kho và không ảnh hưởng công nợ.</p>
       </article>
-      <div class="toolbar">
+      <div class="category-filter-wrap">
+        <div id="productCategoryChips" class="category-chips"></div>
+      </div>
+      <div class="toolbar product-toolbar">
         <input id="productSearch" class="search" placeholder="Tìm sản phẩm…">
+        <select id="productCategory">
+          <option value="">Tất cả danh mục</option>
+        </select>
         <select id="productSort"><option value="name">Tên A → Z</option><option value="stock-low">Tồn ít → nhiều</option><option value="stock-high">Tồn nhiều → ít</option></select>
       </div>
+      <div class="product-summary" id="productSummary"></div>
       <div id="products" class="list"></div>
     </section>
 
@@ -157,6 +164,7 @@
     <button class="nav" data-target="debts">Công nợ</button>
     <button class="nav" data-target="stockin">Nhập kho</button>
     <button class="nav" data-target="audit">Kiểm kho</button>
+    <button class="nav" data-target="products">Mặt hàng</button>
     <button class="nav" data-target="ingredients">Nguyên liệu</button>
     <button class="nav" data-target="assistant">AI</button>
     <button class="nav more" data-target="data">Khác</button>
