@@ -1,0 +1,9 @@
+{
+  "name": "Cantin AI Next",
+  "short_name": "Cantin AI",
+  "start_url": "/",
+  "display": "standalone",
+  "background_color": "#f5f7f7",
+  "theme_color": "#0f766e",
+  "icons": []
+}
