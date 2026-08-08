@@ -802,6 +802,77 @@ $("#runRecovery")?.addEventListener("click",async()=>{
     toast("Đã khôi phục dữ liệu");
   }catch(e){toast(e.message,true)}
 });
+
+$("#downloadDebtBackup")?.addEventListener("click",()=>{
+  const st=state.store||{};
+  const debts=JSON.parse(JSON.stringify(st.debts||[]));
+  const customerIds=new Set(debts.map(d=>d.customerId).filter(Boolean));
+  const customers=JSON.parse(JSON.stringify((st.customers||[]).filter(c=>customerIds.has(c.id)||(st.debts||[]).some(d=>d.customerId===c.id))));
+  const totalDebt=customers.reduce((sum,c)=>sum+customerDebt(c.id),0);
+  const payload={
+    format:"cantin-ai-debt-backup",
+    version:1,
+    appVersion:"4.12.9",
+    exportedAt:new Date().toISOString(),
+    store:{id:state.storeId||"",name:st.name||st.storeName||"Cửa hàng"},
+    summary:{customers:customers.length,debts:debts.length,totalDebt},
+    customers,
+    debts
+  };
+  download(payload,`cantin-backup-no-${todayKey()}.json`);
+  toast(`Đã tải backup nợ · ${customers.length} khách · ${money(totalDebt)}`);
+});
+
+let pendingDebtBackup=null;
+$("#uploadDebtBackup")?.addEventListener("change",async e=>{
+  const f=e.target.files?.[0];
+  if(!f)return;
+  try{
+    const raw=JSON.parse(await f.text());
+    if(raw?.format!=="cantin-ai-debt-backup")throw new Error("Không phải file backup công nợ của Cantin AI");
+    if(!Array.isArray(raw.customers)||!Array.isArray(raw.debts))throw new Error("File backup nợ thiếu dữ liệu khách hàng hoặc khoản nợ");
+    const total=raw.summary?.totalDebt ?? raw.debts.reduce((s,d)=>s+(Number(d.balance) || Math.max(0,(Number(d.amount)||0)-(Number(d.paid)||0))),0);
+    pendingDebtBackup=raw;
+    showModal(`<h3>Khôi phục backup công nợ</h3>
+      <div class="debt-backup-preview">
+        <strong>${esc(f.name)}</strong>
+        <div class="debt-backup-stats">
+          <div><span>Khách trong file</span><b>${raw.customers.length}</b></div>
+          <div><span>Khoản nợ</span><b>${raw.debts.length}</b></div>
+          <div><span>Tổng còn nợ</span><b>${money(total)}</b></div>
+        </div>
+        <p class="hint">Khôi phục sẽ <b>thay toàn bộ dữ liệu công nợ hiện tại</b> bằng dữ liệu trong file. Khách hàng có cùng ID sẽ được cập nhật; khách không liên quan vẫn được giữ.</p>
+        <p class="hint"><b>Không thay đổi:</b> đơn hàng, doanh thu, tồn kho, kiểm kho, nhập kho và sản phẩm.</p>
+        <p class="hint">Hệ thống tự tạo snapshot trước khi khôi phục.</p>
+      </div>
+      <div class="row">
+        <button id="confirmDebtBackupImport" class="primary">Khôi phục công nợ</button>
+        <button id="cancelDebtBackupImport" class="ghost">Hủy</button>
+      </div>`);
+    $("#cancelDebtBackupImport").onclick=()=>{pendingDebtBackup=null;closeModal();};
+    $("#confirmDebtBackupImport").onclick=async()=>{
+      const btn=$("#confirmDebtBackupImport");
+      btn.disabled=true;btn.textContent="Đang khôi phục…";
+      try{
+        await mutate("debt.backup.import",{data:pendingDebtBackup});
+        pendingDebtBackup=null;
+        closeModal();
+        renderCustomers();renderDashboard();
+        toast("Đã khôi phục công nợ từ file backup");
+      }catch(err){
+        btn.disabled=false;btn.textContent="Khôi phục công nợ";
+        toast(err.message,true);
+      }
+    };
+  }catch(err){
+    pendingDebtBackup=null;
+    toast("Không đọc được backup nợ: "+err.message,true);
+  }finally{
+    e.target.value="";
+  }
+});
+
+
 $("#downloadEmergencyBackup")?.addEventListener("click",()=>{
   const payload={format:"cantin-ai-emergency-backup",version:"4.12",exportedAt:new Date().toISOString(),data:state.store};
   download(payload,`cantin-backup-${todayKey()}.json`);

@@ -12,7 +12,7 @@
   <div id="boot" class="boot">Đang đồng bộ dữ liệu…</div>
   <header class="topbar">
     <div>
-      <div class="eyebrow">CANTIN AI NEXT 4.12.8</div>
+      <div class="eyebrow">CANTIN AI NEXT 4.13.0</div>
       <h1 id="storeName">Cửa hàng chính</h1>
     </div>
     <div class="top-actions">
@@ -70,7 +70,14 @@
     </section>
 
     <section class="page" data-page="debts">
-      <div class="page-head"><div><div class="eyebrow">CÔNG NỢ</div><h2>Khách hàng & công nợ</h2></div><button id="addCustomerBtn" class="primary small">+ Khách</button></div>
+      <div class="page-head"><div><div class="eyebrow">CÔNG NỢ</div><h2>Khách hàng & công nợ</h2></div>
+        <div class="debt-head-actions">
+          <button id="downloadDebtBackup" class="ghost small">⬇ Backup nợ</button>
+          <label for="uploadDebtBackup" class="ghost small upload-debt-btn">⬆ Tải backup nợ lên</label>
+          <input id="uploadDebtBackup" type="file" accept=".json,application/json" hidden>
+          <button id="addCustomerBtn" class="primary small">+ Khách</button>
+        </div>
+      </div>
       <div class="toolbar">
         <input id="debtSearch" class="search" placeholder="Tìm khách hàng…">
         <select id="debtSort"><option value="az">A → Z</option><option value="za">Z → A</option><option value="debt">Nợ cao → thấp</option></select>
