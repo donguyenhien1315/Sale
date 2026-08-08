@@ -27,7 +27,7 @@ async function readRootRaw(){
   return v;
 }
 
-function emptyStore(name="Cửa hàng chính"){return {meta:{name,createdAt:now(),version:"4.11.1"},config:{money:{under1000MeansThousands:true},ai:{preview:true,safetyMode:"preview",autoIngredientDeduct:false},ui:{compactDebt:true}},products:[],ingredients:[{"id": "ing-ca-phe-phin", "name": "Cà phê phin", "purchasePrice": 1085000, "packageQty": 7000, "unit": "g", "unitCost": 155, "stock": 0, "note": "240g pha được 500ml cà phê phin"}, {"id": "ing-ca-phe-may", "name": "Cà phê máy", "purchasePrice": 234000, "packageQty": 1000, "unit": "g", "unitCost": 234, "stock": 0, "note": "Tạm tính gói 1kg; sửa nếu khác"}, {"id": "ing-bot-kem-muoi", "name": "Bột kem muối", "purchasePrice": 80000, "packageQty": 500, "unit": "g", "unitCost": 160, "stock": 0, "note": "Người dùng cung cấp"}, {"id": "ing-sua-dac", "name": "Sữa đặc", "purchasePrice": 450000, "packageQty": 9120, "unit": "ml", "unitCost": 49.3421052632, "stock": 0, "note": "24 hộp x 380ml"}, {"id": "ing-sua-tuoi", "name": "Sữa tươi", "purchasePrice": 35000, "packageQty": 1000, "unit": "ml", "unitCost": 35, "stock": 0, "note": "1 lít giá 35.000"}, {"id": "ing-duong", "name": "Đường", "purchasePrice": 25000, "packageQty": 1000, "unit": "g", "unitCost": 25, "stock": 0, "note": "Tạm tính 25.000/kg; sửa theo thực tế"}],customers:[],debts:[],sales:[],stockReceipts:[],audits:[],transactions:[],snapshots:[],aliases:[]}}
+function emptyStore(name="Cửa hàng chính"){return {meta:{name,createdAt:now(),version:"4.11.2"},config:{money:{under1000MeansThousands:true},ai:{preview:true,safetyMode:"preview",autoIngredientDeduct:false},ui:{compactDebt:true}},products:[],ingredients:[{"id": "ing-ca-phe-phin", "name": "Cà phê phin", "purchasePrice": 1085000, "packageQty": 7000, "unit": "g", "unitCost": 155, "stock": 0, "note": "240g pha được 500ml cà phê phin"}, {"id": "ing-ca-phe-may", "name": "Cà phê máy", "purchasePrice": 234000, "packageQty": 1000, "unit": "g", "unitCost": 234, "stock": 0, "note": "Tạm tính gói 1kg; sửa nếu khác"}, {"id": "ing-bot-kem-muoi", "name": "Bột kem muối", "purchasePrice": 80000, "packageQty": 500, "unit": "g", "unitCost": 160, "stock": 0, "note": "Người dùng cung cấp"}, {"id": "ing-sua-dac", "name": "Sữa đặc", "purchasePrice": 450000, "packageQty": 9120, "unit": "ml", "unitCost": 49.3421052632, "stock": 0, "note": "24 hộp x 380ml"}, {"id": "ing-sua-tuoi", "name": "Sữa tươi", "purchasePrice": 35000, "packageQty": 1000, "unit": "ml", "unitCost": 35, "stock": 0, "note": "1 lít giá 35.000"}, {"id": "ing-duong", "name": "Đường", "purchasePrice": 25000, "packageQty": 1000, "unit": "g", "unitCost": 25, "stock": 0, "note": "Tạm tính 25.000/kg; sửa theo thực tế"}],customers:[],debts:[],sales:[],stockReceipts:[],audits:[],transactions:[],snapshots:[],aliases:[]}}
 function ensureStore(s,name){const x=s&&typeof s==="object"?s:{};const e=emptyStore(name);for(const k of Object.keys(e))if(x[k]===undefined)x[k]=clone(e[k]);for(const k of ["products","ingredients","customers","debts","sales","stockReceipts","audits","transactions","snapshots","aliases"])if(!Array.isArray(x[k]))x[k]=[];x.meta={...e.meta,...(x.meta||{})};x.config={...e.config,...(x.config||{})};x.config.ai={...e.config.ai,...(x.config.ai||{})};x.config.money={...e.config.money,...(x.config.money||{})};x.config.ui={...e.config.ui,...(x.config.ui||{})};if(!Array.isArray(x.ingredients)||!x.ingredients.length)x.ingredients=clone([{"id": "ing-ca-phe-phin", "name": "Cà phê phin", "purchasePrice": 1085000, "packageQty": 7000, "unit": "g", "unitCost": 155, "stock": 0, "note": "240g pha được 500ml cà phê phin"}, {"id": "ing-ca-phe-may", "name": "Cà phê máy", "purchasePrice": 234000, "packageQty": 1000, "unit": "g", "unitCost": 234, "stock": 0, "note": "Tạm tính gói 1kg; sửa nếu khác"}, {"id": "ing-bot-kem-muoi", "name": "Bột kem muối", "purchasePrice": 80000, "packageQty": 500, "unit": "g", "unitCost": 160, "stock": 0, "note": "Người dùng cung cấp"}, {"id": "ing-sua-dac", "name": "Sữa đặc", "purchasePrice": 450000, "packageQty": 9120, "unit": "ml", "unitCost": 49.3421052632, "stock": 0, "note": "24 hộp x 380ml"}, {"id": "ing-sua-tuoi", "name": "Sữa tươi", "purchasePrice": 35000, "packageQty": 1000, "unit": "ml", "unitCost": 35, "stock": 0, "note": "1 lít giá 35.000"}, {"id": "ing-duong", "name": "Đường", "purchasePrice": 25000, "packageQty": 1000, "unit": "g", "unitCost": 25, "stock": 0, "note": "Tạm tính 25.000/kg; sửa theo thực tế"}]);for(const i of x.ingredients)i.category=i.category||"Nguyên liệu cà phê";return x}
 
 function dataWeight(root){
@@ -42,7 +42,7 @@ function dataWeight(root){
 function normalizeLegacyStore(input,name="Cửa hàng chính"){
   const src=clone(input||{});
   const out=ensureStore(src);
-  out.meta={...(out.meta||{}),name:out.meta?.name||name,version:"4.11.1"};
+  out.meta={...(out.meta||{}),name:out.meta?.name||name,version:"4.11.2"};
   // Preserve legacy arrays instead of dropping them.
   if((!Array.isArray(out.audits)||!out.audits.length)&&Array.isArray(src.weeklyAudits)){
     out.audits=src.weeklyAudits.map(a=>({
@@ -117,7 +117,7 @@ async function writeRoot(root){
 
   root.revision=(Number(root.revision)||0)+1;
   const token=uid();
-  root.persist={token,writtenAt:now(),version:"4.11.1"};
+  root.persist={token,writtenAt:now(),version:"4.11.2"};
 
   await rpc("cantin_write_store_public",{p_data:root});
 
@@ -655,6 +655,26 @@ function parseVietnameseDate(text){
   const dt=new Date(y,mo-1,d,12,0,0,0);
   return Number.isNaN(dt.getTime())?null:dt.toISOString();
 }
+
+function explicitDebtProduct(st,text){
+  const q=norm(String(text||""));
+  // Debt notes like "2c", "3c", "1 mèo" are internal notes, not product names.
+  // Only accept a product when its full normalized name or an explicit alias appears in the text.
+  const products=[...(st.products||[])].filter(p=>p.active!==false).sort((a,b)=>norm(b.name).length-norm(a.name).length);
+  for(const p of products){
+    const n=norm(p.name);
+    if(n.length>=3&&q.includes(n))return p;
+  }
+  for(const a of st.aliases||[]){
+    const alias=norm(a.alias||"");
+    if(alias.length>=2&&new RegExp(`(^|\\s)${alias.replace(/[.*+?^${}()|[\]\\]/g,"\\$&")}(?=\\s|$)`).test(q)){
+      const p=st.products.find(x=>x.id===a.productId&&x.active!==false);
+      if(p)return p;
+    }
+  }
+  return null;
+}
+
 function splitDebtClauses(msg){
   // Keeps the customer name in the prefix and splits repeated debt clauses by commas/semicolons.
   return String(msg||"").split(/\s*[,;]\s*/).map(x=>x.trim()).filter(Boolean);
@@ -687,14 +707,15 @@ function parseDebtBatch(st,msg,context={}){
     let quantity=qtyMatch?Number(qtyMatch[1].replace(",",".")):0;
 
     // Try identifying a product from the clause. If no product name exists, keep debt as manual debt.
-    const product=findProduct(st,clause,context.productId);
+    const product=explicitDebtProduct(st,clause);
     parsed.push({
       amount:cash.amount,
       date,
       quantity,
       productId:product?.id||"",
       productName:product?.name||"",
-      raw:clause
+      raw:clause,
+      note:clause
     });
   }
   if(!parsed.length)return null;
@@ -703,8 +724,8 @@ function parseDebtBatch(st,msg,context={}){
 function debtBatchSummary(batch){
   return batch.items.map((x,i)=>{
     const d=new Date(x.date).toLocaleDateString("vi-VN");
-    const product=x.productName?(x.quantity?` · ${x.quantity} ${x.productName}`:` · ${x.productName}`):"";
-    return `${i+1}. ${formatMoney(x.amount)} · ${d}${product}`;
+    if(x.productName)return `${i+1}. ${formatMoney(x.amount)} · ${d} · ${x.quantity||1} ${x.productName}`;
+    return `${i+1}. ${formatMoney(x.amount)} · ${d} · ghi chú: ${x.note||x.raw||""}`;
   }).join("\n");
 }
 
@@ -794,7 +815,7 @@ function planAI(st,msg,context={}){
       type:"plan",
       summary:`Tạo ${debtBatch.items.length} khoản nợ cho ${debtBatch.customer.name}:
 ${debtBatchSummary(debtBatch)}`,
-      plan:{kind:"debt.batch",customerId:debtBatch.customer.id,items:debtBatch.items.map(x=>({amount:x.amount,createdAt:x.date,quantity:x.quantity,productId:x.productId,note:x.raw}))},
+      plan:{kind:"debt.batch",customerId:debtBatch.customer.id,items:debtBatch.items.map(x=>({amount:x.amount,createdAt:x.date,quantity:x.quantity,productId:x.productId,note:x.note||x.raw}))},
       context:{...context,customerId:debtBatch.customer.id,resolvedProductId:""}
     };
   }
@@ -843,11 +864,11 @@ ${debtBatchSummary(debtBatch)}`,
       const createdAt=parseVietnameseDate(msg)||now();
       const qm=msg.match(/(\d+(?:[.,]\d+)?)\s*(c|cái|cai|chai|lon|ly|gói|goi)\b/i);
       const quantity=qm?Number(qm[1].replace(",",".")):0;
-      const product=pr;
+      const product=explicitDebtProduct(st,msg);
       if(product&&quantity>0){
         return {type:"plan",summary:`Tạo đơn nợ ${cu.name}: ${quantity} ${product.name} · ${formatMoney(c.amount)} · ${new Date(createdAt).toLocaleDateString("vi-VN")}`,plan:{kind:"debt.batch",customerId:cu.id,items:[{amount:c.amount,createdAt,quantity,productId:product.id,note:msg}]},context:{...context,customerId:cu.id,productId:product.id,resolvedProductId:""}}
       }
-      return {type:"plan",summary:`Ghi nợ ${cu.name}: ${formatMoney(c.amount)} · ${new Date(createdAt).toLocaleDateString("vi-VN")}`,plan:{kind:"debt.add",customerId:cu.id,amount:c.amount,note:msg,createdAt},context:{...context,customerId:cu.id}}
+      return {type:"plan",summary:`Ghi nợ ${cu.name}: ${formatMoney(c.amount)} · ${new Date(createdAt).toLocaleDateString("vi-VN")} · ghi chú: ${msg}`,plan:{kind:"debt.add",customerId:cu.id,amount:c.amount,note:msg,createdAt},context:{...context,customerId:cu.id}}
     }
   }
   if(cu&&(q.includes("tra ")||q.includes("trả ")||q.includes("tra no")||q.includes("trả nợ"))){

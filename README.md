@@ -189,3 +189,15 @@ App không xóa dữ liệu cũ. Root hiện tại sẽ được bọc vào cấ
 - Nguyên liệu cà phê: tính nhu cầu và tùy chọn tự trừ khi bán.
 - Thẻ Tình hình hôm nay, ngữ cảnh nhiều lượt, lịch sử AI, Hoàn tác + Làm lại.
 - Chế độ AI: Chỉ hỏi / Xem trước / Tự động với lệnh an toàn.
+
+
+## v4.11.1 – Deployment Hotfix
+- Sửa thiếu dấu đóng khối trong AI sửa đơn vừa rồi làm Cloudflare Pages Functions build thất bại.
+- Không thay đổi dữ liệu hoặc tính năng v4.11.
+
+
+## v4.11.2 – Debt Note Literal Fix
+- Trong lệnh ghi nợ, ký hiệu như `2c`, `3c`, `1 mèo` được giữ nguyên như ghi chú.
+- AI không còn fuzzy-match `2c` thành một sản phẩm.
+- Chỉ tạo đơn bán ghi nợ khi câu lệnh có tên sản phẩm đầy đủ hoặc alias sản phẩm rõ ràng.
+- Nếu không có sản phẩm rõ ràng, AI tạo khoản nợ thủ công và giữ nguyên nội dung câu làm ghi chú.
