@@ -50,3 +50,15 @@ main{max-width:1100px;margin:auto;padding:14px}.page{display:none}.page.active{d
 .product-summary span{background:#eef7f5;border:1px solid #d1e9e5;border-radius:999px;padding:6px 10px;font-size:.8rem}
 .category-badge{display:inline-block;width:max-content;background:#edf4f3;color:var(--brand);border-radius:999px;padding:3px 7px;font-size:.7rem;font-weight:800;margin-bottom:4px}
 @media(max-width:700px){.product-toolbar{grid-template-columns:1fr 1fr}.product-toolbar .search{grid-column:1/-1}}
+
+/* v4.4 - công nợ gọn + lọc danh mục toàn app */
+.product-filter-bar{display:grid;grid-template-columns:minmax(0,1fr) minmax(140px,190px);gap:9px;align-items:center}
+.compact-chips{margin:9px 0 4px;overflow-x:auto;min-width:0}
+.debt-compact-actions{display:grid;grid-template-columns:1fr 1fr;gap:9px;margin-bottom:14px}
+.debt-compact-actions button{width:100%}
+.debt-history-title{display:flex;justify-content:space-between;align-items:center;padding:4px 0 8px;border-bottom:1px solid var(--line)}
+.debt-history-title span{font-size:.78rem;color:var(--muted)}
+.debt-original{font-weight:500;color:var(--muted);font-size:.86rem}
+.customer-detail{padding:12px}
+.customer-detail .debt-line{padding:11px 0}
+@media(max-width:560px){.product-filter-bar{grid-template-columns:1fr}.debt-compact-actions{grid-template-columns:1fr 1fr}}

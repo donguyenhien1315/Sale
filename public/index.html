@@ -12,7 +12,7 @@
   <div id="boot" class="boot">Đang đồng bộ dữ liệu…</div>
   <header class="topbar">
     <div>
-      <div class="eyebrow">CANTIN AI NEXT 4.3</div>
+      <div class="eyebrow">CANTIN AI NEXT 4.4</div>
       <h1 id="storeName">Cửa hàng chính</h1>
     </div>
     <div class="top-actions">
@@ -42,7 +42,11 @@
     <section class="page" data-page="sales">
       <div class="page-head"><div><div class="eyebrow">BÁN HÀNG</div><h2>Tạo đơn nhanh</h2></div></div>
       <article class="panel">
-        <input id="saleSearch" class="search" placeholder="Tìm sản phẩm…">
+        <div class="product-filter-bar">
+          <input id="saleSearch" class="search" placeholder="Tìm sản phẩm…">
+          <select id="saleCategory"><option value="">Tất cả danh mục</option></select>
+        </div>
+        <div id="saleCategoryChips" class="category-chips compact-chips"></div>
         <div id="quickProducts" class="product-grid"></div>
       </article>
       <article class="panel">
@@ -76,7 +80,11 @@
           <label>Ngày nhập<input id="stockinDate" type="datetime-local"></label>
           <label class="wide">Ghi chú<input id="stockinNote" placeholder="Nhà cung cấp / ghi chú"></label>
         </div>
-        <input id="stockinSearch" class="search" placeholder="Tìm mặt hàng để nhập…">
+        <div class="product-filter-bar">
+          <input id="stockinSearch" class="search" placeholder="Tìm mặt hàng để nhập…">
+          <select id="stockinCategory"><option value="">Tất cả danh mục</option></select>
+        </div>
+        <div id="stockinCategoryChips" class="category-chips compact-chips"></div>
         <div id="stockinProducts" class="stockin-list"></div>
         <button id="saveStockin" class="primary full">Lưu phiếu nhập</button>
       </article>
@@ -86,7 +94,11 @@
     <section class="page" data-page="audit">
       <div class="page-head"><div><div class="eyebrow">KIỂM KHO</div><h2>Kiểm kho nhanh</h2></div></div>
       <article class="panel">
-        <input id="auditSearch" class="search" placeholder="Tìm sản phẩm…">
+        <div class="product-filter-bar">
+          <input id="auditSearch" class="search" placeholder="Tìm sản phẩm…">
+          <select id="auditCategory"><option value="">Tất cả danh mục</option></select>
+        </div>
+        <div id="auditCategoryChips" class="category-chips compact-chips"></div>
         <div id="auditProducts" class="audit-list"></div>
         <label>Ghi chú<input id="auditNote" placeholder="VD: kiểm cuối tuần"></label>
         <button id="saveAudit" class="primary full">Chốt kiểm kho</button>
@@ -102,7 +114,11 @@
       </div>
       <article class="panel">
         <p class="hint">Giá và định mức ban đầu được lấy từ file quản lý cà phê. Có thể chỉnh giá nhập, quy cách và tồn thực tế bất kỳ lúc nào.</p>
-        <input id="ingredientSearch" class="search" placeholder="Tìm nguyên liệu…">
+        <div class="product-filter-bar">
+          <input id="ingredientSearch" class="search" placeholder="Tìm nguyên liệu…">
+          <select id="ingredientCategory"><option value="">Tất cả nhóm</option></select>
+        </div>
+        <div id="ingredientCategoryChips" class="category-chips compact-chips"></div>
         <div id="ingredients" class="list"></div>
       </article>
     </section>
