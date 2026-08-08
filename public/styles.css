@@ -192,3 +192,8 @@ main{max-width:1100px;margin:auto;padding:14px}.page{display:none}.page.active{d
 .recovery-preview>div{border:1px solid var(--line);border-radius:12px;padding:10px;background:#fff}
 .recovery-preview span{display:block;color:var(--muted);font-size:.78rem}
 .recovery-preview strong{display:block;margin-top:4px;font-size:1.05rem}
+
+/* v5.2.3 Restore v5.1.9 */
+.restore-v519-panel{border:2px solid #0f766e;background:#f0fdfa}
+.restore-v519-panel .primary.full{margin-top:10px}
+.recovery-warning{padding:10px 12px;border-radius:12px;background:#fff7ed;border:1px solid #fdba74;color:#9a3412}

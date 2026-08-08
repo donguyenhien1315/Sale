@@ -1,4 +1,4 @@
-# Cantin AI Next v4.12.1
+# Cantin AI Next v5.2.3 Restore v5.1.9
 
 App mới hoàn toàn, không phụ thuộc mã nguồn v3.x.
 
@@ -79,148 +79,140 @@ App không xóa dữ liệu cũ. Root hiện tại sẽ được bọc vào cấ
 - Bỏ dropdown “Tất cả danh mục” ở các khu vực này.
 
 
-## v4.8 Recovery
-- Sửa migration để giữ toàn bộ cửa hàng cũ, không chỉ cửa hàng đang active.
-- Giữ và chuyển dữ liệu legacy: products, customers, debts, sales, stockReceipts, stockAdjustments, weeklyAudits.
-- `weeklyAudits` được chuyển sang `audits` mới nhưng dữ liệu cũ vẫn được giữ.
-- Tạo rolling backup của toàn bộ root trước mỗi lần ghi, giữ 10 bản gần nhất.
-- Chặn ghi một root hoàn toàn trắng đè lên root đang có dữ liệu.
-- Thêm mục Khôi phục dữ liệu trong trang Dữ liệu.
-- Thêm cảnh báo khi ứng dụng bất ngờ thấy cửa hàng trống.
+## v4.8
+- Thêm mục CHI.
+- Nhập kho tự tính Tổng tiền phải chi theo số lượng nhập × giá nhập/giá vốn.
+- Lưu phiếu nhập tự tạo khoản chi Nhập kho.
+- Xóa phiếu nhập xóa luôn khoản chi liên kết.
+- Có thể thêm/sửa/xóa khoản chi khác thủ công.
 
 
-## v4.8.1 Hotfix ghi dữ liệu
-- Bỏ rolling backup lồng toàn bộ root vì làm payload Supabase tăng rất nhanh.
-- Giữ snapshot trước từng action để có thể rollback.
-- Dùng persist token + read-back giống cơ chế ổn định trước đó.
-- Chuẩn hóa kết quả RPC nếu Supabase trả wrapper một dòng.
-- Hiển thị lỗi backend rõ hơn thay vì chỉ “Có lỗi xảy ra”.
+## v4.9 – Tài chính hoàn chỉnh
+- Sửa luồng Nhập kho → CHI: phiếu nhập tự tạo khoản CHI liên kết chính xác.
+- Mỗi dòng nhập kho có thể chỉnh giá nhập/đơn vị; lưu giá vốn mới cho mặt hàng.
+- Xóa phiếu nhập hoàn lại tồn và xóa khoản CHI liên kết.
+- Tổng quan tài chính có: Doanh thu, Tiền thực thu, Tổng CHI, Lợi nhuận gộp, Lợi nhuận ròng, Dòng tiền.
+- Tiền khách trả nợ được tính vào Tiền thực thu tại ngày thanh toán.
+- CHI nhập kho được tính vào dòng tiền, nhưng KHÔNG trừ thêm lần nữa khỏi lợi nhuận ròng để tránh tính trùng với giá vốn hàng bán.
+- CHI thủ công có nhóm: Nguyên liệu cà phê, Điện/nước, Vận chuyển, Vật tư, Chi khác.
+- Có phương thức thanh toán cho khoản chi và lọc CHI theo khoảng ngày.
 
 
-## v4.8.2
-- Sửa nút Tải backup: trước đó gọi nhầm `downloadJson()` trong khi app chỉ có `download()`.
-- Cải thiện tải file JSON trên Safari/iPhone bằng cách gắn thẻ tải vào DOM trước khi click.
+## v5.0 – Giao diện tối giản
+- Thanh điều hướng dưới chỉ còn 5 mục: Tổng quan, Bán hàng, Công nợ, Kho, Khác.
+- CHI không còn ở thanh điều hướng; chuyển vào Báo cáo tài chính.
+- Kho gom: Kiểm kho, Nhập kho, Mặt hàng, Nguyên liệu.
+- Khác gom: AI, Dữ liệu, Nhật ký.
+- Tổng quan chỉ còn 4 thẻ tài chính: Doanh thu, Thực thu, Chi, Lợi nhuận.
+- Công nợ và số mặt hàng sắp hết chuyển thành dòng tóm tắt nhỏ.
+- Báo cáo tài chính có 3 tab: Tổng hợp, Doanh thu, Chi tiêu.
+- AI đề xuất trên Tổng quan được rút gọn để không chiếm toàn màn hình.
 
 
-## v4.9 AI Smart
-- Hiểu tên gần đúng, sai chính tả và alias sản phẩm.
-- Bộ nhớ alias có UI thêm/xóa; AI cũng hiểu câu “gọi Rockstar là rs”.
-- Ngữ cảnh hội thoại: hỏi Rockstar rồi nói “cho về 0” vẫn hiểu Rockstar.
-- Lệnh bán nhiều mặt hàng trong một câu và có thể ghi nợ khách.
-- Nhập kho hiểu thùng/két + số lẻ theo packSize.
-- Công nợ thông minh: trả hết, lịch sử nợ, ai trả nợ hôm nay, hỏi lại số tiền nhỏ mơ hồ.
-- Phân tích doanh thu/lợi nhuận hôm nay, top bán chạy/lợi nhuận 7 ngày, bán chậm/tồn nhiều.
-- Dự báo nhập hàng từ tốc độ bán 14 ngày.
-- Phát hiện bất thường: nợ quá nhỏ, giá bán dưới vốn, tồn âm, phiếu nhập quá lớn, kiểm kho no-op.
-- Ước tính tiêu hao nguyên liệu cà phê từ công thức sản phẩm và số ly bán.
-- AI đọc ảnh (OCR), Excel, CSV, JSON trên trình duyệt rồi đưa nội dung vào Command Center để phân tích/xem trước.
-- Khi AI không chắc sẽ hỏi lại, không tự ghi.
-- Mọi action AI vẫn preview + xác nhận.
-- Sau action AI có nút Hoàn tác bằng snapshot trước thao tác.
+## v5.1
+- Quỹ tiền mặt.
+- Báo cáo theo Hôm nay/Hôm qua/7 ngày/Tháng này/Tùy chọn.
+- Lãi theo danh mục và mặt hàng.
+- Nhà cung cấp & khoản phải trả.
+- Ngân sách tháng.
+- Biểu đồ 7 ngày và nút hành động nổi.
 
 
-## v4.10
-- Bán hàng: sản phẩm đã chọn hiện số lượng ngay trên ô sản phẩm.
-- Giỏ hàng có − / số lượng bấm để sửa / + / × xóa.
-- Khi tạo đơn có thể chọn khách hàng, kể cả tiền mặt/chuyển khoản; nếu ghi nợ thì khách hàng được dùng cho khoản nợ.
-- Kiểm kho có bộ lọc danh mục dạng nút: Tất cả, Kem, Nước, Cà phê, Bánh... theo dữ liệu thực tế.
+## v5.1.1 – Hotfix Công nợ
+- Sửa lỗi nút Công nợ trỏ nhầm `customers` trong khi trang thật là `debts`.
+- Khôi phục hiển thị toàn bộ khách hàng và lịch sử công nợ hiện có.
+- Nút + trong Công nợ tiếp tục dùng để thêm khách.
+- Không thay đổi, reset hay migrate dữ liệu công nợ.
+- Thêm tương thích ngược nếu mã cũ vẫn gọi `customers`.
 
 
-## v4.10.1 Stable Fix
-- Khôi phục toàn bộ backend action bị thiếu ở v4.10.
-- Chọn khách hàng cho tiền mặt/chuyển khoản/ghi nợ; ghi nợ bắt buộc có khách.
-- Xóa đơn ghi nợ hoàn kho + xóa đúng công nợ liên kết, chặn nếu đã có trả nợ.
-- Chỉnh/xóa kiểm kho lịch sử theo delta, không reset tồn hiện tại.
-- Khôi phục bộ lọc danh mục ở Kiểm kho và Nhập kho.
-- Chặn giỏ hàng vượt tồn khi bấm + hoặc nhập trực tiếp.
-- Tách AI context khỏi khách đang chọn ở Bán hàng.
-- Sửa runtime Supabase env cho Cloudflare Pages.
-- Xóa sản phẩm có lịch sử thành ngừng sử dụng để giữ liên kết dữ liệu.
-- Chặn xóa phiếu nhập nếu làm tồn âm.
-- Ghi log khi thay đổi tồn từ biểu mẫu sản phẩm.
-
-## v4.10.2
-- Điều khiển − / số lượng / + / × ngay trên sản phẩm đã chọn.
-- Bấm số lượng để nhập trực tiếp.
-- Trợ lý AI có nút nổi và popup chat nhanh ở mọi trang.
-- Popup AI vẫn xem trước → xác nhận → hoàn tác.
-
-## v4.10.3 – iPhone UI Hotfix
-- Sửa tràn ngang trang và thanh điều hướng dưới.
-- Bộ lọc danh mục cuộn ngang trong khung.
-- Header không che tiêu đề trang khi cuộn.
-- Nút AI nổi cao hơn bottom nav.
-- Kiểm kho / nhập kho co đúng chiều rộng màn hình.
+## v5.1.2 – Báo cáo nợ đã trả
+- Trong Công nợ thêm khối tổng tiền khách đã trả.
+- Xem Tháng này, Tháng trước hoặc chọn tháng cụ thể.
+- Có chế độ Từ ngày – Đến ngày.
+- Hiện số lần thanh toán và có thể mở danh sách chi tiết từng lần trả.
+- Chỉ đọc lịch sử thanh toán; không thay đổi số dư công nợ.
 
 
-## v4.10.4 – Bộ lọc đồng bộ
-- Bán hàng, Kiểm kho và Mặt hàng dùng chung một hàm render bộ lọc.
-- Giao diện 3 bộ lọc giống nhau hoàn toàn.
-- Chip nhỏ hơn và tự xuống dòng trong khung trên iPhone.
-- Bộ đếm danh mục dùng cùng kích thước và trạng thái active.
+## v5.1.3
+- Giữ báo cáo Tổng nợ đã trả theo tháng / khoảng ngày trong Công nợ.
+- Bỏ hoàn toàn phần Quỹ tiền mặt khỏi Tổng quan và backend.
+- Giữ biểu đồ 7 ngày, báo cáo tài chính, nhà cung cấp và ngân sách.
 
 
-## v4.10.5 – AI Flexible Debt + Product Choice Fix
-- Hiểu nhiều khoản nợ trong một câu, mỗi khoản có số tiền/ngày riêng.
-- Nếu câu nợ có số lượng + sản phẩm, AI tạo đơn bán ghi nợ và liên kết công nợ.
-- Nếu không xác định được sản phẩm, AI vẫn tạo khoản nợ thủ công đúng ngày.
-- Sửa lựa chọn sản phẩm mơ hồ: bấm một sản phẩm là dùng ngay lựa chọn đó, không hỏi lại.
-- Áp dụng cho cả trang AI đầy đủ và popup AI.
+## v5.1.4 – Hotfix Tổng quan
+- Khôi phục hàm `renderFinanceDashboard()` bị mất khi bỏ Quỹ tiền ở v5.1.3.
+- Giữ nguyên việc bỏ Quỹ tiền.
+- Tổng quan tiếp tục hiển thị Doanh thu, Thực thu, Chi, Lợi nhuận, Công nợ, Sắp hết và biểu đồ 7 ngày.
+- Không thay đổi dữ liệu cửa hàng hay công nợ.
 
 
-## v4.10.6 – Customer Rename + AI Debt Payment Card
-- Cho phép đổi tên khách hàng trực tiếp trong mục Công nợ.
-- Đổi tên đồng bộ vào khách, các khoản nợ và các đơn hàng đã liên kết.
-- Khi nói “Tên khách trả nợ” mà không nhập số tiền, AI trả về thẻ thanh toán:
-  tổng còn nợ + lịch sử nợ + ô số tiền + nút Thanh toán.
-- Mặc định số tiền thanh toán là toàn bộ công nợ nhưng có thể sửa để trả một phần.
-- Sau khi thanh toán bằng AI có nút Hoàn tác.
-- Hoạt động ở cả trang AI đầy đủ và popup AI nhanh.
+## v5.1.5 – Sửa giá nhập theo thùng
+- Giá nhập sản phẩm được hiểu là **giá 1 thùng**, không phải giá 1 chai.
+- Nhập kho: tổng chi = số thùng × giá thùng + số lẻ × (giá thùng ÷ quy cách).
+- Quản lý mặt hàng đổi nhãn thành Giá nhập/thùng.
+- Backend lưu `purchasePackPrice` và tự suy ra `unitCost`.
+- Giá vốn bán hàng dùng giá thùng ÷ số lượng/thùng, tránh nhân giá thùng cho từng chai.
 
 
-## v4.11 – AI Operator
-- Cập nhật toàn bộ nhóm đề xuất AI ngoại trừ mục 3 và 4 theo yêu cầu.
-- Bán hàng hội thoại: tạo lại/sửa đơn cuối, thêm/bớt món, đổi thanh toán.
-- Công nợ chọn từng khoản để trả, khoản theo ngày, khoản cũ nhất, khách chậm trả/nợ cao.
-- Kiểm kho và nhập kho hàng loạt từ câu lệnh, OCR/Excel.
-- Sửa nợ/đơn bằng câu tự nhiên, khôi phục bằng câu lệnh.
-- Phân tích hôm nay/hôm qua, tuần trước, danh mục/tháng, dự báo và cảnh báo bất thường.
-- Chênh lệch kho: tồn trước + nhập - bán so với tồn kiểm thực tế.
-- Nguyên liệu cà phê: tính nhu cầu và tùy chọn tự trừ khi bán.
-- Thẻ Tình hình hôm nay, ngữ cảnh nhiều lượt, lịch sử AI, Hoàn tác + Làm lại.
-- Chế độ AI: Chỉ hỏi / Xem trước / Tự động với lệnh an toàn.
+## v5.1.6 – Hotfix Cloudflare build
+- Xóa đoạn mã cũ bị dính sau `saleTotals()` gây lỗi `Expected ";" but found "còn"`.
+- Giữ nguyên logic giá nhập theo thùng của v5.1.5.
+- Đã kiểm tra cú pháp cả frontend và Pages Functions bằng `node --check`.
 
 
-## v4.11.1 – Deployment Hotfix
-- Sửa thiếu dấu đóng khối trong AI sửa đơn vừa rồi làm Cloudflare Pages Functions build thất bại.
-- Không thay đổi dữ liệu hoặc tính năng v4.11.
+## v5.1.7 – Khôi phục đúng giá nhập/thùng
+- Sửa nguyên nhân gốc: dữ liệu cũ có `purchasePrice` = giá thùng, `costPrice` = giá đơn vị.
+- App ưu tiên `purchasePrice` cũ khi chưa có `purchasePackPrice`.
+- Tự migrate giá: `purchasePackPrice` và `purchasePrice` = giá thùng; `unitCost` = giá thùng / quy cách.
+- Không yêu cầu nhập lại giá từng sản phẩm.
+- Nhập kho, giá vốn và lợi nhuận cùng dùng một mô hình giá thống nhất.
 
 
-## v4.11.2 – Debt Note Literal Fix
-- Trong lệnh ghi nợ, ký hiệu như `2c`, `3c`, `1 mèo` được giữ nguyên như ghi chú.
-- AI không còn fuzzy-match `2c` thành một sản phẩm.
-- Chỉ tạo đơn bán ghi nợ khi câu lệnh có tên sản phẩm đầy đủ hoặc alias sản phẩm rõ ràng.
-- Nếu không có sản phẩm rõ ràng, AI tạo khoản nợ thủ công và giữ nguyên nội dung câu làm ghi chú.
+## v5.1.8
+- Sửa `Invalid Date` trong lịch sử nhập kho.
+- Tự chuẩn hóa ngày phiếu nhập cũ nếu ngày không hợp lệ.
+- Thêm nút Sửa cho từng phiếu nhập.
+- Cho sửa ngày, ghi chú, nhà cung cấp, trạng thái thanh toán, phương thức, số thùng, số lẻ và giá/thùng.
+- Khi sửa, app hoàn tác tồn/CHI/phải trả cũ rồi áp dụng lại phiếu mới để giữ số liệu nhất quán.
 
 
-## v4.12 – Production Stable
-- Rút bottom navigation còn 6 mục: Tổng quan, Bán hàng, Công nợ, Kiểm kho, Mặt hàng, Khác.
-- Nguyên liệu, AI đầy đủ, Nhật ký và Dữ liệu chuyển vào trang Khác; popup AI vẫn luôn sẵn.
-- Công nợ có nút Sửa tên khách thật sự trên giao diện.
-- Lịch sử bán hàng có Sửa đơn: ngày, thanh toán, khách, ghi chú và số lượng từng món.
-- Phiếu nhập kho có Sửa theo chênh lệch, không reset các giao dịch phát sinh sau đó.
-- Mặt hàng bỏ dropdown danh mục dư thừa, giữ chip + tìm kiếm + sắp xếp.
-- Excel: xuất workbook nhiều sheet; nhập chuẩn Products / Customers / Debts.
-- XLSX và OCR được lazy-load chỉ khi người dùng thực sự chọn Excel/ảnh.
-- Gói cập nhật mã nguồn chuyển vào Developer nâng cao.
-- Snapshot giảm còn 12 bản và chỉ giữ 120 giao dịch gần nhất bên trong snapshot để giảm payload Supabase.
-- Thêm lớp validateAIPlan: mọi kế hoạch AI phải qua schema/ID/số lượng/số tiền cơ bản trước khi được execute.
-- Chuẩn hóa version giao diện/backend/cache về 4.12.
+## v5.1.9 – Dọn Tổng quan
+- Xóa bộ thẻ thống kê cũ bị lặp: Doanh thu hôm nay, Lợi nhuận hôm nay, Tổng công nợ, Sắp hết hàng.
+- Giữ duy nhất bộ mới: Doanh thu, Thực thu, Chi, Lợi nhuận.
+- Công nợ và Sắp hết tiếp tục hiển thị dạng tóm tắt nhỏ.
+- Giữ biểu đồ 7 ngày.
 
 
-## v4.12.1 – Dashboard Drill-down + Debt Filters
-- Chạm ô Doanh thu hôm nay mở bottom sheet chi tiết: số đơn, số sản phẩm, giá trị trung bình/đơn, phương thức thanh toán, doanh thu theo nhóm, top sản phẩm, doanh thu theo giờ và so với hôm qua.
-- Chạm ô Lợi nhuận hôm nay mở bottom sheet: doanh thu, giá vốn, biên lợi nhuận, lợi nhuận theo nhóm, top mặt hàng lợi nhuận cao, cảnh báo biên lợi nhuận thấp và so với hôm qua.
-- Công nợ có bộ lọc Tất cả / Còn nợ / Đã trả.
-- Khách còn nợ hiển thị tên và số tiền màu đỏ.
-- Khoản nợ còn dư trong chi tiết khách cũng hiển thị màu đỏ.
+## v5.2 – Dọn giao diện & sửa nút chết
+- Sửa nút Chi tiết biểu đồ 7 ngày.
+- Kho trở thành 4 tab thật: Kiểm kho, Nhập kho, Mặt hàng, Nguyên liệu.
+- Bỏ routing Mặt hàng/Nguyên liệu kiểu trang riêng gây quay lại Kho bị trắng.
+- Bỏ dropdown danh mục trùng; giữ bộ lọc dạng nút.
+- Tài chính chỉ dùng một bộ lọc thời gian chung.
+- Chi tiêu tách 3 tab: Chi phí, Nhà cung cấp, Ngân sách.
+- Đổi “Làm mới” AI thành “Tính lại”.
+- Ẩn phần kiểm tra package kỹ thuật khỏi giao diện dùng hằng ngày.
+
+
+## v5.2.1 – Hotfix kẹt “Đang đồng bộ dữ liệu”
+- Xóa JavaScript còn gọi `#validatePackage` sau khi phần kiểm tra package đã bị ẩn ở v5.2.
+- Lỗi này làm JavaScript dừng trước `boot()`, khiến app đứng ở “Đang đồng bộ dữ liệu…” và số liệu tạm thời hiện 0.
+- Bổ sung trạng thái lỗi đồng bộ rõ ràng và cho phép bấm ↻ thử lại.
+- Không thay đổi hay reset dữ liệu Supabase.
+
+
+## v5.2.2 Recovery
+- Chặn mọi thao tác ghi nếu Supabase trả về cửa hàng rỗng.
+- Có nút tải bản sao dữ liệu hiện tại.
+- Import file JSON/Node JSON để xem trước số mặt hàng, khách hàng, khoản nợ, tổng công nợ, đơn bán, phiếu nhập.
+- Chỉ khi bấm xác nhận mới ghi dữ liệu phục hồi vào Supabase.
+- Có endpoint /api/recovery/export và /api/recovery/restore.
+
+
+## v5.2.3 Restore v5.1.9
+- Nhúng sẵn bản backup trước v5.2.
+- Backup xác nhận: 41 mặt hàng, 36 khách, 19 khoản nợ, tổng công nợ 3643893đ.
+- Nút “Xem trước & khôi phục dữ liệu v5.1.9”.
+- Luôn hiển thị preview trước khi xác nhận.
+- Trước khi restore, backend giữ tối đa 3 bản root cũ trong `restoreBackups` để có đường lui.

@@ -738,6 +738,54 @@ $("#recoveryImport")?.addEventListener("change",async e=>{
   e.target.value="";
 });
 
+
+async function loadV519Restore(){
+  const res=await fetch("/recovery/v5.1.9-store.json",{cache:"no-store"});
+  if(!res.ok)throw new Error("Không tải được bản dữ liệu v5.1.9 nhúng sẵn.");
+  const o=await res.json();
+  const store=o.store||o;
+  if(!store||typeof store!=="object")throw new Error("Bản dữ liệu v5.1.9 không hợp lệ.");
+  return store;
+}
+$("#restoreV519Btn")?.addEventListener("click",async()=>{
+  try{
+    const store=await loadV519Restore();
+    const s=recoverySummary(store);
+    showModal(`<h3>Khôi phục dữ liệu v5.1.9</h3>
+      <div class="recovery-preview">
+        <div><span>Mặt hàng</span><strong>${s.products}</strong></div>
+        <div><span>Khách hàng</span><strong>${s.customers}</strong></div>
+        <div><span>Khoản nợ</span><strong>${s.debts}</strong></div>
+        <div><span>Tổng công nợ</span><strong>${money(s.debtTotal)}</strong></div>
+        <div><span>Đơn bán</span><strong>${s.sales}</strong></div>
+        <div><span>Phiếu nhập</span><strong>${s.receipts}</strong></div>
+      </div>
+      <p class="recovery-warning">Thao tác này sẽ thay dữ liệu cửa hàng hiện tại bằng bản sao trước v5.2. Nên chỉ tiếp tục nếu các con số trên đúng.</p>
+      <div class="row">
+        <button id="confirmV519Restore" class="primary">Xác nhận khôi phục</button>
+        <button id="cancelV519Restore" class="ghost">Hủy</button>
+      </div>`);
+    $("#cancelV519Restore").onclick=closeModal;
+    $("#confirmV519Restore").onclick=async()=>{
+      try{
+        $("#confirmV519Restore").disabled=true;
+        $("#confirmV519Restore").textContent="Đang khôi phục…";
+        const r=await api("/api/recovery/restore",{method:"POST",body:JSON.stringify({store,source:"embedded-v5.1.9"})});
+        state.revision=r.revision;state.storeId=r.storeId;state.store=r.store;state.stores=r.stores||[];
+        state.recoveryLocked=false;state.recoveryReason="";
+        closeModal();renderAll();
+        $("#boot")?.classList.add("hidden");
+        if($("#restoreV519Status"))$("#restoreV519Status").textContent="Đã khôi phục dữ liệu v5.1.9 thành công.";
+        toast("Đã khôi phục dữ liệu v5.1.9");
+      }catch(err){
+        toast(err.message,true);
+        $("#confirmV519Restore").disabled=false;
+        $("#confirmV519Restore").textContent="Xác nhận khôi phục";
+      }
+    };
+  }catch(e){toast(e.message,true)}
+});
+
 boot();
 
 if("serviceWorker" in navigator) navigator.serviceWorker.register("/service-worker.js").catch(()=>{});
