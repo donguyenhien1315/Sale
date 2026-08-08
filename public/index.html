@@ -12,7 +12,7 @@
   <div id="boot" class="boot">Đang đồng bộ dữ liệu…</div>
   <header class="topbar">
     <div>
-      <div class="eyebrow">CANTIN AI NEXT 4.10.3</div>
+      <div class="eyebrow">CANTIN AI NEXT 4.11</div>
       <h1 id="storeName">Cửa hàng chính</h1>
     </div>
     <div class="top-actions">
@@ -52,7 +52,7 @@
         <div class="product-filter-bar">
           <input id="saleSearch" class="search" placeholder="Tìm sản phẩm…">
 </div>
-        <div id="saleCategoryChips" class="category-chips category-filter-main"></div>
+        <div id="saleCategoryChips" class="category-chips compact-category-chips"></div>
         <div id="quickProducts" class="product-grid"></div>
       </article>
       <article class="panel">
@@ -89,7 +89,7 @@
         <div class="product-filter-bar">
           <input id="auditSearch" class="search" placeholder="Tìm sản phẩm…">
 </div>
-        <div id="auditCategoryChips" class="category-chips category-filter-main"></div>
+        <div id="auditCategoryChips" class="category-chips compact-category-chips"></div>
         <div id="auditProducts" class="audit-list"></div>
         <label>Ghi chú<input id="auditNote" placeholder="VD: kiểm cuối tuần"></label>
         <button id="saveAudit" class="primary full">Chốt kiểm kho</button>
@@ -141,7 +141,7 @@
         <p class="hint">Thay đổi số lượng ở đây chỉ cập nhật tồn kho của mặt hàng. Không tạo đơn bán, không thay doanh thu/lợi nhuận, không tạo kiểm kho và không ảnh hưởng công nợ.</p>
       </article>
       <div class="category-filter-wrap">
-        <div id="productCategoryChips" class="category-chips"></div>
+        <div id="productCategoryChips" class="category-chips compact-category-chips"></div>
       </div>
       <div class="toolbar product-toolbar">
         <input id="productSearch" class="search" placeholder="Tìm sản phẩm…">
@@ -166,10 +166,10 @@
           <div id="chat" class="chat"></div>
 
           <div class="quick-prompts">
-            <button data-prompt="Hôm nay kinh doanh thế nào?">Tổng kết hôm nay</button>
+            <button data-prompt="Tình hình hôm nay">Tình hình hôm nay</button><button data-prompt="Hôm nay kinh doanh thế nào?">Tổng kết hôm nay</button>
             <button data-prompt="7 ngày qua mặt hàng nào bán chạy nhất?">Bán chạy 7 ngày</button>
             <button data-prompt="Mặt hàng nào cần nhập sớm?">Gợi ý nhập hàng</button>
-            <button data-prompt="Có số liệu nào bất thường không?">Phát hiện bất thường</button>
+            <button data-prompt="Có số liệu nào bất thường không?">Phát hiện bất thường</button><button data-prompt="Có chênh lệch kho hoặc thất thoát không?">Chênh lệch kho</button>
             <button data-prompt="Nguyên liệu cà phê đã dùng bao nhiêu?">Nguyên liệu cà phê</button>
             <button data-prompt="Ai đang nợ nhiều nhất?">Nợ cao nhất</button>
           </div>
@@ -196,6 +196,13 @@
           <div class="hint ai-examples">
             AI hiểu được: bán hàng nhiều món, ghi/trả nợ, kiểm kho, nhập kho theo thùng + lẻ, hỏi doanh thu/lợi nhuận, bán chạy/bán chậm, dự báo nhập hàng, công nợ, bất thường và nguyên liệu cà phê.
           </div>
+          <hr class="soft-sep">
+          <div class="panel-head"><div><h3>Chế độ AI</h3><p class="hint">Kiểm soát việc AI được phép ghi dữ liệu.</p></div></div>
+          <label>Chế độ an toàn<select id="aiSafetyMode"><option value="ask">Chỉ hỏi – không ghi</option><option value="preview">Xem trước rồi xác nhận</option><option value="autoSafe">Tự động với lệnh an toàn</option></select></label>
+          <label class="check-line"><input id="autoIngredientDeduct" type="checkbox"> Tự trừ nguyên liệu cà phê khi bán</label>
+          <hr class="soft-sep">
+          <div class="panel-head"><div><h3>Lịch sử thao tác AI</h3><p class="hint">Theo dõi riêng những thay đổi do AI thực hiện.</p></div></div>
+          <div id="aiOperationHistory" class="list empty"></div>
         </article>
       </div>
     </section>

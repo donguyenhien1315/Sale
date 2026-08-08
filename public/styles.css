@@ -192,3 +192,84 @@ body{padding-bottom:calc(78px + env(safe-area-inset-bottom))}
   .bottom-nav .nav-item{flex-basis:68px;min-width:68px;max-width:68px;font-size:.69rem}
   .ai-fab{padding:11px 14px;font-size:.9rem}
 }
+
+/* v4.10.4 – one compact filter component for Sales, Audit and Products */
+#saleCategoryChips.compact-category-chips,
+#auditCategoryChips.compact-category-chips,
+#productCategoryChips.compact-category-chips{
+  display:flex!important;
+  flex-wrap:wrap!important;
+  align-items:center!important;
+  gap:5px!important;
+  width:100%!important;
+  max-width:100%!important;
+  overflow:visible!important;
+  padding:0!important;
+  margin:7px 0 10px!important;
+}
+.compact-category-chips .category-chip{
+  flex:0 0 auto!important;
+  display:inline-flex!important;
+  align-items:center!important;
+  justify-content:center!important;
+  gap:4px!important;
+  min-width:0!important;
+  min-height:30px!important;
+  height:30px!important;
+  padding:0 8px!important;
+  margin:0!important;
+  border:1px solid var(--line)!important;
+  border-radius:999px!important;
+  background:#fff!important;
+  color:#66716f!important;
+  font-size:.76rem!important;
+  line-height:1!important;
+  font-weight:800!important;
+  white-space:nowrap!important;
+  box-shadow:none!important;
+}
+.compact-category-chips .category-chip span{
+  display:inline-flex!important;
+  align-items:center!important;
+  justify-content:center!important;
+  min-width:19px!important;
+  height:19px!important;
+  padding:0 5px!important;
+  border-radius:999px!important;
+  background:#eef3f2!important;
+  color:#6a7673!important;
+  font-size:.65rem!important;
+  font-weight:900!important;
+  line-height:1!important;
+}
+.compact-category-chips .category-chip.active{
+  background:var(--brand)!important;
+  border-color:var(--brand)!important;
+  color:#fff!important;
+}
+.compact-category-chips .category-chip.active span{
+  background:rgba(255,255,255,.2)!important;
+  color:#fff!important;
+}
+@media(max-width:390px){
+  .compact-category-chips{gap:4px!important}
+  .compact-category-chips .category-chip{
+    min-height:28px!important;height:28px!important;padding:0 7px!important;font-size:.72rem!important
+  }
+  .compact-category-chips .category-chip span{
+    min-width:18px!important;height:18px!important;font-size:.62rem!important
+  }
+}
+
+.customer-actions{display:flex;gap:6px;align-items:center;flex-wrap:wrap}
+.ai-debt-total{margin:8px 0 10px;font-size:1rem}
+.ai-debt-history{display:flex;flex-direction:column;gap:6px;margin:8px 0 10px;max-height:240px;overflow:auto}
+.ai-debt-row{display:flex;justify-content:space-between;gap:10px;padding:8px;border:1px solid var(--line);border-radius:10px;background:#fff}
+.ai-debt-row>div{display:flex;flex-direction:column;min-width:0}
+.ai-debt-row>div:last-child{text-align:right;align-items:flex-end}
+.ai-debt-row small{color:var(--muted);font-size:.75rem}
+.ai-pay-label{display:flex;flex-direction:column;gap:5px;margin:8px 0}
+.ai-pay-amount{width:100%;box-sizing:border-box}
+.debt-payment-card{max-width:100%}
+
+.soft-sep{border:0;border-top:1px solid var(--line);margin:14px 0}.check-line{display:flex!important;flex-direction:row!important;align-items:center;gap:8px}.check-line input{width:auto}.summary-mini-grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:7px;margin:9px 0}.summary-mini-grid>div{display:flex;flex-direction:column;padding:8px;border:1px solid var(--line);border-radius:10px;background:#fff}.summary-mini-grid span{font-size:.72rem;color:var(--muted)}.summary-mini-grid b{font-size:.95rem}.today-summary-card details{margin-top:8px}.today-summary-card summary{font-weight:800;cursor:pointer}.ai-debt-row.selectable{display:grid;grid-template-columns:24px minmax(0,1fr) auto;align-items:center;cursor:pointer}.ai-debt-row.selectable>input{width:18px;height:18px}.ai-debt-row.paid{opacity:.55}.ai-undo-redo{margin-top:7px}#aiOperationHistory{max-height:300px;overflow:auto}

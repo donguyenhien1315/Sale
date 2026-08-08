@@ -1,4 +1,4 @@
-# Cantin AI Next v4.10.2
+# Cantin AI Next v4.11
 
 App mới hoàn toàn, không phụ thuộc mã nguồn v3.x.
 
@@ -144,3 +144,48 @@ App không xóa dữ liệu cũ. Root hiện tại sẽ được bọc vào cấ
 - Bấm số lượng để nhập trực tiếp.
 - Trợ lý AI có nút nổi và popup chat nhanh ở mọi trang.
 - Popup AI vẫn xem trước → xác nhận → hoàn tác.
+
+## v4.10.3 – iPhone UI Hotfix
+- Sửa tràn ngang trang và thanh điều hướng dưới.
+- Bộ lọc danh mục cuộn ngang trong khung.
+- Header không che tiêu đề trang khi cuộn.
+- Nút AI nổi cao hơn bottom nav.
+- Kiểm kho / nhập kho co đúng chiều rộng màn hình.
+
+
+## v4.10.4 – Bộ lọc đồng bộ
+- Bán hàng, Kiểm kho và Mặt hàng dùng chung một hàm render bộ lọc.
+- Giao diện 3 bộ lọc giống nhau hoàn toàn.
+- Chip nhỏ hơn và tự xuống dòng trong khung trên iPhone.
+- Bộ đếm danh mục dùng cùng kích thước và trạng thái active.
+
+
+## v4.10.5 – AI Flexible Debt + Product Choice Fix
+- Hiểu nhiều khoản nợ trong một câu, mỗi khoản có số tiền/ngày riêng.
+- Nếu câu nợ có số lượng + sản phẩm, AI tạo đơn bán ghi nợ và liên kết công nợ.
+- Nếu không xác định được sản phẩm, AI vẫn tạo khoản nợ thủ công đúng ngày.
+- Sửa lựa chọn sản phẩm mơ hồ: bấm một sản phẩm là dùng ngay lựa chọn đó, không hỏi lại.
+- Áp dụng cho cả trang AI đầy đủ và popup AI.
+
+
+## v4.10.6 – Customer Rename + AI Debt Payment Card
+- Cho phép đổi tên khách hàng trực tiếp trong mục Công nợ.
+- Đổi tên đồng bộ vào khách, các khoản nợ và các đơn hàng đã liên kết.
+- Khi nói “Tên khách trả nợ” mà không nhập số tiền, AI trả về thẻ thanh toán:
+  tổng còn nợ + lịch sử nợ + ô số tiền + nút Thanh toán.
+- Mặc định số tiền thanh toán là toàn bộ công nợ nhưng có thể sửa để trả một phần.
+- Sau khi thanh toán bằng AI có nút Hoàn tác.
+- Hoạt động ở cả trang AI đầy đủ và popup AI nhanh.
+
+
+## v4.11 – AI Operator
+- Cập nhật toàn bộ nhóm đề xuất AI ngoại trừ mục 3 và 4 theo yêu cầu.
+- Bán hàng hội thoại: tạo lại/sửa đơn cuối, thêm/bớt món, đổi thanh toán.
+- Công nợ chọn từng khoản để trả, khoản theo ngày, khoản cũ nhất, khách chậm trả/nợ cao.
+- Kiểm kho và nhập kho hàng loạt từ câu lệnh, OCR/Excel.
+- Sửa nợ/đơn bằng câu tự nhiên, khôi phục bằng câu lệnh.
+- Phân tích hôm nay/hôm qua, tuần trước, danh mục/tháng, dự báo và cảnh báo bất thường.
+- Chênh lệch kho: tồn trước + nhập - bán so với tồn kiểm thực tế.
+- Nguyên liệu cà phê: tính nhu cầu và tùy chọn tự trừ khi bán.
+- Thẻ Tình hình hôm nay, ngữ cảnh nhiều lượt, lịch sử AI, Hoàn tác + Làm lại.
+- Chế độ AI: Chỉ hỏi / Xem trước / Tự động với lệnh an toàn.

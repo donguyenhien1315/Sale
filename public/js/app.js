@@ -34,7 +34,7 @@ function renderAll(){
   $("#storeName").textContent=state.store.meta?.name||"Cửa hàng";
   $("#storeSelect").innerHTML=state.stores.map(s=>`<option value="${s.id}" ${s.id===state.storeId?"selected":""}>${esc(s.name)}</option>`).join("");
   $("#saleDate").value=$("#saleDate").value||dtLocal();$("#stockinDate").value=$("#stockinDate").value||dtLocal();
-  renderDataSafety();renderDashboard();renderIngredients();renderProducts();renderSaleCustomers();renderSales();renderCustomers();renderStockin();renderAudit();renderTransactions();renderSnapshots();renderStores();renderQuickProducts();renderCart();renderAliases();renderAIContext();
+  renderDataSafety();renderDashboard();renderIngredients();renderProducts();renderSaleCustomers();renderSales();renderCustomers();renderStockin();renderAudit();renderTransactions();renderSnapshots();renderStores();renderQuickProducts();renderCart();renderAliases();renderAIContext();renderAISettings();renderAIOperationHistory();
 }
 function navigate(page){
   $$(".page").forEach(p=>p.classList.toggle("active",p.dataset.page===page));
@@ -79,17 +79,22 @@ $("#refreshInsights").onclick=renderDashboard;
 
 
 
-const categoryState={sale:"",stockin:"",audit:""};
+const categoryState={sale:"",stockin:"",audit:"",product:""};
 function renderCategoryButtons(chipsId,key,items,rerender){
-  const chips=$(chipsId); if(!chips)return "";
-  const categories=[...new Set(items.map(p=>String(p.category||"Khác").trim()||"Khác"))].sort((a,b)=>a.localeCompare(b,"vi"));
-  if(categoryState[key] && !categories.includes(categoryState[key]))categoryState[key]="";
+  const chips=$(chipsId);if(!chips)return "";
+  const activeItems=(items||[]).filter(p=>p.active!==false);
+  const categories=[...new Set(activeItems.map(p=>String(p.category||"Khác").trim()||"Khác"))].sort((a,b)=>a.localeCompare(b,"vi"));
+  if(categoryState[key]&&!categories.includes(categoryState[key]))categoryState[key]="";
+  const selected=categoryState[key]||"";
   const all=[{v:"",n:"Tất cả"},...categories.map(c=>({v:c,n:c}))];
-  chips.innerHTML=all.map(x=>`<button class="category-chip ${categoryState[key]===x.v?"active":""}" data-category="${esc(x.v)}">${esc(x.n)}${x.v?` <span>${items.filter(p=>String(p.category||"Khác")===x.v).length}</span>`:` <span>${items.length}</span>`}</button>`).join("");
-  chips.querySelectorAll(".category-chip").forEach(b=>b.onclick=()=>{categoryState[key]=b.dataset.category;rerender();});
-  return categoryState[key];
+  chips.className="category-chips compact-category-chips";
+  chips.innerHTML=all.map(x=>{
+    const count=x.v?activeItems.filter(p=>String(p.category||"Khác")===x.v).length:activeItems.length;
+    return `<button class="category-chip ${selected===x.v?"active":""}" data-category="${esc(x.v)}">${esc(x.n)} <span>${count}</span></button>`
+  }).join("");
+  chips.querySelectorAll(".category-chip").forEach(b=>b.onclick=()=>{categoryState[key]=b.dataset.category||"";rerender()});
+  return selected;
 }
-
 function productCategories(){
   return [...new Set(state.store.products.map(p=>String(p.category||"Khác").trim()||"Khác"))].sort((a,b)=>a.localeCompare(b,"vi"));
 }
@@ -110,7 +115,7 @@ function syncCategoryFilter(selectId,chipsId,items,categoryGetter){
 
 function renderQuickProducts(){
   const q=norm($("#saleSearch").value);
-  const category=renderCategoryButtons("#saleCategoryChips","sale",state.store.products,renderQuickProducts);
+  const category=renderCategoryButtons("#saleCategoryChips","sale",state.store.products.filter(p=>p.active!==false),renderQuickProducts);
   const list=state.store.products.filter(p=>p.active!==false&&(!q||norm(p.name+" "+p.category).includes(q))&&(!category||String(p.category||"Khác")===category));
   $("#quickProducts").innerHTML=list.length?list.map(p=>{
     const inCart=state.cart.find(x=>x.productId===p.id),count=inCart?.quantity||0;
@@ -287,16 +292,14 @@ function showIngredientForm(x){
 }
 
 function renderProductCategories(){
-  const categories=[...new Set(state.store.products.map(p=>String(p.category||"Khác").trim()||"Khác"))].sort((a,b)=>a.localeCompare(b,"vi"));
   const sel=$("#productCategory");if(!sel)return;
-  const current=sel.value;
+  const items=state.store.products.filter(p=>p.active!==false);
+  const categories=[...new Set(items.map(p=>String(p.category||"Khác").trim()||"Khác"))].sort((a,b)=>a.localeCompare(b,"vi"));
+  const current=sel.value||categoryState.product||"";
   sel.innerHTML=`<option value="">Tất cả danh mục</option>`+categories.map(c=>`<option value="${esc(c)}">${esc(c)}</option>`).join("");
-  if(categories.includes(current))sel.value=current;
-  const chips=$("#productCategoryChips");if(chips){
-    const selected=sel.value;
-    chips.innerHTML=[{v:"",n:"Tất cả"},...categories.map(c=>({v:c,n:c}))].map(x=>`<button class="category-chip ${selected===x.v?"active":""}" data-category="${esc(x.v)}">${esc(x.n)} <span>${x.v?state.store.products.filter(p=>(p.category||"Khác")===x.v).length:state.store.products.length}</span></button>`).join("");
-    chips.querySelectorAll(".category-chip").forEach(b=>b.onclick=()=>{sel.value=b.dataset.category;renderProducts()});
-  }
+  categoryState.product=categories.includes(current)?current:"";
+  sel.value=categoryState.product;
+  renderCategoryButtons("#productCategoryChips","product",items,()=>{sel.value=categoryState.product;renderProducts()});
 }
 function renderProducts(){
   renderProductCategories();
@@ -361,6 +364,11 @@ $("#createSnapshot").onclick=async()=>{try{await mutate("snapshot.create",{label
 function renderStores(){$("#stores").innerHTML=state.stores.map(s=>`<div class="list-row"><div><strong>${esc(s.name)}</strong><small>${s.id===state.storeId?"Đang dùng":""}</small></div></div>`).join("")}
 $("#newStore").onclick=()=>{showModal(`<h3>Tạo cửa hàng mới</h3><label>Tên<input id="newStoreName"></label><button id="saveNewStore" class="primary full">Tạo cửa hàng</button>`);$("#saveNewStore").onclick=async()=>{try{await mutate("store.create",{name:$("#newStoreName").value});closeModal();toast("Đã tạo cửa hàng")}catch(e){toast(e.message,true)}}};
 
+
+function renderAISettings(){if(!state.store)return;const mode=state.store.config?.ai?.safetyMode||"preview";if($("#aiSafetyMode"))$("#aiSafetyMode").value=mode;if($("#autoIngredientDeduct"))$("#autoIngredientDeduct").checked=!!state.store.config?.ai?.autoIngredientDeduct}
+function renderAIOperationHistory(){const box=$("#aiOperationHistory");if(!box||!state.store)return;const rows=[...(state.store.transactions||[])].filter(t=>String(t.type||"").startsWith("ai.")).reverse().slice(0,30);box.className=`list${rows.length?"":" empty"}`;box.innerHTML=rows.length?rows.map(t=>`<div class="list-row"><div><strong>${esc(t.summary||t.type)}</strong><small>${new Date(t.createdAt).toLocaleString("vi-VN")} · ${esc(t.type)}</small></div></div>`).join(""):"AI chưa thực hiện thay đổi nào."}
+$("#aiSafetyMode")?.addEventListener("change",async e=>{try{await mutate("config.update",{config:{ai:{safetyMode:e.target.value}}});toast("Đã cập nhật chế độ AI")}catch(err){toast(err.message,true)}});$("#autoIngredientDeduct")?.addEventListener("change",async e=>{try{await mutate("config.update",{config:{ai:{autoIngredientDeduct:e.target.checked}}});toast(e.target.checked?"Đã bật tự trừ nguyên liệu":"Đã tắt tự trừ nguyên liệu")}catch(err){toast(err.message,true)}});
+
 function addBubble(text,kind="ai",extra=""){const b=document.createElement("div");b.className=`bubble ${kind} ${extra}`;b.textContent=text;$("#chat").appendChild(b);$("#chat").scrollTop=$("#chat").scrollHeight;return b}
 function renderAIContext(){
   const bar=$("#aiContextBar");if(!bar)return;
@@ -370,37 +378,45 @@ function renderAIContext(){
   else bar.classList.add("hidden")
 }
 function latestPreAISnapshot(){return [...(state.store.snapshots||[])].reverse().find(s=>String(s.label||"").includes("ai.execute"))}
+
+
+function buildTodaySummaryCard(r){const d=r.data||{},w=document.createElement("div");w.className="bubble ai today-summary-card";w.innerHTML=`<strong>Tình hình hôm nay</strong><div class="summary-mini-grid"><div><span>Doanh thu</span><b>${money(d.revenue)}</b></div><div><span>Lợi nhuận</span><b>${money(d.profit)}</b></div><div><span>Đơn hàng</span><b>${d.orders||0}</b></div><div><span>Sản phẩm</span><b>${d.qty||0}</b></div><div><span>Nợ phát sinh</span><b>${money(d.debtNew)}</b></div><div><span>Đã thu nợ</span><b>${money(d.debtPaid)}</b></div></div><div class="hint">Tổng công nợ hiện tại: <b>${money(d.totalDebt)}</b></div>${d.low?.length?`<details><summary>Hàng sắp hết (${d.low.length})</summary>${d.low.map(x=>`<div>• ${esc(x.name)}: ${x.stock} ${esc(x.unit||"")}</div>`).join("")}</details>`:""}${d.variance?.length?`<details><summary>Chênh lệch kho (${d.variance.length})</summary>${d.variance.map(x=>`<div>• ${esc(x.name)}: ${x.diff>0?"+":""}${x.diff}</div>`).join("")}</details>`:""}`;return w}
+
+function debtHistoryHtml(history){
+  if(!history?.length)return '<div class="hint">Không có lịch sử nợ.</div>';
+  return `<div class="ai-debt-history">${history.map(d=>`<div class="ai-debt-row"><div><strong>${new Date(d.createdAt).toLocaleDateString("vi-VN")}</strong><small>${esc(d.note||"Khoản nợ")}</small></div><div><b>${money(d.amount)}</b><small>Còn ${money(d.balance)}</small></div></div>`).join("")}</div>`
+}
+function buildDebtPaymentCard(r,popup=false){
+  const wrapper=document.createElement("div");wrapper.className="bubble ai debt-payment-card";const selected=new Set(r.selectedDebtIds||r.history?.filter(d=>d.balance>0).map(d=>d.id)||[]);
+  wrapper.innerHTML=`<strong>${esc(r.customer.name)} trả nợ</strong><div class="ai-debt-total">Tổng còn nợ: <b>${money(r.history?.reduce((z,d)=>z+(+d.balance||0),0)||r.total)}</b></div><div class="ai-debt-history">${(r.history||[]).map(d=>`<label class="ai-debt-row selectable ${d.balance<=0?"paid":""}"><input class="ai-debt-check" type="checkbox" data-id="${d.id}" data-balance="${d.balance}" ${selected.has(d.id)&&d.balance>0?"checked":""} ${d.balance<=0?"disabled":""}><div><strong>${new Date(d.createdAt).toLocaleDateString("vi-VN")}</strong><small>${esc(d.note||"Khoản nợ")}</small></div><div><b>${money(d.amount)}</b><small>Còn ${money(d.balance)}</small></div></label>`).join("")}</div><label class="ai-pay-label">Số tiền thanh toán<input class="ai-pay-amount" type="number" min="1" inputmode="numeric"></label><div class="row"><button class="primary ai-pay-confirm">Thanh toán khoản đã chọn</button><button class="ghost ai-pay-all">Chọn tất cả</button><button class="ghost ai-pay-cancel">Hủy</button></div>`;
+  const checks=[...wrapper.querySelectorAll(".ai-debt-check")],amountInput=wrapper.querySelector(".ai-pay-amount"),selectedTotal=()=>checks.filter(x=>x.checked).reduce((z,x)=>z+(+x.dataset.balance||0),0),refresh=()=>{amountInput.value=Math.round(r.suggestedAmount||selectedTotal()||0)};refresh();checks.forEach(x=>x.onchange=()=>{r.suggestedAmount=0;refresh()});wrapper.querySelector(".ai-pay-all").onclick=()=>{checks.forEach(x=>{if(!x.disabled)x.checked=true});r.suggestedAmount=0;refresh()};
+  wrapper.querySelector(".ai-pay-confirm").onclick=async()=>{const chosen=checks.filter(x=>x.checked),requested=Number(amountInput.value)||0;if(!chosen.length)return toast("Hãy chọn ít nhất một khoản nợ",true);if(requested<=0)return toast("Số tiền không hợp lệ",true);let left=requested,allocations=[];for(const x of chosen){const a=Math.min(left,+x.dataset.balance||0);if(a>0)allocations.push({debtId:x.dataset.id,amount:a});left-=a;if(left<=0)break}if(left>0)return toast("Số tiền lớn hơn tổng các khoản đã chọn",true);try{await mutate("debt.pay.selected",{customerId:r.customer.id,allocations,note:"Thanh toán qua AI",createdAt:new Date().toISOString(),source:"ai"});const undoSnap=state.store.snapshots?.at(-1);wrapper.innerHTML=`<strong>Đã thanh toán ${money(requested)} cho ${esc(r.customer.name)}</strong>`;attachUndoRedo(wrapper,undoSnap,`Thanh toán ${r.customer.name}`)}catch(e){toast(e.message,true)}};wrapper.querySelector(".ai-pay-cancel").onclick=()=>wrapper.remove();return wrapper
+}
+
+
+function attachUndoRedo(container,undoSnapshot,label="thao tác AI"){if(!undoSnapshot)return;const row=document.createElement("div");row.className="row ai-undo-redo";const undo=document.createElement("button");undo.className="ghost small";undo.textContent="↩ Hoàn tác";row.appendChild(undo);container.appendChild(document.createElement("br"));container.appendChild(row);undo.onclick=async()=>{if(!confirm(`Hoàn tác ${label}?`))return;try{await mutate("snapshot.create",{label:`REDO: ${label}`});const redoSnapshot=state.store.snapshots?.at(-1);await mutate("snapshot.restore",{id:undoSnapshot.id});toast("Đã hoàn tác");row.innerHTML="";const redo=document.createElement("button");redo.className="ghost small";redo.textContent="↪ Làm lại";row.appendChild(redo);redo.onclick=async()=>{if(!confirm(`Làm lại ${label}?`))return;try{await mutate("snapshot.restore",{id:redoSnapshot.id});toast("Đã làm lại")}catch(e){toast(e.message,true)}}}catch(e){toast(e.message,true)}}}
+async function executeAIPlan(r,text,container){const mode=state.store.config?.ai?.safetyMode||"preview";if(mode==="ask"){container.textContent=`Tôi hiểu: ${r.summary}\n(Chế độ “Chỉ hỏi” đang bật nên AI không ghi dữ liệu.)`;return}const run=async()=>{await mutate("ai.execute",{plan:r.plan,message:text});const undoSnap=state.store.snapshots?.at(-1);container.textContent="Đã thực hiện: "+r.summary;attachUndoRedo(container,undoSnap,r.summary);toast("AI đã thực hiện")};if(mode==="autoSafe"&&r.safe===true){try{await run()}catch(e){toast(e.message,true)};return}const row=document.createElement("div");row.className="row";row.innerHTML='<button class="primary small">Xác nhận</button><button class="ghost small">Hủy</button>';container.appendChild(row);row.children[0].onclick=async()=>{try{await run()}catch(e){toast(e.message,true)}};row.children[1].onclick=()=>{container.textContent="Đã hủy thao tác."}}
+
 async function sendAI(text){
   text=text.trim();if(!text)return;addBubble(text,"user");$("#aiInput").value="";
   try{
     const r=await api("/api/ai/plan",{method:"POST",body:JSON.stringify({storeId:state.storeId,message:text,context:state.aiContext})});
-    if(r.context)state.aiContext={...state.aiContext,...r.context};renderAIContext();
+    if(r.context)state.aiContext={...state.aiContext,...r.context};if(r.type==="plan"&&state.aiContext.resolvedProductId)state.aiContext.resolvedProductId="";renderAIContext();
 
-    if(r.type==="answer")return addBubble(r.answer,"ai");
+    if(r.type==="answer")return addBubble(r.answer,"ai");if(r.type==="todaySummary"){const card=buildTodaySummaryCard(r);$("#chat").appendChild(card);$("#chat").scrollTop=$("#chat").scrollHeight;return}
+    if(r.type==="debtPayment"){const card=buildDebtPaymentCard(r,false);$("#chat").appendChild(card);$("#chat").scrollTop=$("#chat").scrollHeight;return}
     if(r.type==="clarify"){
       const b=addBubble(r.question||"Tôi cần anh xác nhận thêm.","ai","clarify");
       if(r.choices?.length){
         const row=document.createElement("div");row.className="choice-row";
-        for(const c of r.choices){const btn=document.createElement("button");btn.className="ghost small";btn.textContent=c.label;btn.onclick=()=>{if(c.message.endsWith(" ")){$("#aiInput").value=c.message;$("#aiInput").focus()}else sendAI(c.message)};row.appendChild(btn)}
+        for(const c of r.choices){const btn=document.createElement("button");btn.className="ghost small";btn.textContent=c.label;btn.onclick=()=>{if(c.context)state.aiContext={...state.aiContext,...c.context};if(c.message.endsWith(" ")){$("#aiInput").value=c.message;$("#aiInput").focus()}else sendAI(c.message)};row.appendChild(btn)}
         b.appendChild(row)
       }
       return
     }
 
     const b=addBubble(`Tôi hiểu: ${r.summary}`,"ai","preview");
-    const row=document.createElement("div");row.className="row";
-    row.innerHTML='<button class="primary small">Xác nhận</button><button class="file-btn" style="background:#64748b">Hủy</button>';
-    b.appendChild(row);
-    row.children[0].onclick=async()=>{
-      try{
-        await mutate("ai.execute",{plan:r.plan,message:text});
-        b.textContent="Đã thực hiện: "+r.summary;
-        const undo=document.createElement("button");undo.className="ghost small ai-undo";undo.textContent="↩ Hoàn tác";
-        undo.onclick=async()=>{const s=latestPreAISnapshot();if(!s)return toast("Không tìm thấy snapshot để hoàn tác",true);if(confirm("Hoàn tác thao tác AI vừa rồi?"))try{await mutate("snapshot.restore",{id:s.id});toast("Đã hoàn tác")}catch(e){toast(e.message,true)}};
-        b.appendChild(document.createElement("br"));b.appendChild(undo);toast("AI đã thực hiện")
-      }catch(e){toast(e.message,true)}
-    };
-    row.children[1].onclick=()=>{b.textContent="Đã hủy thao tác."}
+    await executeAIPlan(r,text,b);
   }catch(e){addBubble("Lỗi: "+e.message,"ai")}
 }
 $("#sendAi").onclick=()=>sendAI($("#aiInput").value);
@@ -437,9 +453,8 @@ async function analyzeAIFile(file){
     }else{
       const raw=await file.text();try{text=JSON.stringify(JSON.parse(raw),null,2).slice(0,12000)}catch{text=raw.slice(0,12000)}
     }
-    status.textContent=`Đã đọc ${file.name}. Nội dung đã đưa vào ô AI để kiểm tra trước.`;
-    $("#aiInput").value=`Phân tích dữ liệu/tệp sau. Nếu có thao tác nhập kho, công nợ hoặc bán hàng thì hãy lập kế hoạch xem trước, không tự ghi:\n${text}`;
-    $("#aiInput").focus()
+    const ntext=norm(text),fname=norm(file.name);let prefix="Phân tích dữ liệu/tệp";if(ntext.includes("don gia")||ntext.includes("thanh tien")||ntext.includes("hoa don")||fname.includes("hoa don")||fname.includes("nhap"))prefix="Nhập kho từ hóa đơn";else if(ntext.includes("ton")||ntext.includes("kiem kho")||fname.includes("kiem")||fname.includes("ton"))prefix="Kiểm kho từ ảnh/file";status.textContent=`Đã đọc ${file.name}. AI đã nhận diện sơ bộ: ${prefix}.`;$("#aiInput").value=`${prefix}:
+${text}`;$("#aiInput").focus()
   }catch(e){status.textContent="Lỗi đọc file: "+e.message;toast(e.message,true)}
 }
 $("#aiFile")?.addEventListener("change",async e=>{const f=e.target.files?.[0];if(f)await analyzeAIFile(f);e.target.value=""});
@@ -512,12 +527,12 @@ async function sendAIPopup(text){
   text=text.trim();if(!text)return;addPopupBubble(text,"user");$("#aiPopupInput").value="";
   try{
     const r=await api("/api/ai/plan",{method:"POST",body:JSON.stringify({storeId:state.storeId,message:text,context:state.aiContext})});
-    if(r.context)state.aiContext={...state.aiContext,...r.context};renderPopupAIContext();renderAIContext();
-    if(r.type==="answer")return addPopupBubble(r.answer,"ai");
-    if(r.type==="clarify"){const b=addPopupBubble(r.question||"Tôi cần xác nhận thêm.","ai","clarify");if(r.choices?.length){const row=document.createElement("div");row.className="choice-row";for(const c of r.choices){const btn=document.createElement("button");btn.className="ghost small";btn.textContent=c.label;btn.onclick=()=>sendAIPopup(c.message);row.appendChild(btn)}b.appendChild(row)}return}
-    const b=addPopupBubble(`Tôi hiểu: ${r.summary}`,"ai","preview"),row=document.createElement("div");row.className="row";row.innerHTML='<button class="primary small">Xác nhận</button><button class="ghost small">Hủy</button>';b.appendChild(row);
-    row.children[0].onclick=async()=>{try{await mutate("ai.execute",{plan:r.plan,message:text});b.textContent="Đã thực hiện: "+r.summary;const undo=document.createElement("button");undo.className="ghost small ai-undo";undo.textContent="↩ Hoàn tác";undo.onclick=async()=>{const s=latestPreAISnapshot();if(!s)return toast("Không tìm thấy snapshot",true);if(confirm("Hoàn tác thao tác AI vừa rồi?")){try{await mutate("snapshot.restore",{id:s.id});toast("Đã hoàn tác")}catch(e){toast(e.message,true)}}};b.appendChild(document.createElement("br"));b.appendChild(undo)}catch(e){toast(e.message,true)}};
-    row.children[1].onclick=()=>b.textContent="Đã hủy thao tác."
+    if(r.context)state.aiContext={...state.aiContext,...r.context};if(r.type==="plan"&&state.aiContext.resolvedProductId)state.aiContext.resolvedProductId="";renderPopupAIContext();renderAIContext();
+    if(r.type==="answer")return addPopupBubble(r.answer,"ai");if(r.type==="todaySummary"){const card=buildTodaySummaryCard(r);$("#aiPopupChat").appendChild(card);$("#aiPopupChat").scrollTop=$("#aiPopupChat").scrollHeight;return}
+    if(r.type==="debtPayment"){const card=buildDebtPaymentCard(r,true);$("#aiPopupChat").appendChild(card);$("#aiPopupChat").scrollTop=$("#aiPopupChat").scrollHeight;return}
+    if(r.type==="clarify"){const b=addPopupBubble(r.question||"Tôi cần xác nhận thêm.","ai","clarify");if(r.choices?.length){const row=document.createElement("div");row.className="choice-row";for(const c of r.choices){const btn=document.createElement("button");btn.className="ghost small";btn.textContent=c.label;btn.onclick=()=>{if(c.context)state.aiContext={...state.aiContext,...c.context};sendAIPopup(c.message)};row.appendChild(btn)}b.appendChild(row)}return}
+    const b=addPopupBubble(`Tôi hiểu: ${r.summary}`,"ai","preview");
+    await executeAIPlan(r,text,b);
   }catch(e){addPopupBubble("Lỗi: "+e.message,"ai")}
 }
 function openAiPopup(){$("#aiPopup").classList.remove("hidden");$("#aiPopup").setAttribute("aria-hidden","false");renderPopupAIContext();setTimeout(()=>$("#aiPopupInput")?.focus(),80)}
@@ -526,3 +541,10 @@ $("#aiFab")?.addEventListener("click",openAiPopup);$("#closeAiPopup")?.addEventL
 $("#sendAiPopup")?.addEventListener("click",()=>sendAIPopup($("#aiPopupInput").value));$("#aiPopupInput")?.addEventListener("keydown",e=>{if(e.key==="Enter"&&!e.shiftKey){e.preventDefault();sendAIPopup(e.target.value)}});
 $$("[data-popup-prompt]").forEach(b=>b.onclick=()=>sendAIPopup(b.dataset.popupPrompt));
 $("#openFullAi")?.addEventListener("click",()=>{closeAiPopup();$$(".nav-item").find(x=>x.dataset.page==="assistant")?.click()});
+
+document.addEventListener("click",e=>{
+  const b=e.target.closest?.(".editCustomer");if(!b)return;
+  const row=b.closest("[data-id]"),id=row?.dataset.id,c=state.store?.customers?.find(x=>x.id===id);if(!c)return;
+  showModal(`<h3>Sửa tên khách hàng</h3><label>Tên khách hàng<input id="editCustomerName" value="${esc(c.name)}"></label><button id="saveCustomerName" class="primary full">Lưu tên</button>`);
+  $("#saveCustomerName").onclick=async()=>{try{await mutate("customer.update",{id,name:$("#editCustomerName").value});closeModal();toast("Đã đổi tên khách hàng")}catch(err){toast(err.message,true)}}
+});
