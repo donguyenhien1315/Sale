@@ -64,10 +64,17 @@ main{max-width:1100px;margin:auto;padding:14px}.page{display:none}.page.active{d
 @media(max-width:560px){.product-filter-bar{grid-template-columns:1fr}.debt-compact-actions{grid-template-columns:1fr 1fr}}
 
 /* v4.5 */
-.product-filter-bar{grid-template-columns:minmax(0,1fr) minmax(140px,180px) minmax(150px,220px)}
-.product-toolbar{grid-template-columns:minmax(180px,1fr) minmax(130px,180px) minmax(150px,220px) minmax(130px,180px)}
+.product-filter-bar{grid-template-columns:minmax(0,1fr) minmax(140px,190px)}
+.product-toolbar{grid-template-columns:minmax(180px,1fr) minmax(135px,180px) minmax(135px,180px)}
 .subtabs{display:flex;gap:8px;margin:0 0 12px;padding:4px;background:#eaf3f1;border-radius:14px}
 .subtab{flex:1;border:0;background:transparent;border-radius:10px;padding:10px;font-weight:800;color:var(--muted)}
 .subtab.active{background:#fff;color:var(--brand);box-shadow:0 2px 8px rgba(0,0,0,.06)}
 .subpage{display:none}.subpage.active{display:block}
 @media(max-width:760px){.product-filter-bar{grid-template-columns:1fr}.product-toolbar{grid-template-columns:1fr 1fr}.product-toolbar .search{grid-column:1/-1}}
+
+/* v4.7 - category button filters */
+.category-filter-main{display:flex;gap:8px;overflow-x:auto;padding:4px 0 8px;margin:4px 0 8px;scrollbar-width:none}
+.category-filter-main::-webkit-scrollbar{display:none}
+.category-filter-main .category-chip{flex:0 0 auto;padding:9px 13px;font-size:.84rem}
+.category-filter-main .category-chip span{margin-left:4px}
+.product-filter-bar{grid-template-columns:minmax(0,1fr)}

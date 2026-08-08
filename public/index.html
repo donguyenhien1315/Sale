@@ -12,7 +12,7 @@
   <div id="boot" class="boot">Đang đồng bộ dữ liệu…</div>
   <header class="topbar">
     <div>
-      <div class="eyebrow">CANTIN AI NEXT 4.5</div>
+      <div class="eyebrow">CANTIN AI NEXT 4.7</div>
       <h1 id="storeName">Cửa hàng chính</h1>
     </div>
     <div class="top-actions">
@@ -44,10 +44,8 @@
       <article class="panel">
         <div class="product-filter-bar">
           <input id="saleSearch" class="search" placeholder="Tìm sản phẩm…">
-          <select id="saleCategory"><option value="">Tất cả danh mục</option></select>
-          <select id="saleProductFilter"><option value="">Tất cả mặt hàng</option></select>
-        </div>
-        <div id="saleCategoryChips" class="category-chips compact-chips"></div>
+</div>
+        <div id="saleCategoryChips" class="category-chips category-filter-main"></div>
         <div id="quickProducts" class="product-grid"></div>
       </article>
       <article class="panel">
@@ -83,10 +81,8 @@
       <article class="panel">
         <div class="product-filter-bar">
           <input id="auditSearch" class="search" placeholder="Tìm sản phẩm…">
-          <select id="auditCategory"><option value="">Tất cả danh mục</option></select>
-          <select id="auditProductFilter"><option value="">Tất cả mặt hàng</option></select>
-        </div>
-        <div id="auditCategoryChips" class="category-chips compact-chips"></div>
+</div>
+        <div id="auditCategoryChips" class="category-chips category-filter-main"></div>
         <div id="auditProducts" class="audit-list"></div>
         <label>Ghi chú<input id="auditNote" placeholder="VD: kiểm cuối tuần"></label>
         <button id="saveAudit" class="primary full">Chốt kiểm kho</button>
@@ -104,10 +100,8 @@
         </div>
         <div class="product-filter-bar">
           <input id="stockinSearch" class="search" placeholder="Tìm mặt hàng để nhập…">
-          <select id="stockinCategory"><option value="">Tất cả danh mục</option></select>
-          <select id="stockinProductFilter"><option value="">Tất cả mặt hàng</option></select>
-        </div>
-        <div id="stockinCategoryChips" class="category-chips compact-chips"></div>
+</div>
+        <div id="stockinCategoryChips" class="category-chips category-filter-main"></div>
         <div id="stockinProducts" class="stockin-list"></div>
         <button id="saveStockin" class="primary full">Lưu phiếu nhập</button>
       </article>
@@ -147,8 +141,7 @@
         <select id="productCategory">
           <option value="">Tất cả danh mục</option>
         </select>
-        <select id="productItemFilter"><option value="">Tất cả mặt hàng</option></select>
-        <select id="productSort"><option value="name">Tên A → Z</option><option value="stock-low">Tồn ít → nhiều</option><option value="stock-high">Tồn nhiều → ít</option></select>
+<select id="productSort"><option value="name">Tên A → Z</option><option value="stock-low">Tồn ít → nhiều</option><option value="stock-high">Tồn nhiều → ít</option></select>
       </div>
       <div class="product-summary" id="productSummary"></div>
       <div id="products" class="list"></div>

@@ -1,4 +1,4 @@
-# Cantin AI Next v4.5
+# Cantin AI Next v4.7
 
 App mới hoàn toàn, không phụ thuộc mã nguồn v3.x.
 
@@ -64,3 +64,16 @@ App không xóa dữ liệu cũ. Root hiện tại sẽ được bọc vào cấ
 - Thêm bộ lọc **Tất cả mặt hàng / từng mặt hàng cụ thể** ở Bán hàng, Nhập kho, Kiểm kho, Quản lý mặt hàng.
 - Nhập kho được gộp vào Kiểm kho thành 2 tab con: Kiểm kho | Nhập kho.
 - Bỏ nút Nhập kho riêng khỏi thanh điều hướng dưới.
+
+
+## v4.6
+- Bỏ bộ lọc theo từng mặt hàng cụ thể vừa thêm ở v4.5.
+- Giữ bộ lọc theo danh mục.
+- Giữ Nhập kho là tab con trong Kiểm kho.
+
+
+## v4.7
+- Bộ lọc sản phẩm ở Bán hàng, Kiểm kho và Nhập kho chuyển sang dạng nút giống mục Mặt hàng.
+- Tự lấy danh mục hiện có: Tất cả, Kem, Nước, Cà phê, Bánh Oishi, ...
+- Mỗi nút hiện số lượng mặt hàng trong danh mục.
+- Bỏ dropdown “Tất cả danh mục” ở các khu vực này.
