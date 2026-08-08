@@ -1,4 +1,4 @@
-# Cantin AI Next v4.10.1
+# Cantin AI Next v4.10.2
 
 App mới hoàn toàn, không phụ thuộc mã nguồn v3.x.
 
@@ -138,3 +138,9 @@ App không xóa dữ liệu cũ. Root hiện tại sẽ được bọc vào cấ
 - Xóa sản phẩm có lịch sử thành ngừng sử dụng để giữ liên kết dữ liệu.
 - Chặn xóa phiếu nhập nếu làm tồn âm.
 - Ghi log khi thay đổi tồn từ biểu mẫu sản phẩm.
+
+## v4.10.2
+- Điều khiển − / số lượng / + / × ngay trên sản phẩm đã chọn.
+- Bấm số lượng để nhập trực tiếp.
+- Trợ lý AI có nút nổi và popup chat nhanh ở mọi trang.
+- Popup AI vẫn xem trước → xác nhận → hoàn tác.

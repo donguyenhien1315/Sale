@@ -109,3 +109,14 @@ main{max-width:1100px;margin:auto;padding:14px}.page{display:none}.page.active{d
 .cart-minus,.cart-plus,.cart-remove,.cart-count{border:1px solid var(--line);background:#fff;border-radius:9px;height:34px;min-width:34px;font-weight:900}
 .cart-count{min-width:42px;color:var(--brand);background:#effaf8}
 .cart-remove{color:#b42318;background:#fff5f4}
+
+.product-main{display:flex;flex-direction:column;align-items:flex-start;gap:4px;width:100%;padding:12px;border:0;background:transparent;text-align:left;color:inherit}
+.product-inline-cart{display:grid;grid-template-columns:36px 44px 36px 36px;gap:5px;padding:7px;border-top:1px solid var(--line);background:#f7fbfa}
+.product-inline-cart button{height:34px;border:1px solid var(--line);border-radius:9px;background:#fff;font-weight:900}
+.inline-count{background:#e8f7f4!important;color:var(--brand)}.inline-remove{background:#fff2f1!important;color:#b42318}
+.ai-fab{position:fixed;right:16px;bottom:82px;z-index:55;border:0;border-radius:999px;padding:12px 16px;background:var(--brand);color:#fff;font-weight:900;box-shadow:0 8px 28px rgba(0,0,0,.22)}
+.ai-popup{position:fixed;inset:0;z-index:80;background:rgba(15,23,42,.35);display:flex;align-items:flex-end;justify-content:flex-end;padding:14px}.ai-popup.hidden{display:none}
+.ai-popup-card{width:min(430px,100%);max-height:min(76vh,720px);display:flex;flex-direction:column;background:#fff;border-radius:20px;box-shadow:0 18px 50px rgba(0,0,0,.28);overflow:hidden}
+.ai-popup-head{display:flex;align-items:center;justify-content:space-between;padding:12px 14px;border-bottom:1px solid var(--line)}.ai-popup-head>div{display:flex;flex-direction:column}.ai-popup-head small{color:var(--muted)}
+.ai-popup-chat{min-height:220px;max-height:42vh;padding:12px;overflow:auto;background:#f8fafc}.ai-popup-prompts{padding:8px 12px 0}.ai-popup-input{padding:10px 12px}#openFullAi{margin:0 12px 12px;width:calc(100% - 24px)}
+@media(max-width:600px){.ai-fab{right:12px;bottom:76px}.ai-popup{padding:0}.ai-popup-card{width:100%;max-height:82vh;border-radius:20px 20px 0 0}}

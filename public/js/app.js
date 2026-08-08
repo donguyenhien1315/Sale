@@ -114,15 +114,35 @@ function renderQuickProducts(){
   const list=state.store.products.filter(p=>p.active!==false&&(!q||norm(p.name+" "+p.category).includes(q))&&(!category||String(p.category||"Khác")===category));
   $("#quickProducts").innerHTML=list.length?list.map(p=>{
     const inCart=state.cart.find(x=>x.productId===p.id),count=inCart?.quantity||0;
-    return `<button class="product-tile ${count?"selected":""}" data-id="${p.id}">
-      ${count?`<span class="product-count-badge">${count}</span>`:""}
-      <span class="category-badge">${esc(p.category||"Khác")}</span>
-      <strong>${esc(p.name)}</strong>
-      <small>Tồn ${num(p.stock)} ${esc(p.unit||"")}</small>
-      <div class="price">${money(p.salePrice)}</div>
-    </button>`
+    return `<div class="product-tile ${count?"selected":""}" data-id="${p.id}">
+      <button class="product-main">
+        <span class="category-badge">${esc(p.category||"Khác")}</span>
+        <strong>${esc(p.name)}</strong>
+        <small>Tồn ${num(p.stock)} ${esc(p.unit||"")}</small>
+        <div class="price">${money(p.salePrice)}</div>
+      </button>
+      ${count?`<div class="product-inline-cart">
+        <button class="inline-minus">−</button>
+        <button class="inline-count">${count}</button>
+        <button class="inline-plus">+</button>
+        <button class="inline-remove">×</button>
+      </div>`:""}
+    </div>`
   }).join(""):`<div class="hint">Không có mặt hàng phù hợp.</div>`;
-  $("#quickProducts").querySelectorAll(".product-tile").forEach(b=>b.onclick=()=>addCart(b.dataset.id));
+  $("#quickProducts").querySelectorAll(".product-main").forEach(b=>b.onclick=()=>addCart(b.closest(".product-tile").dataset.id));
+  $("#quickProducts").querySelectorAll(".inline-minus").forEach(b=>b.onclick=e=>{e.stopPropagation();changeCartQty(b.closest(".product-tile").dataset.id,-1)});
+  $("#quickProducts").querySelectorAll(".inline-plus").forEach(b=>b.onclick=e=>{e.stopPropagation();changeCartQty(b.closest(".product-tile").dataset.id,1)});
+  $("#quickProducts").querySelectorAll(".inline-remove").forEach(b=>b.onclick=e=>{e.stopPropagation();removeCartItem(b.closest(".product-tile").dataset.id)});
+  $("#quickProducts").querySelectorAll(".inline-count").forEach(b=>b.onclick=e=>{
+    e.stopPropagation();
+    const id=b.closest(".product-tile").dataset.id,item=state.cart.find(x=>x.productId===id),p=state.store.products.find(x=>x.id===id);
+    showModal(`<h3>Số lượng ${esc(p?.name||"")}</h3><label>Số lượng<input id="inlineQtyEdit" type="number" min="1" value="${item?.quantity||1}" inputmode="numeric"></label><button id="saveInlineQty" class="primary full">Cập nhật</button>`);
+    $("#saveInlineQty").onclick=()=>{
+      const qn=Math.max(1,Number($("#inlineQtyEdit").value)||1);
+      if(p?.trackStock!==false&&qn>Number(p?.stock||0))return toast(`${p.name} chỉ còn ${p.stock} ${p.unit||""}`,true);
+      if(item)item.quantity=qn;closeModal();renderCart()
+    }
+  });
 }
 $("#saleSearch").oninput=renderQuickProducts;
 function addCart(id){const p=state.store.products.find(x=>x.id===id);if(!p)return;let row=state.cart.find(x=>x.productId===id),next=(row?.quantity||0)+1;if(p.trackStock!==false&&next>Number(p.stock||0))return toast(`${p.name} chỉ còn ${p.stock} ${p.unit||""}`,true);if(row)row.quantity=next;else state.cart.push({productId:id,quantity:1});renderCart()}
@@ -486,3 +506,23 @@ $("#downloadEmergencyBackup")?.addEventListener("click",()=>{
 boot();
 
 if("serviceWorker" in navigator) navigator.serviceWorker.register("/service-worker.js").catch(()=>{});
+function addPopupBubble(text,kind="ai",extra=""){const box=$("#aiPopupChat");if(!box)return null;const b=document.createElement("div");b.className=`bubble ${kind} ${extra}`;b.textContent=text;box.appendChild(b);box.scrollTop=box.scrollHeight;return b}
+function renderPopupAIContext(){const bar=$("#aiPopupContext");if(!bar||!state.store)return;const p=state.store.products.find(x=>x.id===state.aiContext.productId),c=state.store.customers.find(x=>x.id===state.aiContext.customerId),bits=[];if(p)bits.push(`Mặt hàng: ${p.name}`);if(c)bits.push(`Khách: ${c.name}`);if(bits.length){bar.innerHTML=`<span>${esc(bits.join(" · "))}</span><button id="clearPopupContext" class="ghost small">Xóa</button>`;bar.classList.remove("hidden");$("#clearPopupContext").onclick=()=>{state.aiContext={productId:"",customerId:""};renderPopupAIContext();renderAIContext()}}else bar.classList.add("hidden")}
+async function sendAIPopup(text){
+  text=text.trim();if(!text)return;addPopupBubble(text,"user");$("#aiPopupInput").value="";
+  try{
+    const r=await api("/api/ai/plan",{method:"POST",body:JSON.stringify({storeId:state.storeId,message:text,context:state.aiContext})});
+    if(r.context)state.aiContext={...state.aiContext,...r.context};renderPopupAIContext();renderAIContext();
+    if(r.type==="answer")return addPopupBubble(r.answer,"ai");
+    if(r.type==="clarify"){const b=addPopupBubble(r.question||"Tôi cần xác nhận thêm.","ai","clarify");if(r.choices?.length){const row=document.createElement("div");row.className="choice-row";for(const c of r.choices){const btn=document.createElement("button");btn.className="ghost small";btn.textContent=c.label;btn.onclick=()=>sendAIPopup(c.message);row.appendChild(btn)}b.appendChild(row)}return}
+    const b=addPopupBubble(`Tôi hiểu: ${r.summary}`,"ai","preview"),row=document.createElement("div");row.className="row";row.innerHTML='<button class="primary small">Xác nhận</button><button class="ghost small">Hủy</button>';b.appendChild(row);
+    row.children[0].onclick=async()=>{try{await mutate("ai.execute",{plan:r.plan,message:text});b.textContent="Đã thực hiện: "+r.summary;const undo=document.createElement("button");undo.className="ghost small ai-undo";undo.textContent="↩ Hoàn tác";undo.onclick=async()=>{const s=latestPreAISnapshot();if(!s)return toast("Không tìm thấy snapshot",true);if(confirm("Hoàn tác thao tác AI vừa rồi?")){try{await mutate("snapshot.restore",{id:s.id});toast("Đã hoàn tác")}catch(e){toast(e.message,true)}}};b.appendChild(document.createElement("br"));b.appendChild(undo)}catch(e){toast(e.message,true)}};
+    row.children[1].onclick=()=>b.textContent="Đã hủy thao tác."
+  }catch(e){addPopupBubble("Lỗi: "+e.message,"ai")}
+}
+function openAiPopup(){$("#aiPopup").classList.remove("hidden");$("#aiPopup").setAttribute("aria-hidden","false");renderPopupAIContext();setTimeout(()=>$("#aiPopupInput")?.focus(),80)}
+function closeAiPopup(){$("#aiPopup").classList.add("hidden");$("#aiPopup").setAttribute("aria-hidden","true")}
+$("#aiFab")?.addEventListener("click",openAiPopup);$("#closeAiPopup")?.addEventListener("click",closeAiPopup);$("#aiPopup")?.addEventListener("click",e=>{if(e.target.id==="aiPopup")closeAiPopup()});
+$("#sendAiPopup")?.addEventListener("click",()=>sendAIPopup($("#aiPopupInput").value));$("#aiPopupInput")?.addEventListener("keydown",e=>{if(e.key==="Enter"&&!e.shiftKey){e.preventDefault();sendAIPopup(e.target.value)}});
+$$("[data-popup-prompt]").forEach(b=>b.onclick=()=>sendAIPopup(b.dataset.popupPrompt));
+$("#openFullAi")?.addEventListener("click",()=>{closeAiPopup();$$(".nav-item").find(x=>x.dataset.page==="assistant")?.click()});

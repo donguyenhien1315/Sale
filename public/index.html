@@ -12,7 +12,7 @@
   <div id="boot" class="boot">Đang đồng bộ dữ liệu…</div>
   <header class="topbar">
     <div>
-      <div class="eyebrow">CANTIN AI NEXT 4.10.1</div>
+      <div class="eyebrow">CANTIN AI NEXT 4.10.2</div>
       <h1 id="storeName">Cửa hàng chính</h1>
     </div>
     <div class="top-actions">
@@ -252,5 +252,21 @@
   <script src="https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.min.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/tesseract.js@5/dist/tesseract.min.js"></script>
 <script type="module" src="/js/app.js"></script>
+
+<button id="aiFab" class="ai-fab" aria-label="Mở trợ lý AI">✨ AI</button>
+<div id="aiPopup" class="ai-popup hidden" aria-hidden="true">
+  <div class="ai-popup-card">
+    <div class="ai-popup-head"><div><strong>Trợ lý AI</strong><small>Chat nhanh ở mọi trang</small></div><button id="closeAiPopup" class="ghost small">×</button></div>
+    <div id="aiPopupContext" class="ai-context-bar hidden"></div>
+    <div id="aiPopupChat" class="chat ai-popup-chat"></div>
+    <div class="quick-prompts ai-popup-prompts">
+      <button data-popup-prompt="Hôm nay kinh doanh thế nào?">Hôm nay</button>
+      <button data-popup-prompt="Mặt hàng nào cần nhập sớm?">Cần nhập</button>
+      <button data-popup-prompt="Ai đang nợ nhiều nhất?">Công nợ</button>
+    </div>
+    <div class="chat-input ai-popup-input"><textarea id="aiPopupInput" rows="2" placeholder="Nhập nhanh..."></textarea><button id="sendAiPopup" class="primary">Gửi</button></div>
+    <button id="openFullAi" class="ghost full small">Mở trang AI đầy đủ</button>
+  </div>
+</div>
 </body>
 </html>
