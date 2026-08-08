@@ -1,4 +1,4 @@
-# Cantin AI Next v4.7
+# Cantin AI Next v4.10.1
 
 App mới hoàn toàn, không phụ thuộc mã nguồn v3.x.
 
@@ -77,3 +77,64 @@ App không xóa dữ liệu cũ. Root hiện tại sẽ được bọc vào cấ
 - Tự lấy danh mục hiện có: Tất cả, Kem, Nước, Cà phê, Bánh Oishi, ...
 - Mỗi nút hiện số lượng mặt hàng trong danh mục.
 - Bỏ dropdown “Tất cả danh mục” ở các khu vực này.
+
+
+## v4.8 Recovery
+- Sửa migration để giữ toàn bộ cửa hàng cũ, không chỉ cửa hàng đang active.
+- Giữ và chuyển dữ liệu legacy: products, customers, debts, sales, stockReceipts, stockAdjustments, weeklyAudits.
+- `weeklyAudits` được chuyển sang `audits` mới nhưng dữ liệu cũ vẫn được giữ.
+- Tạo rolling backup của toàn bộ root trước mỗi lần ghi, giữ 10 bản gần nhất.
+- Chặn ghi một root hoàn toàn trắng đè lên root đang có dữ liệu.
+- Thêm mục Khôi phục dữ liệu trong trang Dữ liệu.
+- Thêm cảnh báo khi ứng dụng bất ngờ thấy cửa hàng trống.
+
+
+## v4.8.1 Hotfix ghi dữ liệu
+- Bỏ rolling backup lồng toàn bộ root vì làm payload Supabase tăng rất nhanh.
+- Giữ snapshot trước từng action để có thể rollback.
+- Dùng persist token + read-back giống cơ chế ổn định trước đó.
+- Chuẩn hóa kết quả RPC nếu Supabase trả wrapper một dòng.
+- Hiển thị lỗi backend rõ hơn thay vì chỉ “Có lỗi xảy ra”.
+
+
+## v4.8.2
+- Sửa nút Tải backup: trước đó gọi nhầm `downloadJson()` trong khi app chỉ có `download()`.
+- Cải thiện tải file JSON trên Safari/iPhone bằng cách gắn thẻ tải vào DOM trước khi click.
+
+
+## v4.9 AI Smart
+- Hiểu tên gần đúng, sai chính tả và alias sản phẩm.
+- Bộ nhớ alias có UI thêm/xóa; AI cũng hiểu câu “gọi Rockstar là rs”.
+- Ngữ cảnh hội thoại: hỏi Rockstar rồi nói “cho về 0” vẫn hiểu Rockstar.
+- Lệnh bán nhiều mặt hàng trong một câu và có thể ghi nợ khách.
+- Nhập kho hiểu thùng/két + số lẻ theo packSize.
+- Công nợ thông minh: trả hết, lịch sử nợ, ai trả nợ hôm nay, hỏi lại số tiền nhỏ mơ hồ.
+- Phân tích doanh thu/lợi nhuận hôm nay, top bán chạy/lợi nhuận 7 ngày, bán chậm/tồn nhiều.
+- Dự báo nhập hàng từ tốc độ bán 14 ngày.
+- Phát hiện bất thường: nợ quá nhỏ, giá bán dưới vốn, tồn âm, phiếu nhập quá lớn, kiểm kho no-op.
+- Ước tính tiêu hao nguyên liệu cà phê từ công thức sản phẩm và số ly bán.
+- AI đọc ảnh (OCR), Excel, CSV, JSON trên trình duyệt rồi đưa nội dung vào Command Center để phân tích/xem trước.
+- Khi AI không chắc sẽ hỏi lại, không tự ghi.
+- Mọi action AI vẫn preview + xác nhận.
+- Sau action AI có nút Hoàn tác bằng snapshot trước thao tác.
+
+
+## v4.10
+- Bán hàng: sản phẩm đã chọn hiện số lượng ngay trên ô sản phẩm.
+- Giỏ hàng có − / số lượng bấm để sửa / + / × xóa.
+- Khi tạo đơn có thể chọn khách hàng, kể cả tiền mặt/chuyển khoản; nếu ghi nợ thì khách hàng được dùng cho khoản nợ.
+- Kiểm kho có bộ lọc danh mục dạng nút: Tất cả, Kem, Nước, Cà phê, Bánh... theo dữ liệu thực tế.
+
+
+## v4.10.1 Stable Fix
+- Khôi phục toàn bộ backend action bị thiếu ở v4.10.
+- Chọn khách hàng cho tiền mặt/chuyển khoản/ghi nợ; ghi nợ bắt buộc có khách.
+- Xóa đơn ghi nợ hoàn kho + xóa đúng công nợ liên kết, chặn nếu đã có trả nợ.
+- Chỉnh/xóa kiểm kho lịch sử theo delta, không reset tồn hiện tại.
+- Khôi phục bộ lọc danh mục ở Kiểm kho và Nhập kho.
+- Chặn giỏ hàng vượt tồn khi bấm + hoặc nhập trực tiếp.
+- Tách AI context khỏi khách đang chọn ở Bán hàng.
+- Sửa runtime Supabase env cho Cloudflare Pages.
+- Xóa sản phẩm có lịch sử thành ngừng sử dụng để giữ liên kết dữ liệu.
+- Chặn xóa phiếu nhập nếu làm tồn âm.
+- Ghi log khi thay đổi tồn từ biểu mẫu sản phẩm.

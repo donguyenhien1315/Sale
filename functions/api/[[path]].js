@@ -1,6 +1,7 @@
-const SUPABASE_URL = env("SUPABASE_URL","https://kqfqdxmhrsndrgyipybe.supabase.co");
-const SUPABASE_KEY = env("SUPABASE_ANON_KEY","sb_publishable_vLPh3dz8y3jHDcXtg1JmgQ_nJF2WdUF");
+const FALLBACK_SUPABASE_URL="https://kqfqdxmhrsndrgyipybe.supabase.co";
+const FALLBACK_SUPABASE_KEY="sb_publishable_vLPh3dz8y3jHDcXtg1JmgQ_nJF2WdUF";
 function env(k,fallback=""){return globalThis.__ENV?.[k]||fallback}
+function supabaseConfig(){return {url:env("SUPABASE_URL",FALLBACK_SUPABASE_URL),key:env("SUPABASE_ANON_KEY",FALLBACK_SUPABASE_KEY)}}
 const clone=x=>structuredClone(x);
 const uid=()=>crypto.randomUUID();
 const now=()=>new Date().toISOString();
@@ -9,7 +10,8 @@ const money=n=>Math.max(0,Math.round(Number(n)||0));
 const qty=n=>Math.max(0,Number(n)||0);
 
 async function rpc(name,payload){
-  const r=await fetch(`${SUPABASE_URL}/rest/v1/rpc/${name}`,{method:"POST",headers:{"Content-Type":"application/json","apikey":SUPABASE_KEY,"Authorization":`Bearer ${SUPABASE_KEY}`},body:JSON.stringify(payload)});
+  const {url,key}=supabaseConfig();
+  const r=await fetch(`${url}/rest/v1/rpc/${name}`,{method:"POST",headers:{"Content-Type":"application/json","apikey":key,"Authorization":`Bearer ${key}`},body:JSON.stringify(payload)});
   const text=await r.text();let data=null;try{data=text?JSON.parse(text):null}catch{data=text}
   if(!r.ok)throw new Error(data?.message||String(data||"Lỗi Supabase"));return data;
 }
@@ -25,7 +27,7 @@ async function readRootRaw(){
   return v;
 }
 
-function emptyStore(name="Cửa hàng chính"){return {meta:{name,createdAt:now(),version:"4.10"},config:{money:{under1000MeansThousands:true},ai:{preview:true},ui:{compactDebt:true}},products:[],ingredients:[{"id": "ing-ca-phe-phin", "name": "Cà phê phin", "purchasePrice": 1085000, "packageQty": 7000, "unit": "g", "unitCost": 155, "stock": 0, "note": "240g pha được 500ml cà phê phin"}, {"id": "ing-ca-phe-may", "name": "Cà phê máy", "purchasePrice": 234000, "packageQty": 1000, "unit": "g", "unitCost": 234, "stock": 0, "note": "Tạm tính gói 1kg; sửa nếu khác"}, {"id": "ing-bot-kem-muoi", "name": "Bột kem muối", "purchasePrice": 80000, "packageQty": 500, "unit": "g", "unitCost": 160, "stock": 0, "note": "Người dùng cung cấp"}, {"id": "ing-sua-dac", "name": "Sữa đặc", "purchasePrice": 450000, "packageQty": 9120, "unit": "ml", "unitCost": 49.3421052632, "stock": 0, "note": "24 hộp x 380ml"}, {"id": "ing-sua-tuoi", "name": "Sữa tươi", "purchasePrice": 35000, "packageQty": 1000, "unit": "ml", "unitCost": 35, "stock": 0, "note": "1 lít giá 35.000"}, {"id": "ing-duong", "name": "Đường", "purchasePrice": 25000, "packageQty": 1000, "unit": "g", "unitCost": 25, "stock": 0, "note": "Tạm tính 25.000/kg; sửa theo thực tế"}],customers:[],debts:[],sales:[],stockReceipts:[],audits:[],transactions:[],snapshots:[],aliases:[]}}
+function emptyStore(name="Cửa hàng chính"){return {meta:{name,createdAt:now(),version:"4.10.1"},config:{money:{under1000MeansThousands:true},ai:{preview:true},ui:{compactDebt:true}},products:[],ingredients:[{"id": "ing-ca-phe-phin", "name": "Cà phê phin", "purchasePrice": 1085000, "packageQty": 7000, "unit": "g", "unitCost": 155, "stock": 0, "note": "240g pha được 500ml cà phê phin"}, {"id": "ing-ca-phe-may", "name": "Cà phê máy", "purchasePrice": 234000, "packageQty": 1000, "unit": "g", "unitCost": 234, "stock": 0, "note": "Tạm tính gói 1kg; sửa nếu khác"}, {"id": "ing-bot-kem-muoi", "name": "Bột kem muối", "purchasePrice": 80000, "packageQty": 500, "unit": "g", "unitCost": 160, "stock": 0, "note": "Người dùng cung cấp"}, {"id": "ing-sua-dac", "name": "Sữa đặc", "purchasePrice": 450000, "packageQty": 9120, "unit": "ml", "unitCost": 49.3421052632, "stock": 0, "note": "24 hộp x 380ml"}, {"id": "ing-sua-tuoi", "name": "Sữa tươi", "purchasePrice": 35000, "packageQty": 1000, "unit": "ml", "unitCost": 35, "stock": 0, "note": "1 lít giá 35.000"}, {"id": "ing-duong", "name": "Đường", "purchasePrice": 25000, "packageQty": 1000, "unit": "g", "unitCost": 25, "stock": 0, "note": "Tạm tính 25.000/kg; sửa theo thực tế"}],customers:[],debts:[],sales:[],stockReceipts:[],audits:[],transactions:[],snapshots:[],aliases:[]}}
 function ensureStore(s,name){const x=s&&typeof s==="object"?s:{};const e=emptyStore(name);for(const k of Object.keys(e))if(x[k]===undefined)x[k]=clone(e[k]);for(const k of ["products","ingredients","customers","debts","sales","stockReceipts","audits","transactions","snapshots","aliases"])if(!Array.isArray(x[k]))x[k]=[];x.meta={...e.meta,...(x.meta||{})};x.config={...e.config,...(x.config||{})};if(!Array.isArray(x.ingredients)||!x.ingredients.length)x.ingredients=clone([{"id": "ing-ca-phe-phin", "name": "Cà phê phin", "purchasePrice": 1085000, "packageQty": 7000, "unit": "g", "unitCost": 155, "stock": 0, "note": "240g pha được 500ml cà phê phin"}, {"id": "ing-ca-phe-may", "name": "Cà phê máy", "purchasePrice": 234000, "packageQty": 1000, "unit": "g", "unitCost": 234, "stock": 0, "note": "Tạm tính gói 1kg; sửa nếu khác"}, {"id": "ing-bot-kem-muoi", "name": "Bột kem muối", "purchasePrice": 80000, "packageQty": 500, "unit": "g", "unitCost": 160, "stock": 0, "note": "Người dùng cung cấp"}, {"id": "ing-sua-dac", "name": "Sữa đặc", "purchasePrice": 450000, "packageQty": 9120, "unit": "ml", "unitCost": 49.3421052632, "stock": 0, "note": "24 hộp x 380ml"}, {"id": "ing-sua-tuoi", "name": "Sữa tươi", "purchasePrice": 35000, "packageQty": 1000, "unit": "ml", "unitCost": 35, "stock": 0, "note": "1 lít giá 35.000"}, {"id": "ing-duong", "name": "Đường", "purchasePrice": 25000, "packageQty": 1000, "unit": "g", "unitCost": 25, "stock": 0, "note": "Tạm tính 25.000/kg; sửa theo thực tế"}]);for(const i of x.ingredients)i.category=i.category||"Nguyên liệu cà phê";return x}
 
 function dataWeight(root){
@@ -40,7 +42,7 @@ function dataWeight(root){
 function normalizeLegacyStore(input,name="Cửa hàng chính"){
   const src=clone(input||{});
   const out=ensureStore(src);
-  out.meta={...(out.meta||{}),name:out.meta?.name||name,version:"4.10"};
+  out.meta={...(out.meta||{}),name:out.meta?.name||name,version:"4.10.1"};
   // Preserve legacy arrays instead of dropping them.
   if((!Array.isArray(out.audits)||!out.audits.length)&&Array.isArray(src.weeklyAudits)){
     out.audits=src.weeklyAudits.map(a=>({
@@ -115,7 +117,7 @@ async function writeRoot(root){
 
   root.revision=(Number(root.revision)||0)+1;
   const token=uid();
-  root.persist={token,writtenAt:now(),version:"4.10"};
+  root.persist={token,writtenAt:now(),version:"4.10.1"};
 
   await rpc("cantin_write_store_public",{p_data:root});
 
@@ -133,6 +135,205 @@ function tx(store,type,summary,changes=[]){const t={id:`TX-${Date.now()}-${Math.
 function snapshot(store,label){const data=clone(store);data.snapshots=[];store.snapshots.push({id:uid(),label,createdAt:now(),data});if(store.snapshots.length>30)store.snapshots=store.snapshots.slice(-30)}
 function json(data,status=200){return new Response(JSON.stringify(data),{status,headers:{"Content-Type":"application/json; charset=utf-8","Cache-Control":"no-store"}})}
 function bad(m,status=400){throw Object.assign(new Error(m),{status})}
+
+
+
+function applyAction(root,action,p){
+  const holder=active(root),st=holder.data;
+  if(action!=="snapshot.create"&&action!=="snapshot.restore"&&action!=="store.switch")snapshot(st,`Trước: ${action}`);
+
+  switch(action){
+    case "recovery.import": {
+      const imported=normalizeLegacyStore(p.data||{},"Dữ liệu khôi phục");
+      const keep=[...(st.snapshots||[])];
+      keep.push({id:uid(),label:"Tự động trước khôi phục",createdAt:now(),data:(()=>{const x=clone(st);x.snapshots=[];return x})()});
+      imported.snapshots=[...(imported.snapshots||[]),...keep].slice(-30);
+      holder.data=imported;tx(holder.data,action,"Khôi phục dữ liệu từ backup");break;
+    }
+    case "store.switch": {
+      if(!root.stores.some(s=>s.id===p.id))bad("Không tìm thấy cửa hàng");
+      root.activeStoreId=p.id;break;
+    }
+    case "store.create": {
+      const id=uid(),name=String(p.name||"Cửa hàng mới").trim()||"Cửa hàng mới";
+      root.stores.push({id,name,createdAt:now(),data:emptyStore(name)});root.activeStoreId=id;break;
+    }
+    case "store.import": {
+      holder.data=normalizeLegacyStore(clone(p.store||{}),holder.name||"Cửa hàng");
+      tx(holder.data,action,"Nhập dữ liệu cửa hàng");break;
+    }
+    case "config.import": {
+      st.config={...(st.config||{}),...(p.config||{})};
+      if(Array.isArray(p.aliases))st.aliases=clone(p.aliases);
+      tx(st,action,"Nhập cấu hình ứng dụng");break;
+    }
+
+    case "customer.create": {
+      const name=String(p.name||"").trim();if(!name)bad("Tên khách trống");
+      if(st.customers.some(c=>norm(c.name)===norm(name)))bad("Khách đã tồn tại");
+      st.customers.push({id:uid(),name,createdAt:now(),active:true});
+      tx(st,action,`Thêm khách ${name}`);break;
+    }
+
+    case "debt.add": {
+      const c=st.customers.find(c=>c.id===p.customerId);if(!c)bad("Không tìm thấy khách");
+      const amount=money(p.amount);if(!amount)bad("Số tiền không hợp lệ");
+      st.debts.push({id:uid(),customerId:c.id,customer:c.name,amount,paid:0,balance:amount,note:String(p.note||""),createdAt:p.createdAt||now(),payments:[]});
+      tx(st,action,`Ghi nợ ${c.name}: ${formatMoney(amount)}`);break;
+    }
+    case "debt.pay": {
+      const c=st.customers.find(c=>c.id===p.customerId);if(!c)bad("Không tìm thấy khách");
+      const amount=Math.min(money(p.amount),customerDebt(st,c.id));if(!amount)bad("Không có số nợ để trừ");
+      payDebt(st,c.id,amount,p.note||"",p.createdAt||now());
+      tx(st,action,`${c.name} trả ${formatMoney(amount)}`);break;
+    }
+    case "debt.update": {
+      const d=st.debts.find(d=>d.id===p.id);if(!d)bad("Không tìm thấy khoản nợ");
+      if(d.saleId)bad("Khoản nợ này sinh từ đơn bán hàng. Hãy chỉnh/xóa đơn thay vì sửa trực tiếp khoản nợ.");
+      const amount=money(p.amount);if(amount<(+d.paid||0))bad("Tổng nợ không thể thấp hơn đã trả");
+      d.amount=amount;d.balance=amount-(+d.paid||0);d.note=String(p.note||"");if(p.createdAt)d.createdAt=p.createdAt;
+      tx(st,action,"Chỉnh khoản nợ");break;
+    }
+    case "debt.delete": {
+      const i=st.debts.findIndex(d=>d.id===p.id);if(i<0)bad("Không tìm thấy khoản nợ");
+      if(st.debts[i].saleId)bad("Khoản nợ này gắn với đơn bán hàng. Hãy xóa đơn hàng để hoàn kho và xóa công nợ đồng bộ.");
+      st.debts.splice(i,1);tx(st,action,"Xóa khoản nợ");break;
+    }
+    case "debt.payment.update": {
+      const d=st.debts.find(d=>d.id===p.debtId);if(!d)bad("Không tìm thấy khoản nợ");
+      const pay=(d.payments||[]).find(x=>x.id===p.paymentId);if(!pay)bad("Không tìm thấy lần trả");
+      const old=money(pay.amount),next=money(p.amount),newPaid=(+d.paid||0)-old+next;
+      if(newPaid>d.amount)bad("Tổng tiền đã trả không thể lớn hơn khoản nợ");
+      pay.amount=next;pay.note=String(p.note||"");if(p.createdAt)pay.createdAt=p.createdAt;
+      d.paid=newPaid;d.balance=d.amount-newPaid;tx(st,action,"Chỉnh chi tiết lần trả nợ");break;
+    }
+    case "debt.payment.delete": {
+      const d=st.debts.find(d=>d.id===p.debtId);if(!d)bad("Không tìm thấy khoản nợ");
+      const i=(d.payments||[]).findIndex(x=>x.id===p.paymentId);if(i<0)bad("Không tìm thấy lần trả");
+      const removed=d.payments.splice(i,1)[0];
+      d.paid=Math.max(0,(+d.paid||0)-(+removed.amount||0));d.balance=d.amount-d.paid;
+      tx(st,action,"Xóa chi tiết lần trả nợ");break;
+    }
+
+    case "ingredient.create": {
+      const x={id:uid(),name:String(p.name||"").trim(),category:String(p.category||"Nguyên liệu cà phê"),unit:String(p.unit||"g").trim()||"g",purchasePrice:money(p.purchasePrice),packageQty:qty(p.packageQty)||1,unitCost:0,stock:qty(p.stock),note:String(p.note||"")};
+      if(!x.name)bad("Tên nguyên liệu trống");x.unitCost=x.purchasePrice/x.packageQty;st.ingredients.push(x);
+      tx(st,action,`Thêm nguyên liệu ${x.name}`);break;
+    }
+    case "ingredient.update": {
+      const x=st.ingredients.find(x=>x.id===p.id);if(!x)bad("Không tìm thấy nguyên liệu");
+      x.name=String(p.name||x.name).trim();x.category=String(p.category||x.category||"Nguyên liệu cà phê");
+      x.unit=String(p.unit||x.unit).trim();x.purchasePrice=money(p.purchasePrice);x.packageQty=qty(p.packageQty)||1;
+      x.unitCost=x.purchasePrice/x.packageQty;x.stock=qty(p.stock);x.note=String(p.note||"");
+      tx(st,action,`Sửa nguyên liệu ${x.name}`);break;
+    }
+    case "ingredient.delete": {
+      const i=st.ingredients.findIndex(x=>x.id===p.id);if(i<0)bad("Không tìm thấy nguyên liệu");
+      const name=st.ingredients[i].name;st.ingredients.splice(i,1);tx(st,action,`Xóa nguyên liệu ${name}`);break;
+    }
+
+    case "product.stock.set": {
+      const x=st.products.find(x=>x.id===p.id);if(!x)bad("Không tìm thấy sản phẩm");
+      const before=qty(x.stock),after=qty(p.stock);x.stock=after;
+      tx(st,action,`Điều chỉnh tồn độc lập ${x.name}: ${before} → ${after} ${x.unit||""}`,[{productId:x.id,before,after,note:String(p.note||"")}]);
+      break;
+    }
+    case "product.create": {
+      const x={id:uid(),name:String(p.name||"").trim(),category:String(p.category||"Khác"),unit:String(p.unit||"cái"),packSize:qty(p.packSize)||1,costPrice:money(p.costPrice),salePrice:money(p.salePrice),stock:qty(p.stock),minStock:qty(p.minStock),trackStock:true,active:true};
+      if(!x.name)bad("Tên sản phẩm trống");
+      if(st.products.some(v=>norm(v.name)===norm(x.name)))bad("Mặt hàng đã tồn tại");
+      st.products.push(x);tx(st,action,`Thêm sản phẩm ${x.name}`);break;
+    }
+    case "product.update": {
+      const x=st.products.find(x=>x.id===p.id);if(!x)bad("Không tìm thấy sản phẩm");
+      const beforeStock=qty(x.stock),afterStock=qty(p.stock);
+      Object.assign(x,{name:String(p.name||x.name).trim(),category:String(p.category||x.category),unit:String(p.unit||x.unit),packSize:qty(p.packSize)||1,costPrice:money(p.costPrice),salePrice:money(p.salePrice),stock:afterStock,minStock:qty(p.minStock)});
+      tx(st,action,`Sửa sản phẩm ${x.name}`,beforeStock!==afterStock?[{productId:x.id,before:beforeStock,after:afterStock,note:"Sửa từ biểu mẫu sản phẩm"}]:[]);
+      break;
+    }
+    case "product.delete": {
+      const i=st.products.findIndex(x=>x.id===p.id);if(i<0)bad("Không tìm thấy sản phẩm");
+      const product=st.products[i];
+      const referenced=st.sales.some(s=>(s.items||[]).some(l=>l.productId===product.id))||st.stockReceipts.some(r=>(r.lines||[]).some(l=>l.productId===product.id))||st.audits.some(a=>(a.lines||[]).some(l=>l.productId===product.id));
+      if(referenced){product.active=false;product.trackStock=false;tx(st,action,`Ngừng sử dụng sản phẩm ${product.name} (giữ lịch sử)`)}
+      else{st.products.splice(i,1);st.aliases=(st.aliases||[]).filter(a=>a.productId!==product.id);tx(st,action,`Xóa sản phẩm ${product.name}`)}
+      break;
+    }
+
+    case "sale.create": {
+      const t=saleTotals(st,p.items||[]);if(!t.lines.length)bad("Đơn hàng trống");
+      const customer=p.customerId?st.customers.find(c=>c.id===p.customerId):null;
+      if(p.customerId&&!customer)bad("Không tìm thấy khách hàng đã chọn");
+      if((p.paymentMethod||"cash")==="debt"&&!customer)bad("Ghi nợ bắt buộc phải chọn khách hàng");
+      for(const l of t.lines){const pr=st.products.find(x=>x.id===l.productId);if(pr.trackStock!==false)pr.stock-=l.quantity}
+      const sale={id:uid(),createdAt:p.createdAt||now(),items:t.lines,total:t.total,costTotal:t.cost,profit:t.profit,paymentMethod:p.paymentMethod||"cash",customerId:customer?.id||"",customer:customer?.name||"",note:String(p.note||"")};
+      if(sale.paymentMethod==="debt")st.debts.push({id:uid(),customerId:customer.id,customer:customer.name,amount:t.total,paid:0,balance:t.total,note:`Đơn hàng ${new Date(sale.createdAt).toLocaleDateString("vi-VN")}`,createdAt:sale.createdAt,payments:[],saleId:sale.id});
+      st.sales.push(sale);tx(st,action,`Bán hàng ${formatMoney(t.total)}${customer?` · ${customer.name}`:""}`);break;
+    }
+    case "sale.delete": {
+      const i=st.sales.findIndex(s=>s.id===p.id);if(i<0)bad("Không tìm thấy đơn");
+      const sale=st.sales[i],linked=st.debts.filter(d=>d.saleId===sale.id);
+      if(linked.some(d=>(+d.paid||0)>0||(d.payments||[]).length>0))bad("Đơn ghi nợ này đã có trả nợ. Hãy xóa/chỉnh các lần trả nợ trước rồi mới xóa đơn.");
+      for(const l of sale.items||[]){const pr=st.products.find(x=>x.id===l.productId);if(pr?.trackStock!==false)pr.stock=qty(pr.stock)+qty(l.quantity)}
+      st.debts=st.debts.filter(d=>d.saleId!==sale.id);st.sales.splice(i,1);
+      tx(st,action,"Xóa đơn hàng, hoàn kho và xóa công nợ liên quan");break;
+    }
+
+    case "stockin.create": {
+      const lines=[];
+      for(const r of p.lines||[]){const pr=st.products.find(x=>x.id===r.productId);if(!pr)continue;const amount=qty(r.cases)*(qty(pr.packSize)||1)+qty(r.units);if(!amount)continue;const before=qty(pr.stock);pr.stock=before+amount;lines.push({productId:pr.id,name:pr.name,cases:qty(r.cases),units:qty(r.units),quantity:amount,before,after:pr.stock})}
+      if(!lines.length)bad("Phiếu nhập trống");
+      st.stockReceipts.push({id:uid(),createdAt:p.createdAt||now(),note:String(p.note||""),lines});
+      tx(st,action,`Nhập kho ${lines.reduce((a,l)=>a+l.quantity,0)} đơn vị`);break;
+    }
+    case "stockin.delete": {
+      const i=st.stockReceipts.findIndex(r=>r.id===p.id);if(i<0)bad("Không tìm thấy phiếu");
+      const receipt=st.stockReceipts[i];
+      for(const l of receipt.lines||[]){const pr=st.products.find(x=>x.id===l.productId);if(pr&&qty(pr.stock)-qty(l.quantity)<0)bad(`Không thể xóa phiếu: ${pr.name} hiện chỉ còn ${pr.stock}, thấp hơn lượng cần hoàn ${l.quantity}.`)}
+      for(const l of receipt.lines||[]){const pr=st.products.find(x=>x.id===l.productId);if(pr)pr.stock=qty(pr.stock)-qty(l.quantity)}
+      st.stockReceipts.splice(i,1);tx(st,action,"Xóa phiếu nhập và trừ lại kho");break;
+    }
+
+    case "audit.create": {
+      const lines=[];
+      for(const r of p.lines||[]){const pr=st.products.find(x=>x.id===r.productId);if(!pr)continue;const before=qty(pr.stock),actual=qty(r.actual),delta=actual-before;pr.stock=actual;lines.push({productId:pr.id,name:pr.name,before,actual,delta,sold:Math.max(0,before-actual)})}
+      if(!lines.length)bad("Phiếu kiểm kho trống");
+      st.audits.push({id:uid(),createdAt:p.createdAt||now(),note:String(p.note||""),lines});
+      tx(st,action,`Kiểm kho ${lines.length} mặt hàng`);break;
+    }
+    case "audit.update": {
+      const a=st.audits.find(a=>a.id===p.id);if(!a)bad("Không tìm thấy đơn kiểm kho");
+      const requested=new Map((p.lines||[]).map(r=>[r.productId,qty(r.actual)]));
+      for(const old of a.lines||[]){if(!requested.has(old.productId))continue;const pr=st.products.find(x=>x.id===old.productId);if(!pr)continue;const next=requested.get(old.productId),prev=qty(old.actual),correction=next-prev;pr.stock=qty(pr.stock)+correction;old.actual=next;old.delta=next-qty(old.before);old.sold=Math.max(0,qty(old.before)-next)}
+      a.note=String(p.note||"");tx(st,action,"Chỉnh đơn kiểm kho theo chênh lệch");break;
+    }
+    case "audit.delete": {
+      const i=st.audits.findIndex(a=>a.id===p.id);if(i<0)bad("Không tìm thấy đơn");
+      for(const l of st.audits[i].lines||[]){const pr=st.products.find(x=>x.id===l.productId);if(pr)pr.stock=qty(pr.stock)-(qty(l.actual)-qty(l.before))}
+      st.audits.splice(i,1);tx(st,action,"Xóa đơn kiểm kho theo chênh lệch");break;
+    }
+
+    case "snapshot.create": snapshot(st,String(p.label||"Snapshot"));break;
+    case "snapshot.restore": {
+      const s=st.snapshots.find(x=>x.id===p.id);if(!s)bad("Không tìm thấy snapshot");
+      const keep=st.snapshots;Object.keys(st).forEach(k=>delete st[k]);Object.assign(st,clone(s.data));st.snapshots=keep;
+      tx(st,action,`Khôi phục snapshot ${s.label||""}`);break;
+    }
+
+    case "alias.add": {
+      const pr=st.products.find(x=>x.id===p.productId);if(!pr)bad("Không tìm thấy sản phẩm");
+      const alias=String(p.alias||"").trim();if(!alias)bad("Alias trống");
+      st.aliases=st.aliases||[];st.aliases=st.aliases.filter(a=>norm(a.alias)!==norm(alias));
+      st.aliases.push({id:uid(),alias,productId:pr.id,createdAt:now()});tx(st,action,`Thêm alias ${alias} = ${pr.name}`);break;
+    }
+    case "alias.delete": {
+      const i=(st.aliases||[]).findIndex(a=>a.id===p.id);if(i<0)bad("Không tìm thấy alias");
+      st.aliases.splice(i,1);tx(st,action,"Xóa alias AI");break;
+    }
+    case "ai.execute": executePlan(st,p.plan,p.message);break;
+    default: bad("Action chưa hỗ trợ: "+action)
+  }
+}
 
 
 function levenshtein(a,b){
@@ -294,10 +495,11 @@ function executePlan(st,plan,message){
   if(plan.kind==="sale.create"){
     const t=saleTotals(st,plan.items||[]);if(!t.lines.length)bad("Đơn hàng trống");
     for(const l of t.lines){const p=st.products.find(x=>x.id===l.productId);if(p.trackStock!==false)p.stock-=l.quantity}
-    const sale={id:uid(),createdAt:now(),items:t.lines,total:t.total,costTotal:t.cost,profit:t.profit,paymentMethod:plan.paymentMethod||"cash",customerId:plan.customerId||"",customer:"",note:`AI: ${message}`};
+    const c=plan.customerId?st.customers.find(x=>x.id===plan.customerId):null;
+    if(plan.customerId&&!c)bad("Không tìm thấy khách hàng");
+    const sale={id:uid(),createdAt:now(),items:t.lines,total:t.total,costTotal:t.cost,profit:t.profit,paymentMethod:plan.paymentMethod||"cash",customerId:c?.id||"",customer:c?.name||"",note:`AI: ${message}`};
     if(sale.paymentMethod==="debt"){
-      const c=st.customers.find(x=>x.id===sale.customerId);if(!c)bad("Không tìm thấy khách để ghi nợ");
-      sale.customer=c.name;st.debts.push({id:uid(),customerId:c.id,customer:c.name,amount:t.total,paid:0,balance:t.total,note:`Đơn AI: ${t.lines.map(x=>`${x.quantity} ${x.name}`).join(", ")}`,createdAt:sale.createdAt,payments:[],saleId:sale.id})
+      if(!c)bad("Không tìm thấy khách để ghi nợ");st.debts.push({id:uid(),customerId:c.id,customer:c.name,amount:t.total,paid:0,balance:t.total,note:`Đơn AI: ${t.lines.map(x=>`${x.quantity} ${x.name}`).join(", ")}`,createdAt:sale.createdAt,payments:[],saleId:sale.id})
     }
     st.sales.push(sale);tx(st,"ai.sale",`AI tạo đơn ${t.lines.length} món · ${formatMoney(t.total)}${sale.paymentMethod==="debt"?" · ghi nợ":""}`);return
   }
