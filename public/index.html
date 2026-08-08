@@ -12,7 +12,7 @@
   <div id="boot" class="boot">Đang đồng bộ dữ liệu…</div>
   <header class="topbar">
     <div>
-      <div class="eyebrow">CANTIN AI NEXT 4.7</div>
+      <div class="eyebrow">CANTIN AI NEXT 4.8</div>
       <h1 id="storeName">Cửa hàng chính</h1>
     </div>
     <div class="top-actions">
@@ -21,7 +21,14 @@
     </div>
   </header>
 
-  <main>
+  
+  <div id="dataSafetyBanner" class="data-safety-banner hidden">
+    <strong>Cảnh báo dữ liệu</strong>
+    <span>Ứng dụng đang thấy cửa hàng trống. Không nhập dữ liệu mới nếu anh không chủ động tạo cửa hàng trắng.</span>
+    <button id="goRecovery" class="ghost small">Khôi phục</button>
+  </div>
+
+<main>
     <section class="page active" data-page="dashboard">
       <div class="stats">
         <button class="stat nav-target" data-target="sales"><span>Doanh thu hôm nay</span><strong id="todayRevenue">0 ₫</strong></button>
@@ -174,6 +181,24 @@
         <article class="panel"><h3>Cấu hình ứng dụng</h3><p>Alias AI, hiển thị, cảnh báo và quy tắc tiền.</p><div class="row"><button id="exportConfig" class="primary small">Xuất</button><label class="file-btn">Nhập<input id="importConfig" type="file" accept=".json,.node.json" hidden></label></div></article>
         <article class="panel"><h3>Gói cập nhật ứng dụng</h3><p>Kiểm tra file Node JSON cập nhật mã nguồn.</p><label class="file-btn">Kiểm tra gói<input id="validatePackage" type="file" accept=".json,.node.json" hidden></label><div id="packageStatus" class="hint"></div></article>
       </div>
+      
+      <article class="panel recovery-panel">
+        <div class="panel-head">
+          <div>
+            <h3>Khôi phục dữ liệu</h3>
+            <p class="hint">Dùng khi dữ liệu trên web bị trống hoặc bị ghi đè. Hệ thống sẽ tạo snapshot trước khi khôi phục.</p>
+          </div>
+        </div>
+        <div class="row">
+          <label class="file-btn">Chọn file backup
+            <input id="recoveryFile" type="file" accept=".json,.node.json" hidden>
+          </label>
+          <button id="downloadEmergencyBackup" class="ghost">Tải backup hiện tại</button>
+        </div>
+        <div id="recoveryPreview" class="recovery-preview hint">Chưa chọn file.</div>
+        <button id="runRecovery" class="primary full" disabled>Khôi phục dữ liệu</button>
+      </article>
+
       <article class="panel"><div class="panel-head"><h3>Cửa hàng</h3><button id="newStore" class="primary small">+ Cửa hàng mới</button></div><div id="stores" class="list"></div></article>
     </section>
   </main>
