@@ -585,7 +585,7 @@ $("#resetAllAuditsBtn")?.addEventListener("click",()=>{
         <li>Giữ nguyên đơn bán thật.</li>
         <li>Giữ nguyên công nợ, khách hàng, sản phẩm và phiếu nhập kho.</li>
         <li>Tự tạo snapshot trước khi reset.</li>
-        <li>Lần kiểm kho tiếp theo sẽ là mốc đầu tiên mới và chưa tạo doanh thu suy ra.</li>
+        <li>Lần kiểm kho tiếp theo sẽ là mốc đầu tiên mới và chưa tạo doanh thu suy ra.</li><li><b>Bấm Reset nhiều lần sẽ không cộng dồn tồn kho.</b></li>
       </ul>
     </div>
     <label class="confirm-reset-label">Nhập <b>RESET</b> để xác nhận<input id="confirmAuditResetText" autocomplete="off" placeholder="RESET"></label>
@@ -594,14 +594,15 @@ $("#resetAllAuditsBtn")?.addEventListener("click",()=>{
   input.oninput=()=>{btn.disabled=input.value.trim().toUpperCase()!=="RESET"};
   btn.onclick=async()=>{
     if(input.value.trim().toUpperCase()!=="RESET")return;
-    btn.disabled=true;btn.textContent="Đang reset…";
+    if(btn.dataset.running==="1")return;
+    btn.dataset.running="1";btn.disabled=true;btn.textContent="Đang reset…";
     try{
-      await mutate("audit.reset.safe",{});
+      await mutate("audit.reset.safe",{requestId:`audit-reset-${Date.now()}-${Math.random().toString(36).slice(2)}`});
       closeModal();
       if($("#auditReportMonth"))$("#auditReportMonth").value=monthKeyLocal(new Date());
       renderAuditPeriodReport();renderDashboard();renderAudit();
-      toast("Đã reset kiểm kho và hoàn tồn về trước các lần kiểm");
-    }catch(e){btn.disabled=false;btn.textContent="Reset an toàn";toast(e.message,true)}
+      toast("Đã reset kiểm kho · mỗi phiếu chỉ hoàn tồn 1 lần");
+    }catch(e){btn.dataset.running="";btn.disabled=false;btn.textContent="Reset an toàn";toast(e.message,true)}
   };
 });
 
