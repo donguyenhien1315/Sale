@@ -12,7 +12,7 @@
   <div id="boot" class="boot">Đang đồng bộ dữ liệu…</div>
   <header class="topbar">
     <div>
-      <div class="eyebrow">CANTIN AI NEXT 5.1.1</div>
+      <div class="eyebrow">CANTIN AI NEXT 5.1.3</div>
       <h1 id="storeName">Cửa hàng chính</h1>
     </div>
     <div class="top-actions">
@@ -39,7 +39,7 @@
           <button id="miniLowLink">Sắp hết <strong id="miniLowValue">0</strong> mặt hàng</button>
         </div>
       </section><article class="panel dashboard-trend-panel"><div class="section-title-row"><div><strong>7 ngày gần đây</strong><div class="hint">Doanh thu · Chi · Lợi nhuận</div></div><button class="text-link" id="openFinanceReport2">Chi tiết →</button></div><div id="weekChart" class="week-chart"></div></article>
-<article class="panel cashbox-panel"><div class="section-title-row"><div><strong>Quỹ tiền mặt</strong><div class="hint">Đầu ngày + tiền vào − tiền ra</div></div><button class="ghost" id="editCashboxBtn">Điều chỉnh</button></div><div class="cashbox-grid"><div><small>Đầu ngày</small><strong id="cashboxOpen">0 ₫</strong></div><div><small>Tiền vào</small><strong id="cashboxIn">0 ₫</strong></div><div><small>Tiền ra</small><strong id="cashboxOut">0 ₫</strong></div><div><small>Cuối ngày dự kiến</small><strong id="cashboxClose">0 ₫</strong></div></div></article>
+
 
       <div class="stats">
         <button class="stat nav-target" data-target="sales"><span>Doanh thu hôm nay</span><strong id="todayRevenue">0 ₫</strong></button>
@@ -81,6 +81,33 @@
     </section>
 
     <section class="page" data-page="debts">
+      <article class="panel debt-paid-panel">
+        <div class="section-title-row">
+          <div>
+            <div class="eyebrow">ĐÃ TRẢ</div>
+            <h2 id="debtPaidTitle">Tháng này</h2>
+          </div>
+          <strong id="debtPaidTotal" class="debt-paid-total">0 ₫</strong>
+        </div>
+        <div class="debt-paid-filter">
+          <button class="debt-period active" data-period="month">Tháng này</button>
+          <button class="debt-period" data-period="last-month">Tháng trước</button>
+          <button class="debt-period" data-period="custom">Khoảng ngày</button>
+        </div>
+        <div id="debtPaidMonthWrap" class="debt-paid-month-wrap">
+          <label>Chọn tháng<input id="debtPaidMonth" type="month"></label>
+        </div>
+        <div id="debtPaidCustom" class="debt-paid-custom hidden">
+          <label>Từ ngày<input id="debtPaidFrom" type="date"></label>
+          <label>Đến ngày<input id="debtPaidTo" type="date"></label>
+        </div>
+        <div class="debt-paid-meta">
+          <span><strong id="debtPaidCount">0</strong> lần thanh toán</span>
+          <button id="toggleDebtPaidHistory" class="text-link">Xem chi tiết</button>
+        </div>
+        <div id="debtPaidHistory" class="debt-paid-history hidden"></div>
+      </article>
+
       <div class="page-head"><div><div class="eyebrow">CÔNG NỢ</div><h2>Khách hàng & công nợ</h2></div><button id="addCustomerBtn" class="primary small">+ Khách</button></div>
       <div class="toolbar">
         <input id="debtSearch" class="search" placeholder="Tìm khách hàng…">

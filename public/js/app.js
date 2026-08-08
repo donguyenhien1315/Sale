@@ -125,23 +125,7 @@ function financeForDate(store,key){
 }
 
 function renderWeekChart(){const box=$("#weekChart");if(!box)return;const rows=[],now=new Date();for(let i=6;i>=0;i--){const d=new Date(now);d.setDate(d.getDate()-i);const key=isoKey(d),f=financeForDate(state.store,key);rows.push({label:`${d.getDate()}/${d.getMonth()+1}`,revenue:f.revenue,expense:f.cashOut,profit:f.net})}const max=Math.max(1,...rows.flatMap(x=>[x.revenue,x.expense,Math.max(0,x.profit)]));box.innerHTML=rows.map(x=>`<div class="week-col"><div class="week-bars"><i class="bar revenue" style="height:${Math.max(2,x.revenue/max*70)}px"></i><i class="bar expense" style="height:${Math.max(2,x.expense/max*70)}px"></i><i class="bar profit" style="height:${Math.max(2,Math.max(0,x.profit)/max*70)}px"></i></div><small>${x.label}</small></div>`).join("")}
-function renderCashbox(){const c=state.store.cashbox||{opening:0,date:todayKey()};const f=financeForDate(state.store,todayKey()),closing=(Number(c.opening)||0)+f.cashIn-f.cashOut;if($("#cashboxOpen"))$("#cashboxOpen").textContent=money(c.opening||0);if($("#cashboxIn"))$("#cashboxIn").textContent=money(f.cashIn);if($("#cashboxOut"))$("#cashboxOut").textContent=money(f.cashOut);if($("#cashboxClose"))$("#cashboxClose").textContent=money(closing)}
-function showCashboxEdit(){const c=state.store.cashbox||{opening:0};showModal(`<h3>Quỹ tiền mặt</h3><label>Số dư đầu ngày<input id="cashboxOpening" value="${c.opening||0}" inputmode="decimal"></label><label>Ghi chú<input id="cashboxNote" value="${esc(c.note||"")}"></label><button id="saveCashbox" class="primary full">Lưu</button>`);$("#saveCashbox").onclick=async()=>{try{await mutate("cashbox.set",{opening:parseMoney($("#cashboxOpening").value),note:$("#cashboxNote").value,date:todayKey()});closeModal();toast("Đã cập nhật quỹ")}catch(e){toast(e.message,true)}}}
-$("#editCashboxBtn")?.addEventListener("click",showCashboxEdit);$("#openFinanceReport2")?.addEventListener("click",()=>goPage("expenses"));
 
-function renderFinanceDashboard(){
-  const f=financeForDate(state.store,todayKey());
-  if($("#financeRevenueToday"))$("#financeRevenueToday").textContent=money(f.revenue);
-  if($("#cashInToday"))$("#cashInToday").textContent=money(f.cashIn);
-  if($("#expenseTodayDash"))$("#expenseTodayDash").textContent=money(f.cashOut);
-  if($("#grossProfitToday"))$("#grossProfitToday").textContent=money(f.gross);
-  if($("#netProfitToday"))$("#netProfitToday").textContent=money(f.net);
-  if($("#cashFlowToday"))$("#cashFlowToday").textContent=money(f.cashFlow);
-  const debt=(state.store.debts||[]).reduce((s,d)=>s+(Number(d.balance)||0),0);
-  const low=(state.store.products||[]).filter(p=>p.trackStock!==false&&(Number(p.stock)||0)<=(Number(p.minStock)||0)).length;
-  if($("#miniDebtValue"))$("#miniDebtValue").textContent=money(debt);
-  if($("#miniLowValue"))$("#miniLowValue").textContent=low;renderWeekChart();renderCashbox();
-}
 
 function renderDashboard(){renderFinanceDashboard();
   const d=dashboardData();$("#todayRevenue").textContent=money(d.rev);$("#todayProfit").textContent=money(d.profit);$("#totalDebt").textContent=money(d.debt);$("#lowStockCount").textContent=d.low.length;
@@ -208,7 +192,78 @@ function renderSales(){
 function parseMoney(v,base=0){let s=String(v||"").trim().toLowerCase().replace(/\s/g,"");const op=s[0],isop="+-*/×÷".includes(op);const cv=x=>{let k=String(x).toLowerCase(),mul=1;if(k.endsWith("k")){mul=1000;k=k.slice(0,-1)}else if(k.endsWith("tr")){mul=1e6;k=k.slice(0,-2)}k=k.replace(/\./g,"").replace(",",".");let n=Number(k)||0;if(!mul||mul===1){if(n>0&&n<1000)mul=1000}return Math.round(n*mul)};if(isop){const n=cv(s.slice(1));return op==="+"?base+n:op==="-"?base-n:(op==="*"||op==="×")?base*n:(op==="/"||op==="÷")?(n?base/n:base):base}return cv(s)}
 
 function customerDebt(id){return state.store.debts.filter(d=>d.customerId===id).reduce((a,d)=>a+(+d.balance||0),0)}
-function renderCustomers(){
+
+const debtPaidFilter={mode:"month"};
+function monthBounds(monthValue){
+  const [y,m]=monthValue.split("-").map(Number);
+  const from=`${y}-${String(m).padStart(2,"0")}-01`;
+  const last=new Date(y,m,0).getDate();
+  const to=`${y}-${String(m).padStart(2,"0")}-${String(last).padStart(2,"0")}`;
+  return {from,to};
+}
+function debtPaidRange(){
+  const now=new Date();
+  if(debtPaidFilter.mode==="last-month"){
+    const d=new Date(now.getFullYear(),now.getMonth()-1,1);
+    return monthBounds(`${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,"0")}`);
+  }
+  if(debtPaidFilter.mode==="custom"){
+    return {from:$("#debtPaidFrom")?.value||todayKey(),to:$("#debtPaidTo")?.value||todayKey()};
+  }
+  const mv=$("#debtPaidMonth")?.value||`${now.getFullYear()}-${String(now.getMonth()+1).padStart(2,"0")}`;
+  return monthBounds(mv);
+}
+function debtPaidRows(){
+  const range=debtPaidRange(),rows=[];
+  for(const d of (state.store.debts||[])){
+    const c=(state.store.customers||[]).find(x=>x.id===d.customerId);
+    for(const p of (d.payments||[])){
+      const k=dateKeyOf(p.createdAt);
+      if(k>=range.from&&k<=range.to)rows.push({customer:c?.name||"Khách",amount:Number(p.amount)||0,createdAt:p.createdAt,note:p.note||"",debtNote:d.note||""});
+    }
+  }
+  return rows.sort((a,b)=>String(b.createdAt).localeCompare(String(a.createdAt)));
+}
+
+function initDebtPaidFilter(){
+  const now=new Date(),v=`${now.getFullYear()}-${String(now.getMonth()+1).padStart(2,"0")}`;
+  if($("#debtPaidMonth")&&!$("#debtPaidMonth").value)$("#debtPaidMonth").value=v;
+  if($("#debtPaidFrom")&&!$("#debtPaidFrom").value)$("#debtPaidFrom").value=todayKey();
+  if($("#debtPaidTo")&&!$("#debtPaidTo").value)$("#debtPaidTo").value=todayKey();
+  renderDebtPaidReport();
+}
+
+function renderDebtPaidReport(){
+  const totalEl=$("#debtPaidTotal");if(!totalEl)return;
+  const rows=debtPaidRows(),sum=rows.reduce((s,x)=>s+x.amount,0),range=debtPaidRange();
+  totalEl.textContent=money(sum);
+  if($("#debtPaidCount"))$("#debtPaidCount").textContent=rows.length;
+  if($("#debtPaidTitle")){
+    if(debtPaidFilter.mode==="custom")$("#debtPaidTitle").textContent=`${new Date(range.from+"T00:00:00").toLocaleDateString("vi-VN")} – ${new Date(range.to+"T00:00:00").toLocaleDateString("vi-VN")}`;
+    else if(debtPaidFilter.mode==="last-month")$("#debtPaidTitle").textContent="Tháng trước";
+    else $("#debtPaidTitle").textContent="Theo tháng";
+  }
+  const box=$("#debtPaidHistory");if(box){
+    box.innerHTML=rows.length?rows.map(x=>`<div class="debt-paid-row"><div><strong>${esc(x.customer)}</strong><small>${new Date(x.createdAt).toLocaleDateString("vi-VN")} · ${esc(x.note||x.debtNote||"Thanh toán nợ")}</small></div><strong>${money(x.amount)}</strong></div>`).join(""):'<div class="hint">Không có lần trả nợ trong khoảng này.</div>';
+  }
+}
+$$(".debt-period").forEach(b=>b.addEventListener("click",()=>{
+  debtPaidFilter.mode=b.dataset.period;
+  $$(".debt-period").forEach(x=>x.classList.toggle("active",x===b));
+  $("#debtPaidCustom")?.classList.toggle("hidden",debtPaidFilter.mode!=="custom");
+  $("#debtPaidMonthWrap")?.classList.toggle("hidden",debtPaidFilter.mode!=="month");
+  renderDebtPaidReport();
+}));
+$("#debtPaidMonth")?.addEventListener("change",renderDebtPaidReport);
+$("#debtPaidFrom")?.addEventListener("change",renderDebtPaidReport);
+$("#debtPaidTo")?.addEventListener("change",renderDebtPaidReport);
+$("#toggleDebtPaidHistory")?.addEventListener("click",()=>{
+  const box=$("#debtPaidHistory");if(!box)return;
+  box.classList.toggle("hidden");
+  $("#toggleDebtPaidHistory").textContent=box.classList.contains("hidden")?"Xem chi tiết":"Ẩn chi tiết";
+});
+
+function renderCustomers(){initDebtPaidFilter();
   if(!$("#customers")||!$("#debtSearch")||!$("#debtSort"))return;
   state.store.customers=Array.isArray(state.store.customers)?state.store.customers:[];
   state.store.debts=Array.isArray(state.store.debts)?state.store.debts:[];
