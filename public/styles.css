@@ -120,3 +120,75 @@ main{max-width:1100px;margin:auto;padding:14px}.page{display:none}.page.active{d
 .ai-popup-head{display:flex;align-items:center;justify-content:space-between;padding:12px 14px;border-bottom:1px solid var(--line)}.ai-popup-head>div{display:flex;flex-direction:column}.ai-popup-head small{color:var(--muted)}
 .ai-popup-chat{min-height:220px;max-height:42vh;padding:12px;overflow:auto;background:#f8fafc}.ai-popup-prompts{padding:8px 12px 0}.ai-popup-input{padding:10px 12px}#openFullAi{margin:0 12px 12px;width:calc(100% - 24px)}
 @media(max-width:600px){.ai-fab{right:12px;bottom:76px}.ai-popup{padding:0}.ai-popup-card{width:100%;max-height:82vh;border-radius:20px 20px 0 0}}
+
+/* v4.10.3 iPhone UI hotfix */
+html,body{max-width:100%;overflow-x:hidden}
+.app,.page,.panel,.card,.page-head{max-width:100%;min-width:0}
+
+/* Keep header visible but never let it cover page headings */
+.app-header{
+  position:sticky;top:0;z-index:45;
+  background:rgba(248,250,249,.97);
+  backdrop-filter:blur(10px);-webkit-backdrop-filter:blur(10px)
+}
+.page{position:relative;z-index:1;scroll-margin-top:110px}
+
+/* Horizontal category filters stay inside the card */
+.category-chips,#saleCategoryChips,#auditCategoryChips,#stockinCategoryChips,#productCategoryChips{
+  display:flex!important;flex-wrap:nowrap!important;gap:8px;
+  width:100%;max-width:100%;overflow-x:auto;overflow-y:hidden;
+  -webkit-overflow-scrolling:touch;scrollbar-width:none;
+  padding:2px 2px 8px;box-sizing:border-box
+}
+.category-chips::-webkit-scrollbar,#saleCategoryChips::-webkit-scrollbar,#auditCategoryChips::-webkit-scrollbar,#stockinCategoryChips::-webkit-scrollbar,#productCategoryChips::-webkit-scrollbar{display:none}
+.category-chips button,#saleCategoryChips button,#auditCategoryChips button,#stockinCategoryChips button,#productCategoryChips button{
+  flex:0 0 auto!important;white-space:nowrap;max-width:none
+}
+
+/* Sales grid */
+#quickProducts,.product-grid,.quick-products{
+  grid-template-columns:repeat(2,minmax(0,1fr))!important;
+  gap:10px;width:100%;max-width:100%
+}
+.product-tile{min-width:0;width:100%;box-sizing:border-box}
+.product-main{min-width:0}
+.product-main strong{overflow-wrap:anywhere}
+
+/* Bottom nav scrolls independently instead of widening the entire page */
+.bottom-nav{
+  position:fixed;left:0;right:0;bottom:0;z-index:50;
+  width:100%;max-width:100vw;display:flex;
+  overflow-x:auto;overflow-y:hidden;-webkit-overflow-scrolling:touch;
+  scrollbar-width:none;padding-bottom:env(safe-area-inset-bottom);box-sizing:border-box
+}
+.bottom-nav::-webkit-scrollbar{display:none}
+.bottom-nav .nav-item{
+  flex:0 0 72px;min-width:72px;max-width:72px;
+  padding:8px 3px 7px;font-size:.72rem;line-height:1.05;
+  text-align:center;white-space:normal;overflow-wrap:anywhere
+}
+body{padding-bottom:calc(78px + env(safe-area-inset-bottom))}
+
+/* AI button above nav */
+.ai-fab{right:12px;bottom:calc(90px + env(safe-area-inset-bottom));z-index:48}
+
+/* Audit / stock-in rows fit mobile width */
+.audit-row,.stockin-row{
+  grid-template-columns:minmax(0,1fr) minmax(92px,32%)!important;
+  gap:10px;align-items:center
+}
+.audit-row input,.stockin-row input{width:100%;min-width:0;box-sizing:border-box}
+
+@media(max-width:480px){
+  .app-header{padding-left:12px;padding-right:12px}
+  .page{padding-left:12px;padding-right:12px}
+  .panel{padding-left:12px;padding-right:12px}
+  .page-head{gap:8px;margin-top:6px}
+  .page-head h2{font-size:1.55rem;line-height:1.08}
+  #quickProducts,.product-grid,.quick-products{gap:8px}
+  .product-main{padding:10px}
+  .product-inline-cart{grid-template-columns:32px 40px 32px 32px;gap:4px;padding:6px}
+  .product-inline-cart button{height:32px;min-width:0;padding:0}
+  .bottom-nav .nav-item{flex-basis:68px;min-width:68px;max-width:68px;font-size:.69rem}
+  .ai-fab{padding:11px 14px;font-size:.9rem}
+}
