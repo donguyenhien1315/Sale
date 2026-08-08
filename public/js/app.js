@@ -13,7 +13,7 @@ async function api(path,opts={}){
   const u=method==="GET"?`${path}${path.includes("?")?"&":"?"}_=${Date.now()}`:path;
   const res=await fetch(u,{...opts,method,cache:"no-store",headers:{"Content-Type":"application/json",...(opts.headers||{})}});
   const data=await res.json().catch(()=>({}));
-  if(!res.ok) throw new Error(data.error||"Có lỗi xảy ra");
+  if(!res.ok) throw new Error(data.error||data.message||`Lỗi máy chủ (${res.status})`);
   return data;
 }
 function toast(msg,error=false){const t=$("#toast");t.textContent=msg;t.className=`toast show${error?" error":""}`;clearTimeout(t._x);t._x=setTimeout(()=>t.className="toast",2600)}
