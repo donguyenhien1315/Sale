@@ -13,9 +13,19 @@ async function rpc(name,payload){
   const text=await r.text();let data=null;try{data=text?JSON.parse(text):null}catch{data=text}
   if(!r.ok)throw new Error(data?.message||String(data||"Lỗi Supabase"));return data;
 }
-async function readRootRaw(){return await rpc("cantin_read_store_public",{});}
+async function readRootRaw(){
+  const v=await rpc("cantin_read_store_public",{});
+  if(Array.isArray(v)&&v.length===1){
+    const row=v[0];
+    if(row&&typeof row==="object"){
+      const keys=Object.keys(row);
+      if(keys.length===1&&row[keys[0]]&&typeof row[keys[0]]==="object")return row[keys[0]];
+    }
+  }
+  return v;
+}
 
-function emptyStore(name="Cửa hàng chính"){return {meta:{name,createdAt:now(),version:"4.8"},config:{money:{under1000MeansThousands:true},ai:{preview:true},ui:{compactDebt:true}},products:[],ingredients:[{"id": "ing-ca-phe-phin", "name": "Cà phê phin", "purchasePrice": 1085000, "packageQty": 7000, "unit": "g", "unitCost": 155, "stock": 0, "note": "240g pha được 500ml cà phê phin"}, {"id": "ing-ca-phe-may", "name": "Cà phê máy", "purchasePrice": 234000, "packageQty": 1000, "unit": "g", "unitCost": 234, "stock": 0, "note": "Tạm tính gói 1kg; sửa nếu khác"}, {"id": "ing-bot-kem-muoi", "name": "Bột kem muối", "purchasePrice": 80000, "packageQty": 500, "unit": "g", "unitCost": 160, "stock": 0, "note": "Người dùng cung cấp"}, {"id": "ing-sua-dac", "name": "Sữa đặc", "purchasePrice": 450000, "packageQty": 9120, "unit": "ml", "unitCost": 49.3421052632, "stock": 0, "note": "24 hộp x 380ml"}, {"id": "ing-sua-tuoi", "name": "Sữa tươi", "purchasePrice": 35000, "packageQty": 1000, "unit": "ml", "unitCost": 35, "stock": 0, "note": "1 lít giá 35.000"}, {"id": "ing-duong", "name": "Đường", "purchasePrice": 25000, "packageQty": 1000, "unit": "g", "unitCost": 25, "stock": 0, "note": "Tạm tính 25.000/kg; sửa theo thực tế"}],customers:[],debts:[],sales:[],stockReceipts:[],audits:[],transactions:[],snapshots:[],aliases:[]}}
+function emptyStore(name="Cửa hàng chính"){return {meta:{name,createdAt:now(),version:"4.8.1"},config:{money:{under1000MeansThousands:true},ai:{preview:true},ui:{compactDebt:true}},products:[],ingredients:[{"id": "ing-ca-phe-phin", "name": "Cà phê phin", "purchasePrice": 1085000, "packageQty": 7000, "unit": "g", "unitCost": 155, "stock": 0, "note": "240g pha được 500ml cà phê phin"}, {"id": "ing-ca-phe-may", "name": "Cà phê máy", "purchasePrice": 234000, "packageQty": 1000, "unit": "g", "unitCost": 234, "stock": 0, "note": "Tạm tính gói 1kg; sửa nếu khác"}, {"id": "ing-bot-kem-muoi", "name": "Bột kem muối", "purchasePrice": 80000, "packageQty": 500, "unit": "g", "unitCost": 160, "stock": 0, "note": "Người dùng cung cấp"}, {"id": "ing-sua-dac", "name": "Sữa đặc", "purchasePrice": 450000, "packageQty": 9120, "unit": "ml", "unitCost": 49.3421052632, "stock": 0, "note": "24 hộp x 380ml"}, {"id": "ing-sua-tuoi", "name": "Sữa tươi", "purchasePrice": 35000, "packageQty": 1000, "unit": "ml", "unitCost": 35, "stock": 0, "note": "1 lít giá 35.000"}, {"id": "ing-duong", "name": "Đường", "purchasePrice": 25000, "packageQty": 1000, "unit": "g", "unitCost": 25, "stock": 0, "note": "Tạm tính 25.000/kg; sửa theo thực tế"}],customers:[],debts:[],sales:[],stockReceipts:[],audits:[],transactions:[],snapshots:[],aliases:[]}}
 function ensureStore(s,name){const x=s&&typeof s==="object"?s:{};const e=emptyStore(name);for(const k of Object.keys(e))if(x[k]===undefined)x[k]=clone(e[k]);for(const k of ["products","ingredients","customers","debts","sales","stockReceipts","audits","transactions","snapshots","aliases"])if(!Array.isArray(x[k]))x[k]=[];x.meta={...e.meta,...(x.meta||{})};x.config={...e.config,...(x.config||{})};if(!Array.isArray(x.ingredients)||!x.ingredients.length)x.ingredients=clone([{"id": "ing-ca-phe-phin", "name": "Cà phê phin", "purchasePrice": 1085000, "packageQty": 7000, "unit": "g", "unitCost": 155, "stock": 0, "note": "240g pha được 500ml cà phê phin"}, {"id": "ing-ca-phe-may", "name": "Cà phê máy", "purchasePrice": 234000, "packageQty": 1000, "unit": "g", "unitCost": 234, "stock": 0, "note": "Tạm tính gói 1kg; sửa nếu khác"}, {"id": "ing-bot-kem-muoi", "name": "Bột kem muối", "purchasePrice": 80000, "packageQty": 500, "unit": "g", "unitCost": 160, "stock": 0, "note": "Người dùng cung cấp"}, {"id": "ing-sua-dac", "name": "Sữa đặc", "purchasePrice": 450000, "packageQty": 9120, "unit": "ml", "unitCost": 49.3421052632, "stock": 0, "note": "24 hộp x 380ml"}, {"id": "ing-sua-tuoi", "name": "Sữa tươi", "purchasePrice": 35000, "packageQty": 1000, "unit": "ml", "unitCost": 35, "stock": 0, "note": "1 lít giá 35.000"}, {"id": "ing-duong", "name": "Đường", "purchasePrice": 25000, "packageQty": 1000, "unit": "g", "unitCost": 25, "stock": 0, "note": "Tạm tính 25.000/kg; sửa theo thực tế"}]);for(const i of x.ingredients)i.category=i.category||"Nguyên liệu cà phê";return x}
 
 function dataWeight(root){
@@ -30,7 +40,7 @@ function dataWeight(root){
 function normalizeLegacyStore(input,name="Cửa hàng chính"){
   const src=clone(input||{});
   const out=ensureStore(src);
-  out.meta={...(out.meta||{}),name:out.meta?.name||name,version:"4.8"};
+  out.meta={...(out.meta||{}),name:out.meta?.name||name,version:"4.8.1"};
   // Preserve legacy arrays instead of dropping them.
   if((!Array.isArray(out.audits)||!out.audits.length)&&Array.isArray(src.weeklyAudits)){
     out.audits=src.weeklyAudits.map(a=>({
@@ -63,7 +73,7 @@ function normalizeRoot(raw){
       data:normalizeLegacyStore(s.data||{},s.name||`Cửa hàng ${i+1}`)
     }));
     const activeStoreId=stores.some(s=>s.id===raw.activeStoreId)?raw.activeStoreId:stores[0].id;
-    return {...raw,__nextV4:true,revision:Number(raw.revision)||0,activeStoreId,stores,backups:Array.isArray(raw.backups)?raw.backups:[]};
+    return {...raw,__nextV4:true,revision:Number(raw.revision)||0,activeStoreId,stores};
   }
 
   // Legacy multi-store v2/v3: preserve ALL stores, not only active store.
@@ -75,40 +85,48 @@ function normalizeRoot(raw){
       data:normalizeLegacyStore(s.data||{},s.name||`Cửa hàng ${i+1}`)
     }));
     const activeStoreId=stores.some(s=>s.id===raw.activeStoreId)?raw.activeStoreId:stores[0].id;
-    return {__nextV4:true,revision:Number(raw.revision)||0,activeStoreId,stores,backups:[]};
+    return {__nextV4:true,revision:Number(raw.revision)||0,activeStoreId,stores};
   }
 
   // Plain legacy single-store object.
   if(raw&&typeof raw==="object"){
     const data=normalizeLegacyStore(raw,raw.meta?.name||"Cửa hàng chính");
     const id=raw.id||"store-main";
-    return {__nextV4:true,revision:0,activeStoreId:id,stores:[{id,name:data.meta?.name||"Cửa hàng chính",createdAt:raw.meta?.createdAt||now(),data}],backups:[]};
+    return {__nextV4:true,revision:0,activeStoreId:id,stores:[{id,name:data.meta?.name||"Cửa hàng chính",createdAt:raw.meta?.createdAt||now(),data}]};
   }
 
   // Only when there is truly no data at all, create blank store.
   const data=ensureStore({}); const id="store-main";
-  return {__nextV4:true,revision:0,activeStoreId:id,stores:[{id,name:"Cửa hàng chính",createdAt:now(),data}],backups:[]};
+  return {__nextV4:true,revision:0,activeStoreId:id,stores:[{id,name:"Cửa hàng chính",createdAt:now(),data}]};
 }
 async function readRoot(){return normalizeRoot(await rpc("cantin_read_store_public",{}))}
 async function writeRoot(root){
-  const current=await readRootRaw().catch(()=>null);
-  if(current&&dataWeight(current)>10&&dataWeight(root)===0)throw new Error("Đã chặn ghi dữ liệu trắng đè lên dữ liệu hiện có.");
-  root.backups=Array.isArray(root.backups)?root.backups:[];
-  if(current&&typeof current==="object"){
-    // Keep lightweight rolling backups of the complete root before writes.
-    const snap={id:uid(),createdAt:now(),reason:"auto_before_write",data:clone(current)};
-    root.backups.push(snap);
-    if(root.backups.length>10)root.backups=root.backups.slice(-10);
+  const currentRaw=await readRootRaw().catch(()=>null);
+  const current=currentRaw?normalizeRoot(currentRaw):null;
+
+  // Prevent an accidental blank overwrite, but do not block normal edits.
+  if(current&&dataWeight(current)>10&&dataWeight(root)===0){
+    throw new Error("Đã chặn ghi dữ liệu trắng đè lên dữ liệu hiện có.");
   }
+
+  // IMPORTANT: do not embed the whole previous database into the next database.
+  // Per-action store snapshots already exist and are enough for rollback.
+  delete root.backups;
+
   root.revision=(Number(root.revision)||0)+1;
-  const token=uid(); root._lastWriteToken=token;
+  const token=uid();
+  root.persist={token,writtenAt:now(),version:"4.8.1"};
+
   await rpc("cantin_write_store_public",{p_data:root});
-  for(let i=0;i<3;i++){
-    const check=await readRootRaw();
-    if(check&&check._lastWriteToken===token&&Number(check.revision)===Number(root.revision))return check;
-    await new Promise(r=>setTimeout(r,120));
+
+  for(let i=0;i<4;i++){
+    const check=normalizeRoot(await readRootRaw());
+    if(check.persist?.token===token){
+      return check;
+    }
+    await new Promise(r=>setTimeout(r,120*(i+1)));
   }
-  throw new Error("Không xác nhận được dữ liệu đã lưu. Hệ thống dừng để tránh mất dữ liệu.");
+  throw new Error("Supabase chưa xác nhận lưu dữ liệu. Không có dữ liệu nào được báo thành công giả.");
 }
 function active(root){return root.stores.find(s=>s.id===root.activeStoreId)||root.stores[0]}
 function tx(store,type,summary,changes=[]){const t={id:`TX-${Date.now()}-${Math.random().toString(36).slice(2,6).toUpperCase()}`,type,summary,changes,createdAt:now()};store.transactions.push(t);if(store.transactions.length>600)store.transactions=store.transactions.slice(-600);return t}
