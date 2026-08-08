@@ -12,7 +12,7 @@
   <div id="boot" class="boot">Đang đồng bộ dữ liệu…</div>
   <header class="topbar">
     <div>
-      <div class="eyebrow">CANTIN AI NEXT 5.1.8</div>
+      <div class="eyebrow">CANTIN AI NEXT 5.2</div>
       <h1 id="storeName">Cửa hàng chính</h1>
     </div>
     <div class="top-actions">
@@ -39,16 +39,8 @@
           <button id="miniLowLink">Sắp hết <strong id="miniLowValue">0</strong> mặt hàng</button>
         </div>
       </section><article class="panel dashboard-trend-panel"><div class="section-title-row"><div><strong>7 ngày gần đây</strong><div class="hint">Doanh thu · Chi · Lợi nhuận</div></div><button class="text-link" id="openFinanceReport2">Chi tiết →</button></div><div id="weekChart" class="week-chart"></div></article>
-
-
-      <div class="stats">
-        <button class="stat nav-target" data-target="sales"><span>Doanh thu hôm nay</span><strong id="todayRevenue">0 ₫</strong></button>
-        <button class="stat nav-target" data-target="sales"><span>Lợi nhuận hôm nay</span><strong id="todayProfit">0 ₫</strong></button>
-        <button class="stat nav-target" data-target="debts"><span>Tổng công nợ</span><strong id="totalDebt">0 ₫</strong></button>
-        <button class="stat nav-target" data-target="products"><span>Sắp hết hàng</span><strong id="lowStockCount">0</strong></button>
-      </div>
       <article class="panel">
-        <div class="panel-head"><h2>AI đề xuất hôm nay</h2><button id="refreshInsights" class="ghost">Làm mới</button></div>
+        <div class="panel-head"><h2>AI đề xuất hôm nay</h2><button id="refreshInsights" class="ghost">Tính lại</button></div>
         <div id="insights" class="list empty">Chưa có cảnh báo.</div>
       </article>
       <article class="panel">
@@ -117,11 +109,11 @@
       <div id="customers" class="customer-list"></div>
     </section><section class="page" data-page="audit">
       <div class="subtabs inventory-subtabs warehouse-tabs">
-        <button class="subtab active" data-subtab="audit-check">Kiểm kho</button>
-        <button class="subtab" data-subtab="audit-stockin">Nhập kho</button>
-        <button class="subtab warehouse-jump" data-jump="products">Mặt hàng</button>
-        <button class="subtab warehouse-jump" data-jump="ingredients">Nguyên liệu</button>
-      </div>
+          <button class="subtab active" data-subtab="audit-check">Kiểm kho</button>
+          <button class="subtab" data-subtab="audit-stockin">Nhập kho</button>
+          <button class="subtab" data-subtab="audit-products">Mặt hàng</button>
+          <button class="subtab" data-subtab="audit-ingredients">Nguyên liệu</button>
+        </div>
       <div class="subpage active" data-subpage="audit-check">
 
       <div class="page-head"><div><div class="eyebrow">KIỂM KHO</div><h2>Kiểm kho nhanh</h2></div></div>
@@ -161,26 +153,8 @@
       <article class="panel"><div class="panel-head"><h3>Lịch sử nhập kho</h3></div><div id="stockinHistory" class="list empty"></div></article>
     
       </div>
-</section>
 
-
-    <section class="page" data-page="ingredients"><div class="context-bar"><button class="ghost back-to-warehouse">← Kho</button><span>Kho / Nguyên liệu</span></div>
-      <div class="page-head">
-        <div><div class="eyebrow">NGUYÊN LIỆU CÀ PHÊ</div><h2>Kho & giá nguyên liệu</h2></div>
-        <button id="addIngredientBtn" class="primary small">+ Nguyên liệu</button>
-      </div>
-      <article class="panel">
-        <p class="hint">Giá và định mức ban đầu được lấy từ file quản lý cà phê. Có thể chỉnh giá nhập, quy cách và tồn thực tế bất kỳ lúc nào.</p>
-        <div class="product-filter-bar">
-          <input id="ingredientSearch" class="search" placeholder="Tìm nguyên liệu…">
-          <select id="ingredientCategory"><option value="">Tất cả nhóm</option></select>
-        </div>
-        <div id="ingredientCategoryChips" class="category-chips compact-chips"></div>
-        <div id="ingredients" class="list"></div>
-      </article>
-    </section>
-
-    <section class="page" data-page="products"><div class="context-bar"><button class="ghost back-to-warehouse">← Kho</button><span>Kho / Mặt hàng</span></div>
+<div class="subpage" data-subpage="audit-products">
       <div class="page-head"><div><div class="eyebrow">QUẢN LÝ MẶT HÀNG</div><h2>Mặt hàng & tồn kho</h2></div><button id="addProductBtn" class="primary small">+ Mặt hàng</button></div>
       <article class="panel inventory-direct-note">
         <strong>Điều chỉnh tồn độc lập</strong>
@@ -191,16 +165,25 @@
       </div>
       <div class="toolbar product-toolbar">
         <input id="productSearch" class="search" placeholder="Tìm sản phẩm…">
-        <select id="productCategory">
-          <option value="">Tất cả danh mục</option>
-        </select>
 <select id="productSort"><option value="name">Tên A → Z</option><option value="stock-low">Tồn ít → nhiều</option><option value="stock-high">Tồn nhiều → ít</option></select>
       </div>
       <div class="product-summary" id="productSummary"></div>
       <div id="products" class="list"></div>
-    </section>
-
-    <section class="page" data-page="assistant"><div class="subtabs more-tabs">
+    </div>
+<div class="subpage" data-subpage="audit-ingredients">
+      <div class="page-head">
+        <div><div class="eyebrow">NGUYÊN LIỆU CÀ PHÊ</div><h2>Kho & giá nguyên liệu</h2></div>
+        <button id="addIngredientBtn" class="primary small">+ Nguyên liệu</button>
+      </div>
+      <article class="panel">
+        <p class="hint">Giá và định mức ban đầu được lấy từ file quản lý cà phê. Có thể chỉnh giá nhập, quy cách và tồn thực tế bất kỳ lúc nào.</p>
+        <div class="product-filter-bar">
+          <input id="ingredientSearch" class="search" placeholder="Tìm nguyên liệu…">
+</div>
+        <div id="ingredientCategoryChips" class="category-chips compact-chips"></div>
+        <div id="ingredients" class="list"></div>
+      </article>
+    </div></section><section class="page" data-page="assistant"><div class="subtabs more-tabs">
         <button class="subtab active">AI</button>
         <button class="subtab more-jump" data-jump="data">Dữ liệu</button>
         <button class="subtab more-jump" data-jump="activity">Nhật ký</button>
@@ -230,9 +213,9 @@
       </div>
       <div class="subpage active" data-finance-page="finance-summary">
         <div class="metric-grid finance-report-grid">
-          <article class="metric"><small>Doanh thu hôm nay</small><strong id="reportRevenue">0 ₫</strong></article>
-          <article class="metric"><small>Tiền thực thu</small><strong id="reportCashIn">0 ₫</strong></article>
-          <article class="metric"><small>Giá vốn đã bán</small><strong id="reportCogs">0 ₫</strong></article>
+          <article class="metric"><small>Doanh thu</small><strong id="reportRevenue">0 ₫</strong></article>
+          <article class="metric"><small>Thực thu</small><strong id="reportCashIn">0 ₫</strong></article>
+          <article class="metric"><small>Giá vốn</small><strong id="reportCogs">0 ₫</strong></article>
           <article class="metric"><small>Chi vận hành</small><strong id="reportOpex">0 ₫</strong></article>
           <article class="metric"><small>Lợi nhuận gộp</small><strong id="reportGross">0 ₫</strong></article>
           <article class="metric"><small>Lợi nhuận ròng</small><strong id="reportNet">0 ₫</strong></article>
@@ -247,7 +230,12 @@
           <div id="revenueBreakdown" class="finance-breakdown"></div><div class="section-title-row"><strong>Lãi theo danh mục</strong></div><div id="profitByCategory" class="profit-category-list"></div><div id="profitByProduct" class="profit-product-list"></div>
         </article>
       </div>
-      <div class="subpage" data-finance-page="finance-expense">
+      <div class="subpage" data-finance-page="finance-expense"><div class="subtabs expense-subtabs">
+      <button class="subtab active" data-expense-tab="expense-costs">Chi phí</button>
+      <button class="subtab" data-expense-tab="expense-suppliers">Nhà cung cấp</button>
+      <button class="subtab" data-expense-tab="expense-budgets">Ngân sách</button>
+    </div>
+    <div class="subpage active" data-expense-page="expense-costs">
 
       <div class="page-head compact">
         <div><strong>Chi tiêu</strong><div class="hint">Nhập kho được ghi tự động; các khoản chi khác có thể thêm thủ công.</div></div>
@@ -259,7 +247,6 @@
         <article class="metric"><small>Chi nhập kho</small><strong id="expenseStockin">0 ₫</strong></article>
       </div>
       <article class="panel">
-        <div class="expense-date-filter"><label>Từ ngày<input id="expenseFrom" type="date"></label><label>Đến ngày<input id="expenseTo" type="date"></label></div>
         <div class="product-filter-bar">
           <input id="expenseSearch" class="search" placeholder="Tìm nội dung chi…">
           <select id="expenseType">
@@ -275,8 +262,10 @@
         <div id="expenseHistory" class="list"></div>
       </article>
     
-      <article class="panel supplier-panel"><div class="page-head compact"><div><strong>Nhà cung cấp & phải trả</strong><div class="hint">Hàng đã nhập nhưng chưa thanh toán.</div></div><button id="addSupplierBtn" class="primary small">+ Nhà cung cấp</button></div><div id="supplierSummary" class="product-summary"></div><div id="suppliersList" class="list"></div></article>
-<article class="panel budget-panel"><div class="page-head compact"><div><strong>Ngân sách tháng</strong><div class="hint">Theo dõi mức chi theo từng nhóm.</div></div><button id="addBudgetBtn" class="primary small">+ Ngân sách</button></div><div id="budgetsList" class="list"></div></article></div>
+      
+</div>
+    <div class="subpage" data-expense-page="expense-suppliers"><article class="panel supplier-panel"><div class="page-head compact"><div><strong>Nhà cung cấp & phải trả</strong><div class="hint">Hàng đã nhập nhưng chưa thanh toán.</div></div><button id="addSupplierBtn" class="primary small">+ Nhà cung cấp</button></div><div id="supplierSummary" class="product-summary"></div><div id="suppliersList" class="list"></div></article></div>
+    <div class="subpage" data-expense-page="expense-budgets"><article class="panel budget-panel"><div class="page-head compact"><div><strong>Ngân sách tháng</strong><div class="hint">Theo dõi mức chi theo từng nhóm.</div></div><button id="addBudgetBtn" class="primary small">+ Ngân sách</button></div><div id="budgetsList" class="list"></div></article></div></div>
     </section>
 
     <section class="page" data-page="activity"><div class="context-bar"><button class="ghost back-to-more">← Khác</button><span>Khác / Nhật ký</span></div>
@@ -290,7 +279,7 @@
       <div class="io-grid">
         <article class="panel"><h3>Dữ liệu cửa hàng</h3><p>Sản phẩm, bán hàng, công nợ, tồn kho, nhập kho, kiểm kho.</p><div class="row"><button id="exportStore" class="primary small">Xuất</button><label class="file-btn">Nhập<input id="importStore" type="file" accept=".json,.node.json" hidden></label></div></article>
         <article class="panel"><h3>Cấu hình ứng dụng</h3><p>Alias AI, hiển thị, cảnh báo và quy tắc tiền.</p><div class="row"><button id="exportConfig" class="primary small">Xuất</button><label class="file-btn">Nhập<input id="importConfig" type="file" accept=".json,.node.json" hidden></label></div></article>
-        <article class="panel"><h3>Gói cập nhật ứng dụng</h3><p>Kiểm tra file Node JSON cập nhật mã nguồn.</p><label class="file-btn">Kiểm tra gói<input id="validatePackage" type="file" accept=".json,.node.json" hidden></label><div id="packageStatus" class="hint"></div></article>
+        
       </div>
       <article class="panel"><div class="panel-head"><h3>Cửa hàng</h3><button id="newStore" class="primary small">+ Cửa hàng mới</button></div><div id="stores" class="list"></div></article>
     </section>

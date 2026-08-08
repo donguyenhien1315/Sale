@@ -72,8 +72,8 @@ function goPage(target){
   if(target==="expenses"){renderExpenses();renderFinanceReport();}
   if(target==="debts")renderCustomers();
   if(target==="audit")renderAudit();
-  if(target==="products")renderProducts();
-  if(target==="ingredients")renderIngredients();updateFab(target);
+  
+  updateFab(target);
 }
 function renderFinanceReport(){const range=financeRange(),f=financeForRange(state.store,range),debt=(state.store.debts||[]).reduce((s,d)=>s+(Number(d.balance)||0),0);[["#reportRevenue",f.revenue],["#reportCashIn",f.cashIn],["#reportCogs",f.cogs],["#reportOpex",f.opEx],["#reportGross",f.gross],["#reportNet",f.net],["#reportCashFlow",f.cashFlow],["#reportDebt",debt]].forEach(([id,v])=>{if($(id))$(id).textContent=money(v)});if($("#revenueBreakdown")){const sales=f.sales,cash=sales.filter(s=>String(s.paymentMethod||s.payment||"cash").toLowerCase()==="cash").reduce((a,s)=>a+saleRevenue(s),0),transfer=sales.filter(s=>String(s.paymentMethod||s.payment||"").toLowerCase()==="transfer").reduce((a,s)=>a+saleRevenue(s),0),debtSales=sales.filter(s=>["debt","credit"].includes(String(s.paymentMethod||s.payment||"").toLowerCase())).reduce((a,s)=>a+saleRevenue(s),0),paidDebt=debtPaymentsCash(state.store).filter(x=>inRange(x.createdAt,range)).reduce((a,x)=>a+x.amount,0);$("#revenueBreakdown").innerHTML=`<div><span>Tiền mặt bán hàng</span><strong>${money(cash)}</strong></div><div><span>Chuyển khoản bán hàng</span><strong>${money(transfer)}</strong></div><div><span>Bán ghi nợ</span><strong>${money(debtSales)}</strong></div><div><span>Thu nợ</span><strong>${money(paidDebt)}</strong></div>`}const cats=categoryProfit(state.store,range);if($("#profitByCategory"))$("#profitByCategory").innerHTML=cats.length?cats.map((x,i)=>`<button class="profit-category" data-i="${i}"><span>${esc(x.category)}</span><strong>${money(x.profit)}</strong><small>DT ${money(x.revenue)}</small></button>`).join(""):'<div class="hint">Chưa có dữ liệu bán hàng.</div>';if($("#profitByProduct"))$("#profitByProduct").innerHTML="";$$(".profit-category").forEach(b=>b.onclick=()=>{const x=cats[Number(b.dataset.i)];$("#profitByProduct").innerHTML=[...x.products.values()].sort((a,b)=>b.profit-a.profit).map(p=>`<div class="finance-breakdown-row"><span>${esc(p.name)}</span><strong>${money(p.profit)}</strong></div>`).join("")});renderSuppliers();renderBudgets()}
 
@@ -157,7 +157,7 @@ function renderFinanceDashboard(){
 }
 
 function renderDashboard(){renderFinanceDashboard();
-  const d=dashboardData();$("#todayRevenue").textContent=money(d.rev);$("#todayProfit").textContent=money(d.profit);$("#totalDebt").textContent=money(d.debt);$("#lowStockCount").textContent=d.low.length;
+  const d=dashboardData();
   const insights=[];
   d.low.slice(0,8).forEach(p=>insights.push({t:p.stock<=0?`${p.name} đã hết`:`${p.name} sắp hết`,d:`Tồn ${num(p.stock)} ${p.unit||""} · tối thiểu ${num(p.minStock)}`,target:"products"}));
   const weird=state.store.debts.filter(x=>x.balance>0&&x.balance<1000);weird.forEach(x=>{const c=state.store.customers.find(c=>c.id===x.customerId);insights.push({t:`Kiểm tra khoản nợ nhỏ: ${c?.name||""}`,d:`${money(x.balance)} · ${x.note||""}`,target:"debts"})});
@@ -365,7 +365,7 @@ $("#addSupplierBtn")?.addEventListener("click",showSupplierForm);$("#addBudgetBt
 function renderExpenses(){
   const all=state.store.expenses||[];
   const q=norm($("#expenseSearch")?.value||""),type=$("#expenseType")?.value||"";
-  const from=$("#expenseFrom")?.value||"",to=$("#expenseTo")?.value||"";
+  const range=financeRange();
   const today=todayKey(),month=today.slice(0,7);
   const sum=a=>a.reduce((s,x)=>s+(Number(x.amount)||0),0);
   if($("#expenseToday"))$("#expenseToday").textContent=money(sum(all.filter(x=>dateKeyOf(x.createdAt)===today)));
@@ -373,7 +373,7 @@ function renderExpenses(){
   if($("#expenseStockin"))$("#expenseStockin").textContent=money(sum(all.filter(x=>x.type==="stockin")));
   const arr=[...all].filter(x=>{
     const d=dateKeyOf(x.createdAt);
-    return (!q||norm((x.note||"")+" "+(x.title||"")).includes(q))&&(!type||x.type===type)&&(!from||d>=from)&&(!to||d<=to);
+    return (!q||norm((x.note||"")+" "+(x.title||"")).includes(q))&&(!type||x.type===type)&&d>=range.from&&d<=range.to;
   }).reverse();
   const typeName=t=>({stockin:"Nhập kho",ingredient:"Nguyên liệu cà phê",electricity:"Điện / nước",transport:"Vận chuyển",supplies:"Vật tư",manual:"Chi khác"}[t]||t);
   const box=$("#expenseHistory");if(!box)return;
@@ -412,14 +412,14 @@ $("#expenseType")?.addEventListener("change",renderExpenses);
 function renderIngredients(){
   const q=norm($("#ingredientSearch")?.value||"");
   const all=state.store.ingredients||[];
-  const category=syncCategoryFilter("#ingredientCategory","#ingredientCategoryChips",all,x=>String(x.category||"Nguyên liệu cà phê"));
+  const category=renderLocalCategoryButtons("#ingredientCategoryChips","ingredients",all,x=>String(x.category||"Nguyên liệu cà phê"),renderIngredients);
   const arr=all.filter(x=>(!q||norm(x.name+" "+x.note).includes(q))&&(!category||String(x.category||"Nguyên liệu cà phê")===category));
   const box=$("#ingredients");if(!box)return;
   box.className=`list${arr.length?"":" empty"}`;
   box.innerHTML=arr.length?arr.map(x=>`<div class="list-row ingredient-row" data-id="${x.id}"><div><span class="category-badge">${esc(x.category||"Nguyên liệu cà phê")}</span><strong>${esc(x.name)}</strong><small>Giá nhập ${money(x.purchasePrice)} / ${num(x.packageQty)} ${esc(x.unit)} · ${x.unitCost?money(x.unitCost)+"/"+esc(x.unit):""} · tồn ${num(x.stock||0)} ${esc(x.unit)}</small><small>${esc(x.note||"")}</small></div><button class="ghost editIngredient">Sửa</button></div>`).join(""):"Chưa có nguyên liệu.";
   box.querySelectorAll(".editIngredient").forEach(b=>b.onclick=()=>showIngredientForm((state.store.ingredients||[]).find(x=>x.id===b.closest(".ingredient-row").dataset.id)));
 }
-$("#ingredientSearch")?.addEventListener("input",renderIngredients);$("#ingredientCategory")?.addEventListener("change",renderIngredients);
+$("#ingredientSearch")?.addEventListener("input",renderIngredients);
 $("#addIngredientBtn")?.addEventListener("click",()=>showIngredientForm(null));
 function showIngredientForm(x){
   showModal(`<h3>${x?"Chỉnh":"Thêm"} nguyên liệu</h3>
@@ -438,21 +438,23 @@ function showIngredientForm(x){
   if(x)$("#deleteIngredient").onclick=async()=>{if(confirm("Xóa nguyên liệu này?"))try{await mutate("ingredient.delete",{id:x.id});closeModal();toast("Đã xóa nguyên liệu")}catch(e){toast(e.message,true)}};
 }
 
+
+const localCategoryState={products:"",ingredients:""};
+function renderLocalCategoryButtons(chipsId,key,items,getCategory,rerender,labelAll="Tất cả"){
+  const chips=$(chipsId);if(!chips)return "";
+  const cats=[...new Set(items.map(getCategory).filter(Boolean))].sort((a,b)=>String(a).localeCompare(String(b),"vi"));
+  if(localCategoryState[key]&&!cats.includes(localCategoryState[key]))localCategoryState[key]="";
+  chips.innerHTML=[{v:"",n:labelAll},...cats.map(c=>({v:c,n:c}))].map(x=>`<button class="category-chip ${localCategoryState[key]===x.v?"active":""}" data-category="${esc(x.v)}">${esc(x.n)}${x.v?` <span>${items.filter(i=>getCategory(i)===x.v).length}</span>`:` <span>${items.length}</span>`}</button>`).join("");
+  chips.querySelectorAll(".category-chip").forEach(b=>b.onclick=()=>{localCategoryState[key]=b.dataset.category;rerender()});
+  return localCategoryState[key];
+}
+
 function renderProductCategories(){
-  const categories=[...new Set(state.store.products.map(p=>String(p.category||"Khác").trim()||"Khác"))].sort((a,b)=>a.localeCompare(b,"vi"));
-  const sel=$("#productCategory");if(!sel)return;
-  const current=sel.value;
-  sel.innerHTML=`<option value="">Tất cả danh mục</option>`+categories.map(c=>`<option value="${esc(c)}">${esc(c)}</option>`).join("");
-  if(categories.includes(current))sel.value=current;
-  const chips=$("#productCategoryChips");if(chips){
-    const selected=sel.value;
-    chips.innerHTML=[{v:"",n:"Tất cả"},...categories.map(c=>({v:c,n:c}))].map(x=>`<button class="category-chip ${selected===x.v?"active":""}" data-category="${esc(x.v)}">${esc(x.n)} <span>${x.v?state.store.products.filter(p=>(p.category||"Khác")===x.v).length:state.store.products.length}</span></button>`).join("");
-    chips.querySelectorAll(".category-chip").forEach(b=>b.onclick=()=>{sel.value=b.dataset.category;renderProducts()});
-  }
+  return renderLocalCategoryButtons("#productCategoryChips","products",state.store.products,p=>String(p.category||"Khác"),renderProducts);
 }
 function renderProducts(){
-  renderProductCategories();
-  const q=norm($("#productSearch").value),sort=$("#productSort")?.value||"name",category=$("#productCategory")?.value||"";
+  const category=renderProductCategories();
+  const q=norm($("#productSearch").value),sort=$("#productSort")?.value||"name";
   let arr=state.store.products.filter(p=>(!q||norm(p.name+" "+p.category).includes(q))&&(!category||String(p.category||"Khác")===category));
   arr=[...arr].sort((a,b)=>sort==="stock-low"?(a.stock-b.stock):sort==="stock-high"?(b.stock-a.stock):a.name.localeCompare(b.name,"vi"));
   const totalStock=arr.reduce((sum,p)=>sum+(Number(p.stock)||0),0);
@@ -616,12 +618,16 @@ $$(".inventory-subtabs .subtab").forEach(btn=>btn.addEventListener("click",()=>{
   const key=btn.dataset.subtab;
   $$(".inventory-subtabs .subtab").forEach(x=>x.classList.toggle("active",x===btn));
   $$('[data-subpage^="audit-"]').forEach(p=>p.classList.toggle("active",p.dataset.subpage===key));
-  if(key==="audit-stockin")renderStockin();else renderAudit();
+  if(key==="audit-check")renderAudit();
+  if(key==="audit-stockin")renderStockin();
+  if(key==="audit-products")renderProducts();
+  if(key==="audit-ingredients")renderIngredients();
 }));
 
 
-$("#financeRangePreset")?.addEventListener("change",()=>{const c=$("#financeRangePreset").value==="custom";$("#financeFrom")?.classList.toggle("hidden",!c);$("#financeTo")?.classList.toggle("hidden",!c);renderFinanceReport()});$("#financeFrom")?.addEventListener("change",renderFinanceReport);$("#financeTo")?.addEventListener("change",renderFinanceReport);
+$("#financeRangePreset")?.addEventListener("change",()=>{const c=$("#financeRangePreset").value==="custom";$("#financeFrom")?.classList.toggle("hidden",!c);$("#financeTo")?.classList.toggle("hidden",!c);renderFinanceReport();renderExpenses()});$("#financeFrom")?.addEventListener("change",()=>{renderFinanceReport();renderExpenses()});$("#financeTo")?.addEventListener("change",()=>{renderFinanceReport();renderExpenses()});
 $("#openFinanceReport")?.addEventListener("click",()=>goPage("expenses"));
+$("#openFinanceReport2")?.addEventListener("click",()=>goPage("expenses"));
 $$("[data-finance-open]").forEach(b=>b.addEventListener("click",()=>{
   goPage("expenses");
   const want=b.dataset.financeOpen==="expense"?"finance-expense":b.dataset.financeOpen==="revenue"?"finance-revenue":"finance-summary";
@@ -634,12 +640,22 @@ $$(".finance-tabs .subtab").forEach(b=>b.addEventListener("click",()=>{
   $$("[data-finance-page]").forEach(x=>x.classList.toggle("active",x.dataset.financePage===key));
   renderFinanceReport();
 }));
-$$(".warehouse-jump").forEach(b=>b.addEventListener("click",()=>goPage(b.dataset.jump)));
-$$(".back-to-warehouse").forEach(b=>b.addEventListener("click",()=>goPage("audit")));
+
+
 $$(".more-jump").forEach(b=>b.addEventListener("click",()=>goPage(b.dataset.jump)));
 $$(".back-to-more").forEach(b=>b.addEventListener("click",()=>goPage("assistant")));
 $("#miniDebtLink")?.addEventListener("click",()=>goPage("debts"));
-$("#miniLowLink")?.addEventListener("click",()=>goPage("products"));
+$("#miniLowLink")?.addEventListener("click",()=>{goPage("audit");setTimeout(()=>document.querySelector('[data-subtab="audit-products"]')?.click(),0)});
+
+
+$$(".expense-subtabs .subtab").forEach(btn=>btn.addEventListener("click",()=>{
+  const key=btn.dataset.expenseTab;
+  $$(".expense-subtabs .subtab").forEach(x=>x.classList.toggle("active",x===btn));
+  $$("[data-expense-page]").forEach(x=>x.classList.toggle("active",x.dataset.expensePage===key));
+  if(key==="expense-suppliers")renderSuppliers();
+  if(key==="expense-budgets")renderBudgets();
+  if(key==="expense-costs")renderExpenses();
+}));
 
 boot();
 
