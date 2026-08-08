@@ -163,3 +163,7 @@ main{max-width:1100px;margin:auto;padding:14px}.page{display:none}.page.active{d
 .debt-paid-row{display:flex;justify-content:space-between;gap:12px;padding:10px 0;border-bottom:1px solid var(--line)}
 .debt-paid-row small{display:block;color:var(--muted);margin-top:3px}
 @media(max-width:560px){.debt-paid-custom{grid-template-columns:1fr 1fr}.debt-paid-total{font-size:1.25rem}}
+
+/* v5.1.5 - giá nhập theo thùng */
+.stockin-row .purchasePackCost{min-width:120px}
+.stockin-row .purchasePackCost::placeholder{font-size:.82rem}

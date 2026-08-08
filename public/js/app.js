@@ -484,30 +484,39 @@ function showDirectStockAdjust(p){
   };
 }
 
-function showProductForm(p){showModal(`<h3>${p?"Chỉnh":"Thêm"} sản phẩm</h3><div class="form-grid"><label>Tên<input id="pName" value="${esc(p?.name||"")}"></label><label>Nhóm<select id="pCat"><option>Cà phê</option><option>Nước</option><option>Bánh Oishi</option><option>Kem</option><option>Khác</option>${p?.category&&!["Cà phê","Nước","Bánh Oishi","Kem","Khác"].includes(p.category)?`<option selected>${esc(p.category)}</option>`:""}</select></label><label>Đơn vị<input id="pUnit" value="${esc(p?.unit||"chai")}"></label><label>Quy cách<input id="pPack" value="${p?.packSize||1}" inputmode="numeric"></label><label>Giá nhập/đv<input id="pCost" value="${p?.costPrice||0}" inputmode="numeric"></label><label>Giá bán<input id="pSale" value="${p?.salePrice||0}" inputmode="numeric"></label><label>Tồn hiện tại<input id="pStock" value="${p?.stock||0}" inputmode="numeric"></label><label>Tồn tối thiểu<input id="pMin" value="${p?.minStock||0}" inputmode="numeric"></label></div><div class="row"><button id="saveProduct" class="primary">Lưu</button>${p?'<button id="deleteProduct" class="file-btn" style="background:#b42318">Xóa</button>':""}</div>`);if(p&&[...$("#pCat").options].some(o=>o.value===p.category))$("#pCat").value=p.category;$("#saveProduct").onclick=async()=>{const payload={id:p?.id,name:$("#pName").value,category:$("#pCat").value,unit:$("#pUnit").value,packSize:+$("#pPack").value||1,costPrice:parseMoney($("#pCost").value),salePrice:parseMoney($("#pSale").value),stock:+$("#pStock").value||0,minStock:+$("#pMin").value||0};try{await mutate(p?"product.update":"product.create",payload);closeModal();toast("Đã lưu sản phẩm")}catch(e){toast(e.message,true)}};if(p)$("#deleteProduct").onclick=async()=>{if(confirm("Xóa mặt hàng?"))try{await mutate("product.delete",{id:p.id});closeModal();toast("Đã xóa")}catch(e){toast(e.message,true)}}}
+function showProductForm(p){showModal(`<h3>${p?"Chỉnh":"Thêm"} sản phẩm</h3><div class="form-grid"><label>Tên<input id="pName" value="${esc(p?.name||"")}"></label><label>Nhóm<select id="pCat"><option>Cà phê</option><option>Nước</option><option>Bánh Oishi</option><option>Kem</option><option>Khác</option>${p?.category&&!["Cà phê","Nước","Bánh Oishi","Kem","Khác"].includes(p.category)?`<option selected>${esc(p.category)}</option>`:""}</select></label><label>Đơn vị<input id="pUnit" value="${esc(p?.unit||"chai")}"></label><label>Quy cách<input id="pPack" value="${p?.packSize||1}" inputmode="numeric"></label><label>Giá nhập/thùng<input id="pCost" value="${p?.costPrice||p?.purchasePackPrice||0}" inputmode="numeric"></label><label>Giá bán<input id="pSale" value="${p?.salePrice||0}" inputmode="numeric"></label><label>Tồn hiện tại<input id="pStock" value="${p?.stock||0}" inputmode="numeric"></label><label>Tồn tối thiểu<input id="pMin" value="${p?.minStock||0}" inputmode="numeric"></label></div><div class="row"><button id="saveProduct" class="primary">Lưu</button>${p?'<button id="deleteProduct" class="file-btn" style="background:#b42318">Xóa</button>':""}</div>`);if(p&&[...$("#pCat").options].some(o=>o.value===p.category))$("#pCat").value=p.category;$("#saveProduct").onclick=async()=>{const payload={id:p?.id,name:$("#pName").value,category:$("#pCat").value,unit:$("#pUnit").value,packSize:+$("#pPack").value||1,costPrice:parseMoney($("#pCost").value),salePrice:parseMoney($("#pSale").value),stock:+$("#pStock").value||0,minStock:+$("#pMin").value||0};try{await mutate(p?"product.update":"product.create",payload);closeModal();toast("Đã lưu sản phẩm")}catch(e){toast(e.message,true)}};if(p)$("#deleteProduct").onclick=async()=>{if(confirm("Xóa mặt hàng?"))try{await mutate("product.delete",{id:p.id});closeModal();toast("Đã xóa")}catch(e){toast(e.message,true)}}}
 
 
-function productPurchaseUnitCost(p){
-  const v=Number(p.purchasePrice||p.costPrice||p.cost||p.unitCost||0);
+function productPurchasePackCost(p){
+  const v=Number(p.purchasePackPrice||p.costPrice||p.purchasePrice||p.cost||0);
   return v>0?v:0;
+}
+function productPurchaseUnitCost(p){
+  const pack=Math.max(1,Number(p.packSize)||1);
+  const packCost=productPurchasePackCost(p);
+  if(packCost>0)return packCost/pack;
+  const unit=Number(p.unitCost||0);
+  return unit>0?unit:0;
 }
 function calcStockinLinesFromUI(){
   return [...document.querySelectorAll("#stockinProducts .stockin-row")].map(r=>{
-    const p=state.store.products.find(x=>x.id===r.dataset.id); if(!p)return null;
+    const p=state.store.products.find(x=>x.id===r.dataset.id);if(!p)return null;
     const cases=Math.max(0,Number(r.querySelector(".cases")?.value)||0);
     const units=Math.max(0,Number(r.querySelector(".units")?.value)||0);
-    const pack=Number(p.packSize)||1;
+    const pack=Math.max(1,Number(p.packSize)||1);
     const qtyTotal=cases*pack+units;
-    const unitCost=Math.max(0,Number(r.querySelector(".purchaseUnitCost")?.value)||productPurchaseUnitCost(p));
-    return {productId:p.id,cases,units,qty:qtyTotal,packSize:pack,unitCost,cost:qtyTotal*unitCost};
+    const packCost=Math.max(0,Number(r.querySelector(".purchasePackCost")?.value)||productPurchasePackCost(p));
+    const unitCost=packCost>0?packCost/pack:productPurchaseUnitCost(p);
+    const cost=cases*packCost+units*unitCost;
+    return {productId:p.id,cases,units,qty:qtyTotal,packSize:pack,packCost,unitCost,cost};
   }).filter(Boolean).filter(x=>x.qty>0);
 }
 function updateStockinTotalCost(){
-  const el=$("#stockinTotalCost"); if(!el)return;
+  const el=$("#stockinTotalCost");if(!el)return;
   el.textContent=money(calcStockinLinesFromUI().reduce((s,x)=>s+x.cost,0));
 }
 
-function renderStockin(){const q=norm($("#stockinSearch").value),arr=state.store.products.filter(p=>p.trackStock!==false&&(!q||norm(p.name).includes(q)));$("#stockinProducts").innerHTML=arr.map(p=>`<div class="stockin-row" data-id="${p.id}"><div><strong>${esc(p.name)}</strong><small>Tồn ${num(p.stock)} · ${num(p.packSize)} / thùng · giá nhập ${money(productPurchaseUnitCost(p))}/${esc(p.unit||"đv")}</small></div><input class="cases" type="number" min="0" placeholder="Thùng"><input class="units" type="number" min="0" placeholder="Lẻ"><input class="purchaseUnitCost" type="number" min="0" value="${productPurchaseUnitCost(p)}" placeholder="Giá nhập/đv"></div>`).join("");$$("#stockinProducts .cases, #stockinProducts .units, #stockinProducts .purchaseUnitCost").forEach(i=>i.addEventListener("input",updateStockinTotalCost));updateStockinTotalCost();
+function renderStockin(){const q=norm($("#stockinSearch").value),arr=state.store.products.filter(p=>p.trackStock!==false&&(!q||norm(p.name).includes(q)));$("#stockinProducts").innerHTML=arr.map(p=>`<div class="stockin-row" data-id="${p.id}"><div><strong>${esc(p.name)}</strong><small>Tồn ${num(p.stock)} · ${num(p.packSize)} / thùng · giá nhập ${money(productPurchasePackCost(p))}/thùng</small></div><input class="cases" type="number" min="0" placeholder="Thùng"><input class="units" type="number" min="0" placeholder="Lẻ"><input class="purchasePackCost" type="number" min="0" value="${productPurchasePackCost(p)}" placeholder="Giá/thùng"></div>`).join("");$$("#stockinProducts .cases, #stockinProducts .units, #stockinProducts .purchasePackCost").forEach(i=>i.addEventListener("input",updateStockinTotalCost));updateStockinTotalCost();
   const hist=[...state.store.stockReceipts].reverse().slice(0,100);$("#stockinHistory").className=`list${hist.length?"":" empty"}`;$("#stockinHistory").innerHTML=hist.length?hist.map(r=>`<div class="list-row" data-id="${r.id}"><div><strong>${new Date(r.createdAt).toLocaleString("vi-VN")}</strong><small>${esc(r.note||"Phiếu nhập")} · ${r.lines.length} mặt hàng</small></div><button class="ghost danger-text deleteReceipt">Xóa</button></div>`).join(""):"Chưa có phiếu.";$("#stockinHistory").querySelectorAll(".deleteReceipt").forEach(b=>b.onclick=async()=>{if(confirm("Xóa phiếu và trừ lại kho?"))try{await mutate("stockin.delete",{id:b.closest(".list-row").dataset.id});toast("Đã xóa phiếu")}catch(e){toast(e.message,true)}})}
 $("#stockinSearch").oninput=renderStockin;$("#saveStockin").onclick=async()=>{
   const lines=calcStockinLinesFromUI();
