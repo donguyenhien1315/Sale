@@ -12,7 +12,7 @@
   <div id="boot" class="boot">Đang đồng bộ dữ liệu…</div>
   <header class="topbar">
     <div>
-      <div class="eyebrow">CANTIN AI NEXT 4.4</div>
+      <div class="eyebrow">CANTIN AI NEXT 4.11.1</div>
       <h1 id="storeName">Cửa hàng chính</h1>
     </div>
     <div class="top-actions">
@@ -21,7 +21,14 @@
     </div>
   </header>
 
-  <main>
+  
+  <div id="dataSafetyBanner" class="data-safety-banner hidden">
+    <strong>Cảnh báo dữ liệu</strong>
+    <span>Ứng dụng đang thấy cửa hàng trống. Không nhập dữ liệu mới nếu anh không chủ động tạo cửa hàng trắng.</span>
+    <button id="goRecovery" class="ghost small">Khôi phục</button>
+  </div>
+
+<main>
     <section class="page active" data-page="dashboard">
       <div class="stats">
         <button class="stat nav-target" data-target="sales"><span>Doanh thu hôm nay</span><strong id="todayRevenue">0 ₫</strong></button>
@@ -44,9 +51,8 @@
       <article class="panel">
         <div class="product-filter-bar">
           <input id="saleSearch" class="search" placeholder="Tìm sản phẩm…">
-          <select id="saleCategory"><option value="">Tất cả danh mục</option></select>
-        </div>
-        <div id="saleCategoryChips" class="category-chips compact-chips"></div>
+</div>
+        <div id="saleCategoryChips" class="category-chips compact-category-chips"></div>
         <div id="quickProducts" class="product-grid"></div>
       </article>
       <article class="panel">
@@ -55,7 +61,7 @@
         <div class="form-grid">
           <label>Ngày<input id="saleDate" type="datetime-local"></label>
           <label>Thanh toán<select id="paymentMethod"><option value="cash">Tiền mặt</option><option value="transfer">Chuyển khoản</option><option value="debt">Ghi nợ</option></select></label>
-          <label id="saleCustomerWrap" class="hidden">Khách<select id="saleCustomer"></select></label>
+          <label id="saleCustomerWrap">Khách hàng<select id="saleCustomer"><option value="">Khách lẻ</option></select></label>
           <label class="wide">Ghi chú<input id="saleNote" placeholder="Ghi chú đơn hàng"></label>
         </div>
         <button id="checkout" class="primary full">Lưu đơn hàng</button>
@@ -71,9 +77,28 @@
       </div>
       <div class="debt-total"><span>Tổng còn nợ</span><strong id="debtPageTotal">0 ₫</strong></div>
       <div id="customers" class="customer-list"></div>
-    </section>
+    </section><section class="page" data-page="audit">
+      <div class="subtabs inventory-subtabs">
+        <button class="subtab active" data-subtab="audit-check">Kiểm kho</button>
+        <button class="subtab" data-subtab="audit-stockin">Nhập kho</button>
+      </div>
+      <div class="subpage active" data-subpage="audit-check">
 
-    <section class="page" data-page="stockin">
+      <div class="page-head"><div><div class="eyebrow">KIỂM KHO</div><h2>Kiểm kho nhanh</h2></div></div>
+      <article class="panel">
+        <div class="product-filter-bar">
+          <input id="auditSearch" class="search" placeholder="Tìm sản phẩm…">
+</div>
+        <div id="auditCategoryChips" class="category-chips compact-category-chips"></div>
+        <div id="auditProducts" class="audit-list"></div>
+        <label>Ghi chú<input id="auditNote" placeholder="VD: kiểm cuối tuần"></label>
+        <button id="saveAudit" class="primary full">Chốt kiểm kho</button>
+      </article>
+      <article class="panel"><div class="panel-head"><h3>Lịch sử kiểm kho</h3></div><div id="auditHistory" class="list empty"></div></article>
+    
+      </div>
+      <div class="subpage" data-subpage="audit-stockin">
+
       <div class="page-head"><div><div class="eyebrow">NHẬP KHO</div><h2>Phiếu nhập kho</h2></div></div>
       <article class="panel">
         <div class="form-grid">
@@ -82,29 +107,15 @@
         </div>
         <div class="product-filter-bar">
           <input id="stockinSearch" class="search" placeholder="Tìm mặt hàng để nhập…">
-          <select id="stockinCategory"><option value="">Tất cả danh mục</option></select>
-        </div>
-        <div id="stockinCategoryChips" class="category-chips compact-chips"></div>
+</div>
+        <div id="stockinCategoryChips" class="category-chips category-filter-main"></div>
         <div id="stockinProducts" class="stockin-list"></div>
         <button id="saveStockin" class="primary full">Lưu phiếu nhập</button>
       </article>
       <article class="panel"><div class="panel-head"><h3>Lịch sử nhập kho</h3></div><div id="stockinHistory" class="list empty"></div></article>
-    </section>
-
-    <section class="page" data-page="audit">
-      <div class="page-head"><div><div class="eyebrow">KIỂM KHO</div><h2>Kiểm kho nhanh</h2></div></div>
-      <article class="panel">
-        <div class="product-filter-bar">
-          <input id="auditSearch" class="search" placeholder="Tìm sản phẩm…">
-          <select id="auditCategory"><option value="">Tất cả danh mục</option></select>
-        </div>
-        <div id="auditCategoryChips" class="category-chips compact-chips"></div>
-        <div id="auditProducts" class="audit-list"></div>
-        <label>Ghi chú<input id="auditNote" placeholder="VD: kiểm cuối tuần"></label>
-        <button id="saveAudit" class="primary full">Chốt kiểm kho</button>
-      </article>
-      <article class="panel"><div class="panel-head"><h3>Lịch sử kiểm kho</h3></div><div id="auditHistory" class="list empty"></div></article>
-    </section>
+    
+      </div>
+</section>
 
 
     <section class="page" data-page="ingredients">
@@ -130,31 +141,70 @@
         <p class="hint">Thay đổi số lượng ở đây chỉ cập nhật tồn kho của mặt hàng. Không tạo đơn bán, không thay doanh thu/lợi nhuận, không tạo kiểm kho và không ảnh hưởng công nợ.</p>
       </article>
       <div class="category-filter-wrap">
-        <div id="productCategoryChips" class="category-chips"></div>
+        <div id="productCategoryChips" class="category-chips compact-category-chips"></div>
       </div>
       <div class="toolbar product-toolbar">
         <input id="productSearch" class="search" placeholder="Tìm sản phẩm…">
         <select id="productCategory">
           <option value="">Tất cả danh mục</option>
         </select>
-        <select id="productSort"><option value="name">Tên A → Z</option><option value="stock-low">Tồn ít → nhiều</option><option value="stock-high">Tồn nhiều → ít</option></select>
+<select id="productSort"><option value="name">Tên A → Z</option><option value="stock-low">Tồn ít → nhiều</option><option value="stock-high">Tồn nhiều → ít</option></select>
       </div>
       <div class="product-summary" id="productSummary"></div>
       <div id="products" class="list"></div>
     </section>
 
     <section class="page" data-page="assistant">
-      <div class="page-head"><div><div class="eyebrow">TRỢ LÝ AI</div><h2>AI Command Center</h2></div></div>
-      <article class="panel assistant-shell">
-        <div id="chat" class="chat"></div>
-        <div class="quick-prompts">
-          <button data-prompt="Nước nào sắp hết?">Nước sắp hết</button>
-          <button data-prompt="Ai đang nợ nhiều nhất?">Nợ cao nhất</button>
-          <button data-prompt="Rockstar bán hết">Rockstar bán hết</button>
-          <button data-prompt="Nhập 2 thùng Pocari">Nhập 2 thùng Pocari</button>
-        </div>
-        <div class="chat-input"><textarea id="aiInput" rows="2" placeholder="VD: Hoà nợ 43k 3 kem"></textarea><button id="sendAi" class="primary">Gửi</button></div>
-      </article>
+      <div class="page-head">
+        <div><div class="eyebrow">TRỢ LÝ AI</div><h2>AI Smart Command Center</h2></div>
+        <button id="aiAnalyzeBtn" class="ghost small">Phân tích cửa hàng</button>
+      </div>
+
+      <div class="ai-smart-grid">
+        <article class="panel assistant-shell">
+          <div id="aiContextBar" class="ai-context-bar hidden"></div>
+          <div id="chat" class="chat"></div>
+
+          <div class="quick-prompts">
+            <button data-prompt="Tình hình hôm nay">Tình hình hôm nay</button><button data-prompt="Hôm nay kinh doanh thế nào?">Tổng kết hôm nay</button>
+            <button data-prompt="7 ngày qua mặt hàng nào bán chạy nhất?">Bán chạy 7 ngày</button>
+            <button data-prompt="Mặt hàng nào cần nhập sớm?">Gợi ý nhập hàng</button>
+            <button data-prompt="Có số liệu nào bất thường không?">Phát hiện bất thường</button><button data-prompt="Có chênh lệch kho hoặc thất thoát không?">Chênh lệch kho</button>
+            <button data-prompt="Nguyên liệu cà phê đã dùng bao nhiêu?">Nguyên liệu cà phê</button>
+            <button data-prompt="Ai đang nợ nhiều nhất?">Nợ cao nhất</button>
+          </div>
+
+          <div class="ai-file-row">
+            <label class="file-btn">📎 Ảnh / Excel / JSON
+              <input id="aiFile" type="file" accept="image/*,.xlsx,.xls,.csv,.json,.node.json" hidden>
+            </label>
+            <span id="aiFileStatus" class="hint">AI có thể đọc file/ảnh rồi phân tích hoặc tạo lệnh xem trước.</span>
+          </div>
+
+          <div class="chat-input">
+            <textarea id="aiInput" rows="3" placeholder="VD: Đang lấy 2 Bò húc, 1 Pocari và ghi nợ&#10;VD: rs còn 5&#10;VD: hôm nay lời bao nhiêu?"></textarea>
+            <button id="sendAi" class="primary">Gửi</button>
+          </div>
+        </article>
+
+        <article class="panel ai-memory-panel">
+          <div class="panel-head">
+            <div><h3>Bộ nhớ tên gọi</h3><p class="hint">Dạy AI tên viết tắt như rs = Rockstar, poca = Pocari.</p></div>
+            <button id="addAliasBtn" class="ghost small">+ Alias</button>
+          </div>
+          <div id="aliasList" class="list empty"></div>
+          <div class="hint ai-examples">
+            AI hiểu được: bán hàng nhiều món, ghi/trả nợ, kiểm kho, nhập kho theo thùng + lẻ, hỏi doanh thu/lợi nhuận, bán chạy/bán chậm, dự báo nhập hàng, công nợ, bất thường và nguyên liệu cà phê.
+          </div>
+          <hr class="soft-sep">
+          <div class="panel-head"><div><h3>Chế độ AI</h3><p class="hint">Kiểm soát việc AI được phép ghi dữ liệu.</p></div></div>
+          <label>Chế độ an toàn<select id="aiSafetyMode"><option value="ask">Chỉ hỏi – không ghi</option><option value="preview">Xem trước rồi xác nhận</option><option value="autoSafe">Tự động với lệnh an toàn</option></select></label>
+          <label class="check-line"><input id="autoIngredientDeduct" type="checkbox"> Tự trừ nguyên liệu cà phê khi bán</label>
+          <hr class="soft-sep">
+          <div class="panel-head"><div><h3>Lịch sử thao tác AI</h3><p class="hint">Theo dõi riêng những thay đổi do AI thực hiện.</p></div></div>
+          <div id="aiOperationHistory" class="list empty"></div>
+        </article>
+      </div>
     </section>
 
     <section class="page" data-page="activity">
@@ -170,6 +220,24 @@
         <article class="panel"><h3>Cấu hình ứng dụng</h3><p>Alias AI, hiển thị, cảnh báo và quy tắc tiền.</p><div class="row"><button id="exportConfig" class="primary small">Xuất</button><label class="file-btn">Nhập<input id="importConfig" type="file" accept=".json,.node.json" hidden></label></div></article>
         <article class="panel"><h3>Gói cập nhật ứng dụng</h3><p>Kiểm tra file Node JSON cập nhật mã nguồn.</p><label class="file-btn">Kiểm tra gói<input id="validatePackage" type="file" accept=".json,.node.json" hidden></label><div id="packageStatus" class="hint"></div></article>
       </div>
+      
+      <article class="panel recovery-panel">
+        <div class="panel-head">
+          <div>
+            <h3>Khôi phục dữ liệu</h3>
+            <p class="hint">Dùng khi dữ liệu trên web bị trống hoặc bị ghi đè. Hệ thống sẽ tạo snapshot trước khi khôi phục.</p>
+          </div>
+        </div>
+        <div class="row">
+          <label class="file-btn">Chọn file backup
+            <input id="recoveryFile" type="file" accept=".json,.node.json" hidden>
+          </label>
+          <button id="downloadEmergencyBackup" class="ghost">Tải backup hiện tại</button>
+        </div>
+        <div id="recoveryPreview" class="recovery-preview hint">Chưa chọn file.</div>
+        <button id="runRecovery" class="primary full" disabled>Khôi phục dữ liệu</button>
+      </article>
+
       <article class="panel"><div class="panel-head"><h3>Cửa hàng</h3><button id="newStore" class="primary small">+ Cửa hàng mới</button></div><div id="stores" class="list"></div></article>
     </section>
   </main>
@@ -178,8 +246,7 @@
     <button class="nav active" data-target="dashboard">Tổng quan</button>
     <button class="nav" data-target="sales">Bán hàng</button>
     <button class="nav" data-target="debts">Công nợ</button>
-    <button class="nav" data-target="stockin">Nhập kho</button>
-    <button class="nav" data-target="audit">Kiểm kho</button>
+<button class="nav" data-target="audit">Kiểm kho</button>
     <button class="nav" data-target="products">Mặt hàng</button>
     <button class="nav" data-target="ingredients">Nguyên liệu</button>
     <button class="nav" data-target="assistant">AI</button>
@@ -189,6 +256,24 @@
   <div id="modal" class="modal hidden"><div class="modal-card"><button id="closeModal" class="modal-close">×</button><div id="modalBody"></div></div></div>
   <div id="toast" class="toast"></div>
 
-  <script type="module" src="/js/app.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/tesseract.js@5/dist/tesseract.min.js"></script>
+<script type="module" src="/js/app.js"></script>
+
+<button id="aiFab" class="ai-fab" aria-label="Mở trợ lý AI">✨ AI</button>
+<div id="aiPopup" class="ai-popup hidden" aria-hidden="true">
+  <div class="ai-popup-card">
+    <div class="ai-popup-head"><div><strong>Trợ lý AI</strong><small>Chat nhanh ở mọi trang</small></div><button id="closeAiPopup" class="ghost small">×</button></div>
+    <div id="aiPopupContext" class="ai-context-bar hidden"></div>
+    <div id="aiPopupChat" class="chat ai-popup-chat"></div>
+    <div class="quick-prompts ai-popup-prompts">
+      <button data-popup-prompt="Hôm nay kinh doanh thế nào?">Hôm nay</button>
+      <button data-popup-prompt="Mặt hàng nào cần nhập sớm?">Cần nhập</button>
+      <button data-popup-prompt="Ai đang nợ nhiều nhất?">Công nợ</button>
+    </div>
+    <div class="chat-input ai-popup-input"><textarea id="aiPopupInput" rows="2" placeholder="Nhập nhanh..."></textarea><button id="sendAiPopup" class="primary">Gửi</button></div>
+    <button id="openFullAi" class="ghost full small">Mở trang AI đầy đủ</button>
+  </div>
+</div>
 </body>
 </html>
