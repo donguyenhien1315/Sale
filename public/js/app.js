@@ -22,13 +22,18 @@ function closeModal(){$("#modal").classList.add("hidden")}
 $("#closeModal").onclick=closeModal;
 
 async function boot(){
+  const bootEl=$("#boot");
   try{
-    $("#boot").classList.remove("hidden");
+    if(bootEl){bootEl.textContent="Đang đồng bộ dữ liệu…";bootEl.classList.remove("hidden")}
     const data=await api("/api/bootstrap");
     state.revision=data.revision;state.storeId=data.storeId;state.store=data.store;state.stores=data.stores;
     renderAll();
-    $("#boot").classList.add("hidden");
-  }catch(e){$("#boot").textContent="Lỗi: "+e.message;toast(e.message,true)}
+    if(bootEl)bootEl.classList.add("hidden");
+  }catch(e){
+    if(bootEl){bootEl.textContent="Lỗi đồng bộ · bấm ↻ để thử lại";bootEl.classList.remove("hidden")}
+    toast(e.message||"Không thể đồng bộ dữ liệu",true);
+    console.error("BOOT ERROR",e);
+  }
 }
 function renderAll(){
   $("#storeName").textContent=state.store.meta?.name||"Cửa hàng";
@@ -611,7 +616,7 @@ $("#exportStore").onclick=()=>download({format:"cantin-ai-next-store",version:1,
 $("#importStore").onchange=async e=>{const f=e.target.files[0];if(!f)return;try{const o=await readFile(f);if(o.format!=="cantin-ai-next-store")throw new Error("Sai định dạng");await mutate("store.import",{store:o.store});toast("Đã nhập dữ liệu")}catch(x){toast(x.message,true)}e.target.value=""};
 $("#exportConfig").onclick=()=>download({format:"cantin-ai-next-config",version:1,config:state.store.config,aliases:state.store.aliases},`cantin-config-${todayKey()}.node.json`);
 $("#importConfig").onchange=async e=>{const f=e.target.files[0];if(!f)return;try{const o=await readFile(f);if(o.format!=="cantin-ai-next-config")throw new Error("Sai định dạng");await mutate("config.import",o);toast("Đã nhập cấu hình")}catch(x){toast(x.message,true)}e.target.value=""};
-$("#validatePackage").onchange=async e=>{const f=e.target.files[0];if(!f)return;try{const o=await readFile(f);const r=await api("/api/package/validate",{method:"POST",body:JSON.stringify(o)});$("#packageStatus").textContent=`Hợp lệ: ${r.version} · ${r.fileCount} file. Cần deploy qua GitHub/Cloudflare để áp dụng.`}catch(x){$("#packageStatus").textContent=x.message}e.target.value=""};
+
 
 
 $$(".inventory-subtabs .subtab").forEach(btn=>btn.addEventListener("click",()=>{
