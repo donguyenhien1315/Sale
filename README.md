@@ -1,4 +1,4 @@
-# Cantin AI Next v4.0
+# Cantin AI Next v4.2
 
 App mới hoàn toàn, không phụ thuộc mã nguồn v3.x.
 
@@ -27,3 +27,18 @@ App mới hoàn toàn, không phụ thuộc mã nguồn v3.x.
 
 ## Lưu ý migration
 App không xóa dữ liệu cũ. Root hiện tại sẽ được bọc vào cấu trúc v4 và lưu lại sau lần ghi đầu tiên.
+
+
+## v4.1
+- Quản lý nguyên liệu cà phê theo dữ liệu Excel.
+- Trả nợ tự điền tổng còn nợ và chọn ngày trả.
+- Ghi nợ được chọn ngày.
+- Sửa ngày/tiền/ghi chú khoản nợ và từng lần thanh toán.
+
+
+## v4.2
+- Nâng cấp mục Quản lý mặt hàng.
+- Chỉnh tồn trực tiếp bằng + / − hoặc nhập số lượng mới.
+- Điều chỉnh tồn độc lập KHÔNG tạo đơn bán, không thay doanh thu/lợi nhuận, không tạo kiểm kho, không ảnh hưởng công nợ.
+- Mọi lần chỉnh chỉ được ghi vào transaction log để truy vết.
+- Lọc tồn ít → nhiều / nhiều → ít.

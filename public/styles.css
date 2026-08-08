@@ -23,3 +23,16 @@ main{max-width:1100px;margin:auto;padding:14px}.page{display:none}.page.active{d
 .boot{position:fixed;z-index:100;left:50%;top:18px;transform:translateX(-50%);background:#fff;border:1px solid var(--line);box-shadow:var(--shadow);padding:10px 16px;border-radius:999px;font-weight:800}
 @media(max-width:800px){.stats{grid-template-columns:repeat(2,1fr)}.product-grid{grid-template-columns:repeat(2,1fr)}.io-grid{grid-template-columns:1fr}.stockin-row{grid-template-columns:1fr 82px 82px}.bottom-nav{overflow-x:auto;grid-template-columns:repeat(7,minmax(64px,1fr))}}
 @media(max-width:480px){main{padding:10px}.topbar{padding:12px}.toolbar{grid-template-columns:1fr 125px}.form-grid{grid-template-columns:1fr}.product-grid{grid-template-columns:1fr 1fr}.stat{padding:12px}.stat strong{font-size:1.03rem}}
+
+.payments-mini{display:flex;flex-wrap:wrap;gap:6px;margin-top:7px}
+.payment-chip{border:1px solid var(--line);background:#fff;color:var(--brand);border-radius:999px;padding:5px 8px;font-size:.76rem}
+.debt-history-block{align-items:flex-start}.debt-main{min-width:0;flex:1}
+.ingredient-row small+small{margin-top:2px}
+
+.inventory-direct-note{background:#f0fdfa;border-color:#99d8d1}
+.product-manage-row{gap:10px}.product-manage-main{min-width:0;flex:1}
+.direct-stock-control{display:flex;align-items:center;gap:6px;flex-wrap:wrap;justify-content:flex-end}
+.stock-step{width:34px;height:34px;border:1px solid var(--line);background:#fff;border-radius:10px;font-size:1.1rem;font-weight:800;color:var(--brand)}
+.stock-value{border:1px solid #9fd1cb;background:#effaf8;border-radius:10px;padding:8px 10px;font-weight:800;color:var(--brand);min-width:88px}
+.stock-presets{display:flex;flex-wrap:wrap;gap:7px;margin:10px 0}
+@media(max-width:600px){.product-manage-row{align-items:flex-start;flex-direction:column}.direct-stock-control{width:100%;justify-content:flex-start}}

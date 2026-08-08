@@ -34,7 +34,7 @@ function renderAll(){
   $("#storeName").textContent=state.store.meta?.name||"Cửa hàng";
   $("#storeSelect").innerHTML=state.stores.map(s=>`<option value="${s.id}" ${s.id===state.storeId?"selected":""}>${esc(s.name)}</option>`).join("");
   $("#saleDate").value=$("#saleDate").value||dtLocal();$("#stockinDate").value=$("#stockinDate").value||dtLocal();
-  renderDashboard();renderProducts();renderSales();renderCustomers();renderStockin();renderAudit();renderTransactions();renderSnapshots();renderStores();renderQuickProducts();renderCart();
+  renderDashboard();renderIngredients();renderProducts();renderSales();renderCustomers();renderStockin();renderAudit();renderTransactions();renderSnapshots();renderStores();renderQuickProducts();renderCart();
 }
 function navigate(page){
   $$(".page").forEach(p=>p.classList.toggle("active",p.dataset.page===page));
@@ -100,18 +100,89 @@ function renderCustomers(){
 function toggleCustomer(card){
   const box=card.querySelector(".customer-detail"),id=card.dataset.id,c=state.store.customers.find(c=>c.id===id);if(!box.classList.contains("hidden"))return box.classList.add("hidden");
   const debts=[...state.store.debts.filter(d=>d.customerId===id)].reverse();
-  box.innerHTML=`<div class="form-grid"><label>Số tiền<input class="newDebtMoney" placeholder="VD 43k hoặc 150000"></label><label>Món nợ<input class="newDebtNote" placeholder="VD 3 kem"></label></div><div class="row"><button class="primary small addDebt">Ghi nợ</button><button class="file-btn payDebt">Trả nợ</button></div><div class="debt-lines">${debts.map(d=>`<div class="debt-line" data-id="${d.id}"><div><strong>${money(d.balance)}</strong><small>${new Date(d.createdAt).toLocaleDateString("vi-VN")} · ${esc(d.note||"")}</small></div><button class="ghost debtEdit">Sửa</button></div>`).join("")||'<div class="hint">Chưa có khoản nợ.</div>'}</div>`;box.classList.remove("hidden");
-  box.querySelector(".addDebt").onclick=async()=>{const amount=parseMoney(box.querySelector(".newDebtMoney").value);if(!amount)return toast("Số tiền không hợp lệ",true);try{await mutate("debt.add",{customerId:id,amount,note:box.querySelector(".newDebtNote").value});toast("Đã ghi nợ")}catch(e){toast(e.message,true)}};
+  box.innerHTML=`<div class="form-grid"><label>Ngày ghi nợ<input class="newDebtDate" type="date" value="${todayKey()}"></label><label>Số tiền<input class="newDebtMoney" placeholder="VD 43k hoặc 150000"></label><label class="wide">Món nợ<input class="newDebtNote" placeholder="VD 3 kem"></label></div><div class="row"><button class="primary small addDebt">Ghi nợ</button><button class="file-btn payDebt">Trả nợ</button></div><div class="debt-lines">${debts.map(d=>`<div class="debt-line debt-history-block" data-id="${d.id}"><div class="debt-main"><strong>Còn ${money(d.balance)} / ${money(d.amount)}</strong><small>${new Date(d.createdAt).toLocaleDateString("vi-VN")} · ${esc(d.note||"")}</small>${(d.payments||[]).length?`<div class="payments-mini">${(d.payments||[]).map(p=>`<button class="payment-chip" data-debt="${d.id}" data-pay="${p.id}">${new Date(p.createdAt).toLocaleDateString("vi-VN")} · ${money(p.amount)}</button>`).join("")}</div>`:""}</div><button class="ghost debtEdit">Sửa nợ</button></div>`).join("")||'<div class="hint">Chưa có khoản nợ.</div>'}</div>`;box.classList.remove("hidden");
+  box.querySelector(".addDebt").onclick=async()=>{const amount=parseMoney(box.querySelector(".newDebtMoney").value);if(!amount)return toast("Số tiền không hợp lệ",true);try{await mutate("debt.add",{customerId:id,amount,note:box.querySelector(".newDebtNote").value,createdAt:box.querySelector(".newDebtDate").value+"T05:00:00.000Z"});toast("Đã ghi nợ")}catch(e){toast(e.message,true)}};
   box.querySelector(".payDebt").onclick=()=>showPayment(c);
   box.querySelectorAll(".debtEdit").forEach(b=>b.onclick=()=>showDebtEdit(state.store.debts.find(d=>d.id===b.closest(".debt-line").dataset.id)));
+  box.querySelectorAll(".payment-chip").forEach(b=>b.onclick=()=>{const d=state.store.debts.find(x=>x.id===b.dataset.debt);const p=(d?.payments||[]).find(x=>x.id===b.dataset.pay);if(d&&p)showPaymentEdit(d,p);});
 }
-function showPayment(c){showModal(`<h3>${esc(c.name)} trả nợ</h3><label>Số tiền<input id="payMoney" placeholder="VD 100k"></label><label>Ghi chú<input id="payNote"></label><button id="doPay" class="primary full">Xác nhận</button>`);$("#doPay").onclick=async()=>{const amount=parseMoney($("#payMoney").value);try{await mutate("debt.pay",{customerId:c.id,amount,note:$("#payNote").value});closeModal();toast("Đã ghi nhận trả nợ")}catch(e){toast(e.message,true)}}}
-function showDebtEdit(d){showModal(`<h3>Chỉnh khoản nợ</h3><label>Số tiền<input id="editDebtMoney" value="${d.amount}"></label><label>Ghi chú<input id="editDebtNote" value="${esc(d.note||"")}"></label><div class="row"><button id="saveDebtEdit" class="primary">Lưu</button><button id="deleteDebt" class="file-btn" style="background:#b42318">Xóa</button></div>`);$("#saveDebtEdit").onclick=async()=>{try{await mutate("debt.update",{id:d.id,amount:parseMoney($("#editDebtMoney").value,d.amount),note:$("#editDebtNote").value});closeModal();toast("Đã sửa khoản nợ")}catch(e){toast(e.message,true)}};$("#deleteDebt").onclick=async()=>{if(confirm("Xóa khoản nợ này?"))try{await mutate("debt.delete",{id:d.id});closeModal();toast("Đã xóa")}catch(e){toast(e.message,true)}}}
+function showPayment(c){const total=customerDebt(c.id);showModal(`<h3>${esc(c.name)} trả nợ</h3><p class="hint">Tổng còn nợ: <strong>${money(total)}</strong>. Số tiền được điền sẵn toàn bộ, có thể sửa nếu chỉ trả một phần.</p><label>Ngày trả<input id="payDate" type="date" value="${todayKey()}"></label><label>Số tiền<input id="payMoney" value="${total}" inputmode="numeric"></label><label>Ghi chú<input id="payNote"></label><button id="doPay" class="primary full">Xác nhận</button>`);$("#doPay").onclick=async()=>{const amount=parseMoney($("#payMoney").value,total);try{await mutate("debt.pay",{customerId:c.id,amount,note:$("#payNote").value,createdAt:$("#payDate").value+"T05:00:00.000Z"});closeModal();toast("Đã ghi nhận trả nợ")}catch(e){toast(e.message,true)}}}
+function showDebtEdit(d){showModal(`<h3>Chỉnh khoản nợ</h3><label>Ngày ghi nợ<input id="editDebtDate" type="date" value="${String(d.createdAt).slice(0,10)}"></label><label>Số tiền<input id="editDebtMoney" value="${d.amount}"></label><label>Ghi chú / món nợ<input id="editDebtNote" value="${esc(d.note||"")}"></label><div class="row"><button id="saveDebtEdit" class="primary">Lưu</button><button id="deleteDebt" class="file-btn" style="background:#b42318">Xóa</button></div>`);$("#saveDebtEdit").onclick=async()=>{try{await mutate("debt.update",{id:d.id,amount:parseMoney($("#editDebtMoney").value,d.amount),note:$("#editDebtNote").value,createdAt:$("#editDebtDate").value+"T05:00:00.000Z"});closeModal();toast("Đã sửa khoản nợ")}catch(e){toast(e.message,true)}};$("#deleteDebt").onclick=async()=>{if(confirm("Xóa khoản nợ này?"))try{await mutate("debt.delete",{id:d.id});closeModal();toast("Đã xóa")}catch(e){toast(e.message,true)}}}
+function showPaymentEdit(d,p){showModal(`<h3>Chỉnh lần trả nợ</h3><p class="hint">${esc(d.customer||"")} · khoản nợ ${money(d.amount)}</p><label>Ngày trả<input id="editPayDate" type="date" value="${String(p.createdAt).slice(0,10)}"></label><label>Số tiền<input id="editPayMoney" value="${p.amount}" inputmode="numeric"></label><label>Ghi chú<input id="editPayNote" value="${esc(p.note||"")}"></label><div class="row"><button id="savePayEdit" class="primary">Lưu</button><button id="deletePay" class="file-btn" style="background:#b42318">Xóa lần trả</button></div>`);$("#savePayEdit").onclick=async()=>{try{await mutate("debt.payment.update",{debtId:d.id,paymentId:p.id,amount:parseMoney($("#editPayMoney").value,p.amount),note:$("#editPayNote").value,createdAt:$("#editPayDate").value+"T05:00:00.000Z"});closeModal();toast("Đã sửa lần trả nợ")}catch(e){toast(e.message,true)}};$("#deletePay").onclick=async()=>{if(confirm("Xóa lần trả nợ này? Số còn nợ sẽ tăng lại."))try{await mutate("debt.payment.delete",{debtId:d.id,paymentId:p.id});closeModal();toast("Đã xóa lần trả nợ")}catch(e){toast(e.message,true)}}}
 $("#debtSearch").oninput=renderCustomers;$("#debtSort").onchange=renderCustomers;
 $("#addCustomerBtn").onclick=()=>{showModal(`<h3>Thêm khách hàng</h3><label>Tên<input id="newCustomerName"></label><button id="saveCustomer" class="primary full">Lưu</button>`);$("#saveCustomer").onclick=async()=>{try{await mutate("customer.create",{name:$("#newCustomerName").value});closeModal();toast("Đã thêm khách")}catch(e){toast(e.message,true)}}};
 
-function renderProducts(){const q=norm($("#productSearch").value),arr=state.store.products.filter(p=>!q||norm(p.name+" "+p.category).includes(q));$("#products").innerHTML=arr.map(p=>`<div class="list-row" data-id="${p.id}"><div><strong>${esc(p.name)}</strong><small>${esc(p.category)} · tồn ${num(p.stock)} ${esc(p.unit)} · bán ${money(p.salePrice)}</small></div><button class="ghost editProduct">Sửa</button></div>`).join("");$("#products").querySelectorAll(".editProduct").forEach(b=>b.onclick=()=>showProductForm(state.store.products.find(p=>p.id===b.closest(".list-row").dataset.id)))}
-$("#productSearch").oninput=renderProducts;$("#addProductBtn").onclick=()=>showProductForm(null);
+
+function renderIngredients(){
+  const q=norm($("#ingredientSearch")?.value||""),arr=(state.store.ingredients||[]).filter(x=>!q||norm(x.name+" "+x.note).includes(q));
+  const box=$("#ingredients");if(!box)return;
+  box.className=`list${arr.length?"":" empty"}`;
+  box.innerHTML=arr.length?arr.map(x=>`<div class="list-row ingredient-row" data-id="${x.id}"><div><strong>${esc(x.name)}</strong><small>Giá nhập ${money(x.purchasePrice)} / ${num(x.packageQty)} ${esc(x.unit)} · ${x.unitCost?money(x.unitCost)+"/"+esc(x.unit):""} · tồn ${num(x.stock||0)} ${esc(x.unit)}</small><small>${esc(x.note||"")}</small></div><button class="ghost editIngredient">Sửa</button></div>`).join(""):"Chưa có nguyên liệu.";
+  box.querySelectorAll(".editIngredient").forEach(b=>b.onclick=()=>showIngredientForm((state.store.ingredients||[]).find(x=>x.id===b.closest(".ingredient-row").dataset.id)));
+}
+$("#ingredientSearch")?.addEventListener("input",renderIngredients);
+$("#addIngredientBtn")?.addEventListener("click",()=>showIngredientForm(null));
+function showIngredientForm(x){
+  showModal(`<h3>${x?"Chỉnh":"Thêm"} nguyên liệu</h3>
+  <div class="form-grid">
+    <label>Tên nguyên liệu<input id="ingName" value="${esc(x?.name||"")}"></label>
+    <label>Đơn vị<input id="ingUnit" value="${esc(x?.unit||"g")}"></label>
+    <label>Giá nhập<input id="ingPurchase" value="${x?.purchasePrice||0}" inputmode="numeric"></label>
+    <label>Khối lượng / dung tích gói<input id="ingPackage" value="${x?.packageQty||1}" inputmode="decimal"></label>
+    <label>Tồn hiện tại<input id="ingStock" value="${x?.stock||0}" inputmode="decimal"></label>
+    <label class="wide">Ghi chú<input id="ingNote" value="${esc(x?.note||"")}"></label>
+  </div>
+  <p class="hint">Đơn giá/đơn vị sẽ tự tính = Giá nhập ÷ Khối lượng/dung tích.</p>
+  <div class="row"><button id="saveIngredient" class="primary">Lưu</button>${x?'<button id="deleteIngredient" class="file-btn" style="background:#b42318">Xóa</button>':""}</div>`);
+  $("#saveIngredient").onclick=async()=>{const payload={id:x?.id,name:$("#ingName").value,unit:$("#ingUnit").value,purchasePrice:parseMoney($("#ingPurchase").value,x?.purchasePrice||0),packageQty:Number($("#ingPackage").value)||1,stock:Number($("#ingStock").value)||0,note:$("#ingNote").value};try{await mutate(x?"ingredient.update":"ingredient.create",payload);closeModal();toast("Đã lưu nguyên liệu")}catch(e){toast(e.message,true)}};
+  if(x)$("#deleteIngredient").onclick=async()=>{if(confirm("Xóa nguyên liệu này?"))try{await mutate("ingredient.delete",{id:x.id});closeModal();toast("Đã xóa nguyên liệu")}catch(e){toast(e.message,true)}};
+}
+
+function renderProducts(){
+  const q=norm($("#productSearch").value),sort=$("#productSort")?.value||"name";
+  let arr=state.store.products.filter(p=>!q||norm(p.name+" "+p.category).includes(q));
+  arr=[...arr].sort((a,b)=>sort==="stock-low"?(a.stock-b.stock):sort==="stock-high"?(b.stock-a.stock):a.name.localeCompare(b.name,"vi"));
+  $("#products").innerHTML=arr.map(p=>`<div class="list-row product-manage-row" data-id="${p.id}">
+    <div class="product-manage-main"><strong>${esc(p.name)}</strong><small>${esc(p.category)} · bán ${money(p.salePrice)} · tối thiểu ${num(p.minStock||0)}</small></div>
+    <div class="direct-stock-control">
+      <button class="stock-step" data-step="-1">−</button>
+      <button class="stock-value directStock">${num(p.stock)} ${esc(p.unit)}</button>
+      <button class="stock-step" data-step="1">+</button>
+      <button class="ghost editProduct">Chi tiết</button>
+    </div>
+  </div>`).join("");
+  $("#products").querySelectorAll(".editProduct").forEach(b=>b.onclick=()=>showProductForm(state.store.products.find(p=>p.id===b.closest(".list-row").dataset.id)));
+  $("#products").querySelectorAll(".directStock").forEach(b=>b.onclick=()=>showDirectStockAdjust(state.store.products.find(p=>p.id===b.closest(".list-row").dataset.id)));
+  $("#products").querySelectorAll(".stock-step").forEach(b=>b.onclick=async()=>{
+    const row=b.closest(".list-row"),p=state.store.products.find(x=>x.id===row.dataset.id),step=Number(b.dataset.step)||0;
+    const next=Math.max(0,(Number(p.stock)||0)+step);
+    try{await mutate("product.stock.set",{id:p.id,stock:next,note:`Điều chỉnh nhanh ${step>0?"+":"−"}1`});toast(`Đã cập nhật tồn ${p.name}`)}catch(e){toast(e.message,true)}
+  });
+}
+$("#productSearch").oninput=renderProducts;$("#productSort")?.addEventListener("change",renderProducts);$("#addProductBtn").onclick=()=>showProductForm(null);
+
+function showDirectStockAdjust(p){
+  showModal(`<h3>Điều chỉnh tồn: ${esc(p.name)}</h3>
+    <p class="hint">Tồn hiện tại: <strong>${num(p.stock)} ${esc(p.unit)}</strong>. Thao tác này chỉ đổi số lượng tồn của mặt hàng.</p>
+    <label>Số lượng tồn mới<input id="directStockValue" type="number" min="0" step="1" value="${p.stock}" inputmode="decimal"></label>
+    <label>Lý do / ghi chú<input id="directStockNote" placeholder="VD: chỉnh tồn đầu kỳ, sửa số nhập nhầm"></label>
+    <div class="stock-presets">
+      <button class="ghost stockPreset" data-v="0">Về 0</button>
+      <button class="ghost stockPreset" data-v="${Math.max(0,(Number(p.stock)||0)-1)}">−1</button>
+      <button class="ghost stockPreset" data-v="${(Number(p.stock)||0)+1}">+1</button>
+      <button class="ghost stockPreset" data-v="${(Number(p.stock)||0)+(Number(p.packSize)||1)}">+1 thùng</button>
+    </div>
+    <button id="saveDirectStock" class="primary full">Lưu số lượng tồn</button>`);
+  $$(".stockPreset").forEach(b=>b.onclick=()=>$("#directStockValue").value=b.dataset.v);
+  $("#saveDirectStock").onclick=async()=>{
+    const next=Math.max(0,Number($("#directStockValue").value)||0);
+    try{
+      await mutate("product.stock.set",{id:p.id,stock:next,note:$("#directStockNote").value});
+      closeModal();toast(`Đã chỉnh tồn ${p.name}: ${num(next)} ${p.unit}`);
+    }catch(e){toast(e.message,true)}
+  };
+}
+
 function showProductForm(p){showModal(`<h3>${p?"Chỉnh":"Thêm"} sản phẩm</h3><div class="form-grid"><label>Tên<input id="pName" value="${esc(p?.name||"")}"></label><label>Nhóm<input id="pCat" value="${esc(p?.category||"Nước")}"></label><label>Đơn vị<input id="pUnit" value="${esc(p?.unit||"chai")}"></label><label>Quy cách<input id="pPack" value="${p?.packSize||1}" inputmode="numeric"></label><label>Giá nhập/đv<input id="pCost" value="${p?.costPrice||0}" inputmode="numeric"></label><label>Giá bán<input id="pSale" value="${p?.salePrice||0}" inputmode="numeric"></label><label>Tồn hiện tại<input id="pStock" value="${p?.stock||0}" inputmode="numeric"></label><label>Tồn tối thiểu<input id="pMin" value="${p?.minStock||0}" inputmode="numeric"></label></div><div class="row"><button id="saveProduct" class="primary">Lưu</button>${p?'<button id="deleteProduct" class="file-btn" style="background:#b42318">Xóa</button>':""}</div>`);$("#saveProduct").onclick=async()=>{const payload={id:p?.id,name:$("#pName").value,category:$("#pCat").value,unit:$("#pUnit").value,packSize:+$("#pPack").value||1,costPrice:parseMoney($("#pCost").value),salePrice:parseMoney($("#pSale").value),stock:+$("#pStock").value||0,minStock:+$("#pMin").value||0};try{await mutate(p?"product.update":"product.create",payload);closeModal();toast("Đã lưu sản phẩm")}catch(e){toast(e.message,true)}};if(p)$("#deleteProduct").onclick=async()=>{if(confirm("Xóa mặt hàng?"))try{await mutate("product.delete",{id:p.id});closeModal();toast("Đã xóa")}catch(e){toast(e.message,true)}}}
 
 function renderStockin(){const q=norm($("#stockinSearch").value),arr=state.store.products.filter(p=>p.trackStock!==false&&(!q||norm(p.name).includes(q)));$("#stockinProducts").innerHTML=arr.map(p=>`<div class="stockin-row" data-id="${p.id}"><div><strong>${esc(p.name)}</strong><small>Tồn ${num(p.stock)} · ${num(p.packSize)} / thùng</small></div><input class="cases" type="number" min="0" placeholder="Thùng"><input class="units" type="number" min="0" placeholder="Lẻ"></div>`).join("");const hist=[...state.store.stockReceipts].reverse().slice(0,100);$("#stockinHistory").className=`list${hist.length?"":" empty"}`;$("#stockinHistory").innerHTML=hist.length?hist.map(r=>`<div class="list-row" data-id="${r.id}"><div><strong>${new Date(r.createdAt).toLocaleString("vi-VN")}</strong><small>${esc(r.note||"Phiếu nhập")} · ${r.lines.length} mặt hàng</small></div><button class="ghost danger-text deleteReceipt">Xóa</button></div>`).join(""):"Chưa có phiếu.";$("#stockinHistory").querySelectorAll(".deleteReceipt").forEach(b=>b.onclick=async()=>{if(confirm("Xóa phiếu và trừ lại kho?"))try{await mutate("stockin.delete",{id:b.closest(".list-row").dataset.id});toast("Đã xóa phiếu")}catch(e){toast(e.message,true)}})}

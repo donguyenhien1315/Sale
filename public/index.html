@@ -12,7 +12,7 @@
   <div id="boot" class="boot">Đang đồng bộ dữ liệu…</div>
   <header class="topbar">
     <div>
-      <div class="eyebrow">CANTIN AI NEXT</div>
+      <div class="eyebrow">CANTIN AI NEXT 4.2</div>
       <h1 id="storeName">Cửa hàng chính</h1>
     </div>
     <div class="top-actions">
@@ -94,9 +94,29 @@
       <article class="panel"><div class="panel-head"><h3>Lịch sử kiểm kho</h3></div><div id="auditHistory" class="list empty"></div></article>
     </section>
 
+
+    <section class="page" data-page="ingredients">
+      <div class="page-head">
+        <div><div class="eyebrow">NGUYÊN LIỆU CÀ PHÊ</div><h2>Kho & giá nguyên liệu</h2></div>
+        <button id="addIngredientBtn" class="primary small">+ Nguyên liệu</button>
+      </div>
+      <article class="panel">
+        <p class="hint">Giá và định mức ban đầu được lấy từ file quản lý cà phê. Có thể chỉnh giá nhập, quy cách và tồn thực tế bất kỳ lúc nào.</p>
+        <input id="ingredientSearch" class="search" placeholder="Tìm nguyên liệu…">
+        <div id="ingredients" class="list"></div>
+      </article>
+    </section>
+
     <section class="page" data-page="products">
-      <div class="page-head"><div><div class="eyebrow">SẢN PHẨM</div><h2>Danh mục hàng hóa</h2></div><button id="addProductBtn" class="primary small">+ Mặt hàng</button></div>
-      <input id="productSearch" class="search" placeholder="Tìm sản phẩm…">
+      <div class="page-head"><div><div class="eyebrow">QUẢN LÝ MẶT HÀNG</div><h2>Mặt hàng & tồn kho</h2></div><button id="addProductBtn" class="primary small">+ Mặt hàng</button></div>
+      <article class="panel inventory-direct-note">
+        <strong>Điều chỉnh tồn độc lập</strong>
+        <p class="hint">Thay đổi số lượng ở đây chỉ cập nhật tồn kho của mặt hàng. Không tạo đơn bán, không thay doanh thu/lợi nhuận, không tạo kiểm kho và không ảnh hưởng công nợ.</p>
+      </article>
+      <div class="toolbar">
+        <input id="productSearch" class="search" placeholder="Tìm sản phẩm…">
+        <select id="productSort"><option value="name">Tên A → Z</option><option value="stock-low">Tồn ít → nhiều</option><option value="stock-high">Tồn nhiều → ít</option></select>
+      </div>
       <div id="products" class="list"></div>
     </section>
 
@@ -137,6 +157,7 @@
     <button class="nav" data-target="debts">Công nợ</button>
     <button class="nav" data-target="stockin">Nhập kho</button>
     <button class="nav" data-target="audit">Kiểm kho</button>
+    <button class="nav" data-target="ingredients">Nguyên liệu</button>
     <button class="nav" data-target="assistant">AI</button>
     <button class="nav more" data-target="data">Khác</button>
   </nav>
