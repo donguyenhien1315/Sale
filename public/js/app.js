@@ -34,11 +34,11 @@ function renderAll(){
   $("#storeName").textContent=state.store.meta?.name||"Cửa hàng";
   $("#storeSelect").innerHTML=state.stores.map(s=>`<option value="${s.id}" ${s.id===state.storeId?"selected":""}>${esc(s.name)}</option>`).join("");
   $("#saleDate").value=$("#saleDate").value||dtLocal();$("#stockinDate").value=$("#stockinDate").value||dtLocal();
-  renderDashboard();renderExpenses();renderIngredients();renderProducts();renderSales();renderCustomers();renderStockin();renderAudit();renderTransactions();renderSnapshots();renderStores();renderQuickProducts();renderCart();
+  renderDashboard();renderExpenses();renderFinanceReport();renderIngredients();renderProducts();renderSales();renderCustomers();renderStockin();renderAudit();renderTransactions();renderSnapshots();renderStores();renderQuickProducts();renderCart();
 }
 function navigate(page){
   $$(".page").forEach(p=>p.classList.toggle("active",p.dataset.page===page));
-  $$(".nav").forEach(n=>n.classList.toggle("active",n.dataset.target===page));
+  $$(".nav").forEach(b=>b.onclick=()=>goPage(b.dataset.target));
   window.scrollTo({top:0,behavior:"smooth"});
 }
 $$(".nav,.nav-target").forEach(b=>b.addEventListener("click",()=>navigate(b.dataset.target)));
@@ -58,6 +58,22 @@ function dashboardData(){
   const low=state.store.products.filter(p=>p.active!==false&&p.trackStock!==false&&(+p.stock||0)<= (+p.minStock||0));
   return {rev,profit,debt,low};
 }
+
+
+function updateFab(target){const fab=$("#contextFab");if(!fab)return;fab.classList.remove("hidden");const cfg={customers:()=>$("#addCustomerBtn")?.click(),audit:()=>$('.inventory-subtabs [data-subtab="audit-stockin"]')?.click(),products:()=>$("#addProductBtn")?.click(),ingredients:()=>$("#addIngredientBtn")?.click(),expenses:()=>$("#addExpenseBtn")?.click()};if(cfg[target])fab.onclick=cfg[target];else{fab.classList.add("hidden");fab.onclick=null}}
+function goPage(target){
+  $$(".page").forEach(p=>p.classList.toggle("active",p.dataset.page===target));
+  $$(".bottom-nav .nav").forEach(n=>{
+    const mapped=target==="products"||target==="ingredients"?"audit":target==="expenses"?"dashboard":target==="data"||target==="activity"?"assistant":target;
+    n.classList.toggle("active",n.dataset.target===mapped);
+  });
+  window.scrollTo({top:0,behavior:"smooth"});
+  if(target==="expenses"){renderExpenses();renderFinanceReport();}
+  if(target==="audit")renderAudit();
+  if(target==="products")renderProducts();
+  if(target==="ingredients")renderIngredients();updateFab(target);
+}
+function renderFinanceReport(){const range=financeRange(),f=financeForRange(state.store,range),debt=(state.store.debts||[]).reduce((s,d)=>s+(Number(d.balance)||0),0);[["#reportRevenue",f.revenue],["#reportCashIn",f.cashIn],["#reportCogs",f.cogs],["#reportOpex",f.opEx],["#reportGross",f.gross],["#reportNet",f.net],["#reportCashFlow",f.cashFlow],["#reportDebt",debt]].forEach(([id,v])=>{if($(id))$(id).textContent=money(v)});if($("#revenueBreakdown")){const sales=f.sales,cash=sales.filter(s=>String(s.paymentMethod||s.payment||"cash").toLowerCase()==="cash").reduce((a,s)=>a+saleRevenue(s),0),transfer=sales.filter(s=>String(s.paymentMethod||s.payment||"").toLowerCase()==="transfer").reduce((a,s)=>a+saleRevenue(s),0),debtSales=sales.filter(s=>["debt","credit"].includes(String(s.paymentMethod||s.payment||"").toLowerCase())).reduce((a,s)=>a+saleRevenue(s),0),paidDebt=debtPaymentsCash(state.store).filter(x=>inRange(x.createdAt,range)).reduce((a,x)=>a+x.amount,0);$("#revenueBreakdown").innerHTML=`<div><span>Tiền mặt bán hàng</span><strong>${money(cash)}</strong></div><div><span>Chuyển khoản bán hàng</span><strong>${money(transfer)}</strong></div><div><span>Bán ghi nợ</span><strong>${money(debtSales)}</strong></div><div><span>Thu nợ</span><strong>${money(paidDebt)}</strong></div>`}const cats=categoryProfit(state.store,range);if($("#profitByCategory"))$("#profitByCategory").innerHTML=cats.length?cats.map((x,i)=>`<button class="profit-category" data-i="${i}"><span>${esc(x.category)}</span><strong>${money(x.profit)}</strong><small>DT ${money(x.revenue)}</small></button>`).join(""):'<div class="hint">Chưa có dữ liệu bán hàng.</div>';if($("#profitByProduct"))$("#profitByProduct").innerHTML="";$$(".profit-category").forEach(b=>b.onclick=()=>{const x=cats[Number(b.dataset.i)];$("#profitByProduct").innerHTML=[...x.products.values()].sort((a,b)=>b.profit-a.profit).map(p=>`<div class="finance-breakdown-row"><span>${esc(p.name)}</span><strong>${money(p.profit)}</strong></div>`).join("")});renderSuppliers();renderBudgets()}
 
 function dateKeyOf(v){return String(v||"").slice(0,10)}
 function monthKeyOf(v){return String(v||"").slice(0,7)}
@@ -84,6 +100,14 @@ function debtPaymentsCash(store){
 function operatingExpenses(store){
   return (store.expenses||[]).filter(e=>e.type!=="stockin" && e.includeInProfit!==false);
 }
+
+function parseLocalDate(s){const [y,m,d]=s.split("-").map(Number);return new Date(y,m-1,d)}
+function isoKey(d){return `${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,"0")}-${String(d.getDate()).padStart(2,"0")}`}
+function financeRange(){const preset=$("#financeRangePreset")?.value||"today",now=new Date();let from=todayKey(),to=todayKey();if(preset==="yesterday"){const d=new Date(now);d.setDate(d.getDate()-1);from=to=isoKey(d)}if(preset==="7d"){const d=new Date(now);d.setDate(d.getDate()-6);from=isoKey(d)}if(preset==="month"){from=`${now.getFullYear()}-${String(now.getMonth()+1).padStart(2,"0")}-01`}if(preset==="custom"){from=$("#financeFrom")?.value||from;to=$("#financeTo")?.value||to}return {from,to}}
+function inRange(v,r){const k=dateKeyOf(v);return k>=r.from&&k<=r.to}
+function financeForRange(store,r){const sales=(store.sales||[]).filter(s=>inRange(s.createdAt,r));const revenue=sales.reduce((a,s)=>a+saleRevenue(s),0),cogs=sales.reduce((a,s)=>a+saleCost(s),0),salesCash=sales.reduce((a,s)=>a+saleCashCollected(s),0),debtCash=debtPaymentsCash(store).filter(x=>inRange(x.createdAt,r)).reduce((a,x)=>a+x.amount,0),allExp=(store.expenses||[]).filter(e=>inRange(e.createdAt,r)),cashOut=allExp.filter(e=>e.paymentStatus!=="unpaid").reduce((a,e)=>a+(Number(e.amount)||0),0),opEx=allExp.filter(e=>e.type!=="stockin"&&e.includeInProfit!==false).reduce((a,e)=>a+(Number(e.amount)||0),0),gross=revenue-cogs,net=gross-opEx;return {sales,revenue,cogs,cashIn:salesCash+debtCash,cashOut,opEx,gross,net,cashFlow:salesCash+debtCash-cashOut}}
+function categoryProfit(store,r){const map=new Map();for(const s of (store.sales||[]).filter(x=>inRange(x.createdAt,r)))for(const l of (s.lines||s.items||[])){const p=store.products.find(x=>x.id===l.productId)||{},cat=p.category||"Khác",q=Number(l.qty||l.quantity||0),rev=(Number(l.price)||0)*q,cost=Number(l.cost)||((Number(l.unitCost)||0)*q),x=map.get(cat)||{category:cat,revenue:0,cost:0,profit:0,products:new Map()};x.revenue+=rev;x.cost+=cost;x.profit+=rev-cost;const pn=l.name||p.name||"Mặt hàng",px=x.products.get(pn)||{name:pn,revenue:0,cost:0,profit:0};px.revenue+=rev;px.cost+=cost;px.profit+=rev-cost;x.products.set(pn,px);map.set(cat,x)}return [...map.values()].sort((a,b)=>b.profit-a.profit)}
+
 function financeForDate(store,key){
   const sales=(store.sales||[]).filter(s=>dateKeyOf(s.createdAt)===key);
   const revenue=sales.reduce((s,x)=>s+saleRevenue(x),0);
@@ -97,6 +121,12 @@ function financeForDate(store,key){
   const net=gross-opEx;
   return {revenue,cogs,salesCash,debtCash,cashIn:salesCash+debtCash,cashOut,gross,net,cashFlow:(salesCash+debtCash)-cashOut};
 }
+
+function renderWeekChart(){const box=$("#weekChart");if(!box)return;const rows=[],now=new Date();for(let i=6;i>=0;i--){const d=new Date(now);d.setDate(d.getDate()-i);const key=isoKey(d),f=financeForDate(state.store,key);rows.push({label:`${d.getDate()}/${d.getMonth()+1}`,revenue:f.revenue,expense:f.cashOut,profit:f.net})}const max=Math.max(1,...rows.flatMap(x=>[x.revenue,x.expense,Math.max(0,x.profit)]));box.innerHTML=rows.map(x=>`<div class="week-col"><div class="week-bars"><i class="bar revenue" style="height:${Math.max(2,x.revenue/max*70)}px"></i><i class="bar expense" style="height:${Math.max(2,x.expense/max*70)}px"></i><i class="bar profit" style="height:${Math.max(2,Math.max(0,x.profit)/max*70)}px"></i></div><small>${x.label}</small></div>`).join("")}
+function renderCashbox(){const c=state.store.cashbox||{opening:0,date:todayKey()};const f=financeForDate(state.store,todayKey()),closing=(Number(c.opening)||0)+f.cashIn-f.cashOut;if($("#cashboxOpen"))$("#cashboxOpen").textContent=money(c.opening||0);if($("#cashboxIn"))$("#cashboxIn").textContent=money(f.cashIn);if($("#cashboxOut"))$("#cashboxOut").textContent=money(f.cashOut);if($("#cashboxClose"))$("#cashboxClose").textContent=money(closing)}
+function showCashboxEdit(){const c=state.store.cashbox||{opening:0};showModal(`<h3>Quỹ tiền mặt</h3><label>Số dư đầu ngày<input id="cashboxOpening" value="${c.opening||0}" inputmode="decimal"></label><label>Ghi chú<input id="cashboxNote" value="${esc(c.note||"")}"></label><button id="saveCashbox" class="primary full">Lưu</button>`);$("#saveCashbox").onclick=async()=>{try{await mutate("cashbox.set",{opening:parseMoney($("#cashboxOpening").value),note:$("#cashboxNote").value,date:todayKey()});closeModal();toast("Đã cập nhật quỹ")}catch(e){toast(e.message,true)}}}
+$("#editCashboxBtn")?.addEventListener("click",showCashboxEdit);$("#openFinanceReport2")?.addEventListener("click",()=>goPage("expenses"));
+
 function renderFinanceDashboard(){
   const f=financeForDate(state.store,todayKey());
   if($("#financeRevenueToday"))$("#financeRevenueToday").textContent=money(f.revenue);
@@ -105,6 +135,10 @@ function renderFinanceDashboard(){
   if($("#grossProfitToday"))$("#grossProfitToday").textContent=money(f.gross);
   if($("#netProfitToday"))$("#netProfitToday").textContent=money(f.net);
   if($("#cashFlowToday"))$("#cashFlowToday").textContent=money(f.cashFlow);
+  const debt=(state.store.debts||[]).reduce((s,d)=>s+(Number(d.balance)||0),0);
+  const low=(state.store.products||[]).filter(p=>p.trackStock!==false&&(Number(p.stock)||0)<=(Number(p.minStock)||0)).length;
+  if($("#miniDebtValue"))$("#miniDebtValue").textContent=money(debt);
+  if($("#miniLowValue"))$("#miniLowValue").textContent=low;renderWeekChart();renderCashbox();
 }
 
 function renderDashboard(){renderFinanceDashboard();
@@ -114,7 +148,7 @@ function renderDashboard(){renderFinanceDashboard();
   const weird=state.store.debts.filter(x=>x.balance>0&&x.balance<1000);weird.forEach(x=>{const c=state.store.customers.find(c=>c.id===x.customerId);insights.push({t:`Kiểm tra khoản nợ nhỏ: ${c?.name||""}`,d:`${money(x.balance)} · ${x.note||""}`,target:"debts"})});
   $("#insights").className=`list${insights.length?"":" empty"}`;$("#insights").innerHTML=insights.length?insights.map(x=>`<div class="list-row"><div><strong>${esc(x.t)}</strong><small>${esc(x.d)}</small></div><button class="ghost nav-target" data-target="${x.target}">Mở</button></div>`).join(""):"Không có cảnh báo đáng chú ý.";
   $("#insights").querySelectorAll(".nav-target").forEach(b=>b.onclick=()=>navigate(b.dataset.target));
-  const tx=[...state.store.transactions].reverse().slice(0,5);$("#recentTx").className=`list${tx.length?"":" empty"}`;$("#recentTx").innerHTML=tx.length?tx.map(t=>`<div class="list-row"><div><strong>${esc(t.summary)}</strong><small>${new Date(t.createdAt).toLocaleString("vi-VN")}</small></div></div>`).join(""):"Chưa có thao tác.";
+  const tx=[...state.store.transactions].reverse().slice(0,2);$("#recentTx").className=`list${tx.length?"":" empty"}`;$("#recentTx").innerHTML=tx.length?tx.map(t=>`<div class="list-row"><div><strong>${esc(t.summary)}</strong><small>${new Date(t.createdAt).toLocaleString("vi-VN")}</small></div></div>`).join(""):"Chưa có thao tác.";
 }
 $("#refreshInsights").onclick=renderDashboard;
 
@@ -229,6 +263,15 @@ $("#debtSearch").oninput=renderCustomers;$("#debtSort").onchange=renderCustomers
 $("#addCustomerBtn").onclick=()=>{showModal(`<h3>Thêm khách hàng</h3><label>Tên<input id="newCustomerName"></label><button id="saveCustomer" class="primary full">Lưu</button>`);$("#saveCustomer").onclick=async()=>{try{await mutate("customer.create",{name:$("#newCustomerName").value});closeModal();toast("Đã thêm khách")}catch(e){toast(e.message,true)}}};
 
 
+
+
+function renderSupplierOptions(){const sel=$("#stockinSupplier");if(!sel)return;const cur=sel.value;sel.innerHTML='<option value="">Không chọn</option>'+(state.store.suppliers||[]).map(s=>`<option value="${s.id}">${esc(s.name)}</option>`).join("");if((state.store.suppliers||[]).some(s=>s.id===cur))sel.value=cur}
+function renderSuppliers(){renderSupplierOptions();const list=state.store.suppliers||[],payables=state.store.payables||[],total=payables.filter(p=>p.status!=="paid").reduce((s,p)=>s+(Number(p.balance)||0),0);if($("#supplierSummary"))$("#supplierSummary").innerHTML=`<span>${list.length} nhà cung cấp</span><span>Phải trả <strong>${money(total)}</strong></span>`;const box=$("#suppliersList");if(!box)return;box.innerHTML=list.length?list.map(s=>{const debt=payables.filter(p=>p.supplierId===s.id&&p.status!=="paid").reduce((a,p)=>a+(Number(p.balance)||0),0);return `<div class="list-row" data-id="${s.id}"><div><strong>${esc(s.name)}</strong><small>${esc(s.phone||"")} · phải trả ${money(debt)}</small></div><button class="ghost paySupplier">Thanh toán</button></div>`}).join(""):'<div class="hint">Chưa có nhà cung cấp.</div>';box.querySelectorAll(".paySupplier").forEach(b=>b.onclick=()=>showSupplierPayment((state.store.suppliers||[]).find(x=>x.id===b.closest(".list-row").dataset.id)))}
+function showSupplierForm(){showModal(`<h3>Thêm nhà cung cấp</h3><label>Tên<input id="supName"></label><label>Điện thoại<input id="supPhone"></label><button id="saveSupplier" class="primary full">Lưu</button>`);$("#saveSupplier").onclick=async()=>{try{await mutate("supplier.create",{name:$("#supName").value,phone:$("#supPhone").value});closeModal();toast("Đã thêm nhà cung cấp")}catch(e){toast(e.message,true)}}}
+function showSupplierPayment(s){const debt=(state.store.payables||[]).filter(p=>p.supplierId===s.id&&p.status!=="paid").reduce((a,p)=>a+(Number(p.balance)||0),0);showModal(`<h3>Thanh toán ${esc(s.name)}</h3><p class="hint">Đang phải trả ${money(debt)}</p><label>Số tiền<input id="supPayAmount" value="${debt}"></label><label>Phương thức<select id="supPayMethod"><option value="cash">Tiền mặt</option><option value="transfer">Chuyển khoản</option></select></label><button id="saveSupPay" class="primary full">Thanh toán</button>`);$("#saveSupPay").onclick=async()=>{try{await mutate("supplier.pay",{supplierId:s.id,amount:parseMoney($("#supPayAmount").value),method:$("#supPayMethod").value});closeModal();toast("Đã thanh toán")}catch(e){toast(e.message,true)}}}
+function renderBudgets(){const box=$("#budgetsList");if(!box)return;const month=todayKey().slice(0,7),expenses=state.store.expenses||[],arr=state.store.budgets||[];box.innerHTML=arr.length?arr.map(b=>{const spent=expenses.filter(e=>monthKeyOf(e.createdAt)===month&&e.type===b.type).reduce((s,e)=>s+(Number(e.amount)||0),0),pct=b.limit?Math.round(spent/b.limit*100):0;return `<div class="budget-row" data-id="${b.id}"><div><strong>${esc(b.name)}</strong><small>${money(spent)} / ${money(b.limit)} · ${pct}%</small><div class="budget-progress"><i style="width:${Math.min(100,pct)}%"></i></div></div><button class="ghost deleteBudget">Xóa</button></div>`}).join(""):'<div class="hint">Chưa đặt ngân sách.</div>';box.querySelectorAll(".deleteBudget").forEach(b=>b.onclick=async()=>{if(confirm("Xóa ngân sách?"))try{await mutate("budget.delete",{id:b.closest(".budget-row").dataset.id});toast("Đã xóa")}catch(e){toast(e.message,true)}})}
+function showBudgetForm(){showModal(`<h3>Thêm ngân sách tháng</h3><label>Tên<input id="budgetName"></label><label>Loại chi<select id="budgetType"><option value="transport">Vận chuyển</option><option value="electricity">Điện / nước</option><option value="supplies">Vật tư</option><option value="ingredient">Nguyên liệu cà phê</option><option value="manual">Chi khác</option></select></label><label>Giới hạn<input id="budgetLimit" placeholder="VD 1tr"></label><button id="saveBudget" class="primary full">Lưu</button>`);$("#saveBudget").onclick=async()=>{try{await mutate("budget.create",{name:$("#budgetName").value,type:$("#budgetType").value,limit:parseMoney($("#budgetLimit").value)});closeModal();toast("Đã thêm ngân sách")}catch(e){toast(e.message,true)}}}
+$("#addSupplierBtn")?.addEventListener("click",showSupplierForm);$("#addBudgetBtn")?.addEventListener("click",showBudgetForm);
 
 function renderExpenses(){
   const all=state.store.expenses||[];
@@ -395,7 +438,7 @@ $("#stockinSearch").oninput=renderStockin;$("#saveStockin").onclick=async()=>{
   if(!lines.length)return toast("Chưa nhập số lượng",true);
   const totalCost=lines.reduce((s,x)=>s+x.cost,0);
   try{
-    await mutate("stockin.create",{createdAt:$("#stockinDate").value+"T05:00:00.000Z",note:$("#stockinNote").value,lines,totalCost});
+    await mutate("stockin.create",{createdAt:$("#stockinDate").value+"T05:00:00.000Z",note:$("#stockinNote").value,lines,totalCost,supplierId:$("#stockinSupplier")?.value||"",paymentStatus:$("#stockinPaymentStatus")?.value||"paid",method:$("#stockinMethod")?.value||"cash"});
     toast(`Đã nhập kho · Chi ${money(totalCost)}`);
   }catch(e){toast(e.message,true)}
 };
@@ -430,6 +473,28 @@ $$(".inventory-subtabs .subtab").forEach(btn=>btn.addEventListener("click",()=>{
   $$('[data-subpage^="audit-"]').forEach(p=>p.classList.toggle("active",p.dataset.subpage===key));
   if(key==="audit-stockin")renderStockin();else renderAudit();
 }));
+
+
+$("#financeRangePreset")?.addEventListener("change",()=>{const c=$("#financeRangePreset").value==="custom";$("#financeFrom")?.classList.toggle("hidden",!c);$("#financeTo")?.classList.toggle("hidden",!c);renderFinanceReport()});$("#financeFrom")?.addEventListener("change",renderFinanceReport);$("#financeTo")?.addEventListener("change",renderFinanceReport);
+$("#openFinanceReport")?.addEventListener("click",()=>goPage("expenses"));
+$$("[data-finance-open]").forEach(b=>b.addEventListener("click",()=>{
+  goPage("expenses");
+  const want=b.dataset.financeOpen==="expense"?"finance-expense":b.dataset.financeOpen==="revenue"?"finance-revenue":"finance-summary";
+  $$(".finance-tabs .subtab").forEach(x=>x.classList.toggle("active",x.dataset.financeTab===want));
+  $$("[data-finance-page]").forEach(x=>x.classList.toggle("active",x.dataset.financePage===want));
+}));
+$$(".finance-tabs .subtab").forEach(b=>b.addEventListener("click",()=>{
+  const key=b.dataset.financeTab;
+  $$(".finance-tabs .subtab").forEach(x=>x.classList.toggle("active",x===b));
+  $$("[data-finance-page]").forEach(x=>x.classList.toggle("active",x.dataset.financePage===key));
+  renderFinanceReport();
+}));
+$$(".warehouse-jump").forEach(b=>b.addEventListener("click",()=>goPage(b.dataset.jump)));
+$$(".back-to-warehouse").forEach(b=>b.addEventListener("click",()=>goPage("audit")));
+$$(".more-jump").forEach(b=>b.addEventListener("click",()=>goPage(b.dataset.jump)));
+$$(".back-to-more").forEach(b=>b.addEventListener("click",()=>goPage("assistant")));
+$("#miniDebtLink")?.addEventListener("click",()=>goPage("customers"));
+$("#miniLowLink")?.addEventListener("click",()=>goPage("products"));
 
 boot();
 
