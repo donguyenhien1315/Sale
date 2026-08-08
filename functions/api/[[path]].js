@@ -27,7 +27,7 @@ async function readRootRaw(){
   return v;
 }
 
-function emptyStore(name="Cửa hàng chính"){return {meta:{name,createdAt:now(),version:"4.12.1"},config:{money:{under1000MeansThousands:true},ai:{preview:true,safetyMode:"preview",autoIngredientDeduct:false},ui:{compactDebt:true}},products:[],ingredients:[{"id": "ing-ca-phe-phin", "name": "Cà phê phin", "purchasePrice": 1085000, "packageQty": 7000, "unit": "g", "unitCost": 155, "stock": 0, "note": "240g pha được 500ml cà phê phin"}, {"id": "ing-ca-phe-may", "name": "Cà phê máy", "purchasePrice": 234000, "packageQty": 1000, "unit": "g", "unitCost": 234, "stock": 0, "note": "Tạm tính gói 1kg; sửa nếu khác"}, {"id": "ing-bot-kem-muoi", "name": "Bột kem muối", "purchasePrice": 80000, "packageQty": 500, "unit": "g", "unitCost": 160, "stock": 0, "note": "Người dùng cung cấp"}, {"id": "ing-sua-dac", "name": "Sữa đặc", "purchasePrice": 450000, "packageQty": 9120, "unit": "ml", "unitCost": 49.3421052632, "stock": 0, "note": "24 hộp x 380ml"}, {"id": "ing-sua-tuoi", "name": "Sữa tươi", "purchasePrice": 35000, "packageQty": 1000, "unit": "ml", "unitCost": 35, "stock": 0, "note": "1 lít giá 35.000"}, {"id": "ing-duong", "name": "Đường", "purchasePrice": 25000, "packageQty": 1000, "unit": "g", "unitCost": 25, "stock": 0, "note": "Tạm tính 25.000/kg; sửa theo thực tế"}],customers:[],debts:[],sales:[],stockReceipts:[],audits:[],transactions:[],snapshots:[],aliases:[]}}
+function emptyStore(name="Cửa hàng chính"){return {meta:{name,createdAt:now(),version:"4.12.2"},config:{money:{under1000MeansThousands:true},ai:{preview:true,safetyMode:"preview",autoIngredientDeduct:false},ui:{compactDebt:true}},products:[],ingredients:[{"id": "ing-ca-phe-phin", "name": "Cà phê phin", "purchasePrice": 1085000, "packageQty": 7000, "unit": "g", "unitCost": 155, "stock": 0, "note": "240g pha được 500ml cà phê phin"}, {"id": "ing-ca-phe-may", "name": "Cà phê máy", "purchasePrice": 234000, "packageQty": 1000, "unit": "g", "unitCost": 234, "stock": 0, "note": "Tạm tính gói 1kg; sửa nếu khác"}, {"id": "ing-bot-kem-muoi", "name": "Bột kem muối", "purchasePrice": 80000, "packageQty": 500, "unit": "g", "unitCost": 160, "stock": 0, "note": "Người dùng cung cấp"}, {"id": "ing-sua-dac", "name": "Sữa đặc", "purchasePrice": 450000, "packageQty": 9120, "unit": "ml", "unitCost": 49.3421052632, "stock": 0, "note": "24 hộp x 380ml"}, {"id": "ing-sua-tuoi", "name": "Sữa tươi", "purchasePrice": 35000, "packageQty": 1000, "unit": "ml", "unitCost": 35, "stock": 0, "note": "1 lít giá 35.000"}, {"id": "ing-duong", "name": "Đường", "purchasePrice": 25000, "packageQty": 1000, "unit": "g", "unitCost": 25, "stock": 0, "note": "Tạm tính 25.000/kg; sửa theo thực tế"}],customers:[],debts:[],sales:[],stockReceipts:[],audits:[],transactions:[],snapshots:[],aliases:[]}}
 function ensureStore(s,name){const x=s&&typeof s==="object"?s:{};const e=emptyStore(name);for(const k of Object.keys(e))if(x[k]===undefined)x[k]=clone(e[k]);for(const k of ["products","ingredients","customers","debts","sales","stockReceipts","audits","transactions","snapshots","aliases"])if(!Array.isArray(x[k]))x[k]=[];x.meta={...e.meta,...(x.meta||{})};x.config={...e.config,...(x.config||{})};x.config.ai={...e.config.ai,...(x.config.ai||{})};x.config.money={...e.config.money,...(x.config.money||{})};x.config.ui={...e.config.ui,...(x.config.ui||{})};if(!Array.isArray(x.ingredients)||!x.ingredients.length)x.ingredients=clone([{"id": "ing-ca-phe-phin", "name": "Cà phê phin", "purchasePrice": 1085000, "packageQty": 7000, "unit": "g", "unitCost": 155, "stock": 0, "note": "240g pha được 500ml cà phê phin"}, {"id": "ing-ca-phe-may", "name": "Cà phê máy", "purchasePrice": 234000, "packageQty": 1000, "unit": "g", "unitCost": 234, "stock": 0, "note": "Tạm tính gói 1kg; sửa nếu khác"}, {"id": "ing-bot-kem-muoi", "name": "Bột kem muối", "purchasePrice": 80000, "packageQty": 500, "unit": "g", "unitCost": 160, "stock": 0, "note": "Người dùng cung cấp"}, {"id": "ing-sua-dac", "name": "Sữa đặc", "purchasePrice": 450000, "packageQty": 9120, "unit": "ml", "unitCost": 49.3421052632, "stock": 0, "note": "24 hộp x 380ml"}, {"id": "ing-sua-tuoi", "name": "Sữa tươi", "purchasePrice": 35000, "packageQty": 1000, "unit": "ml", "unitCost": 35, "stock": 0, "note": "1 lít giá 35.000"}, {"id": "ing-duong", "name": "Đường", "purchasePrice": 25000, "packageQty": 1000, "unit": "g", "unitCost": 25, "stock": 0, "note": "Tạm tính 25.000/kg; sửa theo thực tế"}]);for(const i of x.ingredients)i.category=i.category||"Nguyên liệu cà phê";return x}
 
 function dataWeight(root){
@@ -42,7 +42,7 @@ function dataWeight(root){
 function normalizeLegacyStore(input,name="Cửa hàng chính"){
   const src=clone(input||{});
   const out=ensureStore(src);
-  out.meta={...(out.meta||{}),name:out.meta?.name||name,version:"4.12.1"};
+  out.meta={...(out.meta||{}),name:out.meta?.name||name,version:"4.12.2"};
   // Preserve legacy arrays instead of dropping them.
   if((!Array.isArray(out.audits)||!out.audits.length)&&Array.isArray(src.weeklyAudits)){
     out.audits=src.weeklyAudits.map(a=>({
@@ -117,7 +117,7 @@ async function writeRoot(root){
 
   root.revision=(Number(root.revision)||0)+1;
   const token=uid();
-  root.persist={token,writtenAt:now(),version:"4.12.1"};
+  root.persist={token,writtenAt:now(),version:"4.12.2"};
 
   await rpc("cantin_write_store_public",{p_data:root});
 
@@ -187,6 +187,44 @@ function auditVarianceReport(st){
 function parseBulkAudit(st,msg,context={}){const text=String(msg||"").replace(/^(kiểm kho|kiem kho)(?:\s+\S+)?\s*[:\-]?/i,"").trim(),parts=text.split(/[,;\n]+/).map(x=>x.trim()).filter(Boolean),lines=[];let lastProduct=null;for(const part of parts){let p=context.resolvedProductId&&parts.length===1?st.products.find(x=>x.id===context.resolvedProductId):findProduct(st,part,lastProduct?.id||context.productId);if(!p)continue;let actual=null;if(/\b(hết|het)\b/i.test(part))actual=0;else{const nums=[...part.matchAll(/(\d+(?:[.,]\d+)?)/g)].map(m=>Number(m[1].replace(",",".")));if(nums.length)actual=nums.at(-1)}if(actual===null)continue;lines.push({productId:p.id,name:p.name,actual});lastProduct=p}return lines}
 function parseBulkStockin(st,msg,context={}){const text=String(msg||"").replace(/^(nhập kho|nhap kho|nhập|nhap)\s*[:\-]?/i,"").trim(),parts=text.split(/[,;\n]+/).map(x=>x.trim()).filter(Boolean),map=new Map();let lastProduct=null;for(const part of parts){let p=findProduct(st,part,lastProduct?.id||context.productId);if(!p&&lastProduct)p=lastProduct;if(!p)continue;let q=0;for(const m of part.matchAll(/(\d+(?:[.,]\d+)?)\s*(thùng|thung|két|ket|chai|lon|cái|cai|gói|goi|ly|lẻ|le)\b/gi)){let n=Number(m[1].replace(",",".")),u=norm(m[2]);if(u==="thung"||u==="ket")n*=+p.packSize||1;q+=n}if(!q){const m=part.match(/(\d+(?:[.,]\d+)?)/);if(m)q=Number(m[1].replace(",","."))}if(!q)continue;const priceMatch=part.match(/(?:giá|gia|đơn giá|don gia)\s*[:=]?\s*(\d[\d.]*)/i),prev=map.get(p.id)||{productId:p.id,name:p.name,quantity:0,costPrice:null};prev.quantity+=q;if(priceMatch)prev.costPrice=Number(priceMatch[1].replace(/\./g,""));map.set(p.id,prev);lastProduct=p}return [...map.values()]}
 function todaySummaryData(st){const [a,b]=dayRange(0),s=periodSales(st,a,b);let debtPaid=0;for(const d of st.debts||[])for(const p of d.payments||[]){const x=new Date(p.createdAt);if(x>=a&&x<b)debtPaid+=+p.amount||0}const debtNew=(st.debts||[]).filter(d=>{const x=new Date(d.createdAt);return x>=a&&x<b}).reduce((z,d)=>z+(+d.amount||0),0),low=st.products.filter(p=>p.active!==false&&p.trackStock!==false&&(+p.stock||0)<=(+p.minStock||0));return {revenue:s.revenue,profit:s.profit,orders:s.sales,qty:s.qty,debtNew,debtPaid,totalDebt:st.debts.reduce((z,d)=>z+(+d.balance||0),0),low:low.slice(0,8).map(p=>({name:p.name,stock:p.stock,unit:p.unit})),variance:auditVarianceReport(st).slice(0,5)}}
+
+function defaultAuditPeriodKey(value){
+  const d=value?new Date(value):new Date();if(Number.isNaN(d.getTime()))return "";
+  if(d.getDate()<=3)d.setMonth(d.getMonth()-1);
+  return `${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,"0")}`
+}
+function previousAuditForProduct(st,audit,productId){
+  return (st.audits||[]).filter(a=>a.id!==audit.id&&new Date(a.createdAt)<new Date(audit.createdAt)&&(a.lines||[]).some(l=>l.productId===productId)).sort((a,b)=>String(b.createdAt).localeCompare(String(a.createdAt)))[0]||null
+}
+function auditPeriodEstimate(st,periodKey,category=""){
+  const out={periodKey,actualRevenue:0,actualProfit:0,derivedRevenue:0,derivedProfit:0,lossCost:0,unclassifiedQty:0,baselineQty:0,lines:[]};
+  const start=new Date(`${periodKey}-01T00:00:00`),end=new Date(start);end.setMonth(end.getMonth()+1);
+  for(const s of st.sales||[]){
+    const d=new Date(s.createdAt);if(d<start||d>=end)continue;
+    for(const l of s.items||[]){
+      const cat=l.category||st.products.find(p=>p.id===l.productId)?.category||"Khác";if(category&&norm(cat)!==norm(category))continue;
+      const q=+l.quantity||0,sub=+l.subtotal||q*(+l.unitPrice||0);
+      out.actualRevenue+=sub;out.actualProfit+=q*((+l.unitPrice||0)-(+l.costPrice||0))
+    }
+  }
+  for(const a of st.audits||[]){
+    if(a.periodKey!==periodKey)continue;
+    for(const l of a.lines||[]){
+      const p=st.products.find(x=>x.id===l.productId);if(!p)continue;
+      if(category&&norm(p.category||"Khác")!==norm(category))continue;
+      const prev=previousAuditForProduct(st,a,l.productId),unexplained=Math.max(0,(+l.before||0)-(+l.actual||0));
+      if(!prev){out.baselineQty+=unexplained;continue}
+      const type=l.reconcileType||"unclassified",salePrice=l.salePriceSnapshot??p.salePrice??0,costPrice=l.costPriceSnapshot??p.costPrice??0;
+      if(type==="unrecorded_sale"){out.derivedRevenue+=unexplained*salePrice;out.derivedProfit+=unexplained*(salePrice-costPrice)}
+      else if(type==="loss")out.lossCost+=unexplained*costPrice;
+      else if(type==="unclassified")out.unclassifiedQty+=unexplained;
+      if(unexplained>0)out.lines.push({auditId:a.id,productId:p.id,name:p.name,category:p.category||"Khác",from:prev.createdAt,to:a.createdAt,periodKey,type,quantity:unexplained,salePrice,costPrice,revenue:type==="unrecorded_sale"?unexplained*salePrice:0,lossCost:type==="loss"?unexplained*costPrice:0})
+    }
+  }
+  out.estimatedRevenue=out.actualRevenue+out.derivedRevenue;
+  out.estimatedProfit=out.actualProfit+out.derivedProfit-out.lossCost;
+  return out
+}
 
 function applyAction(root,action,p){
   const holder=active(root),st=holder.data;
@@ -371,17 +409,17 @@ function applyAction(root,action,p){
     }
 
     case "audit.create": {
-      const lines=[];
-      for(const r of p.lines||[]){const pr=st.products.find(x=>x.id===r.productId);if(!pr)continue;const before=qty(pr.stock),actual=qty(r.actual),delta=actual-before;pr.stock=actual;lines.push({productId:pr.id,name:pr.name,before,actual,delta,sold:Math.max(0,before-actual)})}
+      const lines=[],createdAt=p.createdAt||now(),periodKey=String(p.periodKey||defaultAuditPeriodKey(createdAt)),defaultType=String(p.defaultReconcileType||"unrecorded_sale");
+      for(const r of p.lines||[]){const pr=st.products.find(x=>x.id===r.productId);if(!pr)continue;const before=qty(pr.stock),actual=qty(r.actual),delta=actual-before;pr.stock=actual;lines.push({productId:pr.id,name:pr.name,before,actual,delta,sold:Math.max(0,before-actual),reconcileType:String(r.reconcileType||defaultType),salePriceSnapshot:+pr.salePrice||0,costPriceSnapshot:+pr.costPrice||0})}
       if(!lines.length)bad("Phiếu kiểm kho trống");
-      st.audits.push({id:uid(),createdAt:p.createdAt||now(),note:String(p.note||""),lines});
-      tx(st,action,`Kiểm kho ${lines.length} mặt hàng`);break;
+      st.audits.push({id:uid(),createdAt,periodKey,revenuePeriodEnabled:true,note:String(p.note||""),lines});
+      tx(st,action,`Kiểm kho ${lines.length} mặt hàng · kỳ ${periodKey}`);break;
     }
     case "audit.update": {
       const a=st.audits.find(a=>a.id===p.id);if(!a)bad("Không tìm thấy đơn kiểm kho");
-      const requested=new Map((p.lines||[]).map(r=>[r.productId,qty(r.actual)]));
-      for(const old of a.lines||[]){if(!requested.has(old.productId))continue;const pr=st.products.find(x=>x.id===old.productId);if(!pr)continue;const next=requested.get(old.productId),prev=qty(old.actual),correction=next-prev;pr.stock=qty(pr.stock)+correction;old.actual=next;old.delta=next-qty(old.before);old.sold=Math.max(0,qty(old.before)-next)}
-      a.note=String(p.note||"");tx(st,action,"Chỉnh đơn kiểm kho theo chênh lệch");break;
+      const requested=new Map((p.lines||[]).map(r=>[r.productId,{actual:qty(r.actual),reconcileType:r.reconcileType}]));
+      for(const old of a.lines||[]){if(!requested.has(old.productId))continue;const pr=st.products.find(x=>x.id===old.productId);if(!pr)continue;const req=requested.get(old.productId),next=req.actual,prev=qty(old.actual),correction=next-prev;pr.stock=qty(pr.stock)+correction;old.actual=next;old.delta=next-qty(old.before);old.sold=Math.max(0,qty(old.before)-next);if(req.reconcileType)old.reconcileType=String(req.reconcileType);if(old.salePriceSnapshot===undefined)old.salePriceSnapshot=+pr.salePrice||0;if(old.costPriceSnapshot===undefined)old.costPriceSnapshot=+pr.costPrice||0}
+      if(p.periodKey!==undefined)a.periodKey=String(p.periodKey||"");a.revenuePeriodEnabled=true;a.note=String(p.note||"");tx(st,action,`Chỉnh đơn kiểm kho theo chênh lệch · kỳ ${a.periodKey||"chưa gán"}`);break;
     }
     case "audit.delete": {
       const i=st.audits.findIndex(a=>a.id===p.id);if(i<0)bad("Không tìm thấy đơn");
@@ -571,7 +609,7 @@ function executePlan(st,plan,message){validateAIPlan(st,plan);
   if(plan.kind==="debt.correct"){const d=st.debts.find(x=>x.id===plan.debtId);if(!d)bad("Không tìm thấy khoản nợ");const old=d.amount;d.amount=+plan.amount||d.amount;d.balance=Math.max(0,d.amount-(+d.paid||0));if(plan.createdAt)d.createdAt=plan.createdAt;if(plan.note!==undefined)d.note=plan.note;if(d.saleId){const s=st.sales.find(x=>x.id===d.saleId);if(s){s.total=d.amount;s.profit=s.total-(+s.costTotal||0);if((s.items||[]).length===1){s.items[0].subtotal=s.total;s.items[0].unitPrice=s.items[0].quantity?s.total/s.items[0].quantity:s.total}}}tx(st,"ai.debt.correct",`AI sửa khoản nợ ${formatMoney(old)} → ${formatMoney(d.amount)}`);return}
   if(plan.kind==="sale.repeat"){const source=st.sales.find(x=>x.id===plan.saleId);if(!source)bad("Không tìm thấy đơn nguồn");const t=saleTotals(st,saleItemsPayload(source));for(const l of t.lines){const p=st.products.find(x=>x.id===l.productId);if(p?.trackStock!==false)p.stock-=l.quantity}const c=source.customerId?st.customers.find(x=>x.id===source.customerId):null,sale={id:uid(),createdAt:now(),items:t.lines,total:t.total,costTotal:t.cost,profit:t.profit,paymentMethod:source.paymentMethod,customerId:c?.id||"",customer:c?.name||"",note:`AI tạo lại từ ${source.id}`};if(sale.paymentMethod==="debt"){if(!c)bad("Đơn nguồn ghi nợ nhưng không còn khách hàng");st.debts.push({id:uid(),customerId:c.id,customer:c.name,amount:sale.total,paid:0,balance:sale.total,note:"Đơn AI tạo lại",createdAt:sale.createdAt,payments:[],saleId:sale.id})}st.sales.push(sale);if(st.config?.ai?.autoIngredientDeduct)adjustIngredientsForItems(st,sale.items,-1);tx(st,"ai.sale.repeat",`AI tạo lại đơn ${formatMoney(sale.total)}`);return}
   if(plan.kind==="sale.modify"){const sale=rewriteSale(st,plan.saleId,plan.next||{});tx(st,"ai.sale.modify",`AI sửa đơn ${sale.id} · ${formatMoney(sale.total)}`);return}
-  if(plan.kind==="inventory.batch"){const lines=[];for(const r of plan.lines||[]){const p=st.products.find(x=>x.id===r.productId);if(!p)continue;const before=+p.stock||0,actual=qty(r.actual);p.stock=actual;lines.push({productId:p.id,name:p.name,before,actual,delta:actual-before,sold:Math.max(0,before-actual)})}if(!lines.length)bad("Không có mặt hàng kiểm kho hợp lệ");st.audits.push({id:uid(),createdAt:plan.createdAt||now(),note:`AI: ${message}`,lines});tx(st,"ai.inventory.batch",`AI kiểm kho ${lines.length} mặt hàng`);return}
+  if(plan.kind==="inventory.batch"){const lines=[];for(const r of plan.lines||[]){const p=st.products.find(x=>x.id===r.productId);if(!p)continue;const before=+p.stock||0,actual=qty(r.actual);p.stock=actual;lines.push({productId:p.id,name:p.name,before,actual,delta:actual-before,sold:Math.max(0,before-actual)})}if(!lines.length)bad("Không có mặt hàng kiểm kho hợp lệ");const createdAt=plan.createdAt||now(),periodKey=plan.periodKey||defaultAuditPeriodKey(createdAt);for(const l of lines){const p=st.products.find(x=>x.id===l.productId);l.reconcileType=plan.defaultReconcileType||"unrecorded_sale";l.salePriceSnapshot=+p?.salePrice||0;l.costPriceSnapshot=+p?.costPrice||0}st.audits.push({id:uid(),createdAt,periodKey,revenuePeriodEnabled:true,note:`AI: ${message}`,lines});tx(st,"ai.inventory.batch",`AI kiểm kho ${lines.length} mặt hàng · kỳ ${periodKey}`);return}
   if(plan.kind==="stockin.batch"){const lines=[];for(const r of plan.lines||[]){const p=st.products.find(x=>x.id===r.productId);if(!p)continue;const q=qty(r.quantity);if(!q)continue;const before=+p.stock||0;p.stock=before+q;if(r.costPrice&&plan.updateCost)p.costPrice=money(r.costPrice);lines.push({productId:p.id,name:p.name,quantity:q,before,after:p.stock,cases:0,units:q})}if(!lines.length)bad("Không có mặt hàng nhập kho hợp lệ");st.stockReceipts.push({id:uid(),createdAt:plan.createdAt||now(),note:`AI: ${message}`,lines});tx(st,"ai.stockin.batch",`AI nhập kho ${lines.length} mặt hàng`);return}
   if(plan.kind==="restore.snapshot"){const s=st.snapshots.find(x=>x.id===plan.snapshotId);if(!s)bad("Không tìm thấy snapshot");const keep=st.snapshots;Object.keys(st).forEach(k=>delete st[k]);Object.assign(st,clone(s.data));st.snapshots=keep;tx(st,"ai.restore",`AI khôi phục ${s.label||"snapshot"}`);return}
   if(plan.kind==="debt.batch"){
@@ -682,7 +720,7 @@ function answerAI(st,msg,context={}){
   if(q.includes("chua tra no")||q.includes("chưa trả nợ")){const dm=msg.match(/(\d+)\s*ngày/i),days=dm?Number(dm[1]):10,cut=Date.now()-days*86400000,rows=st.customers.map(c=>{const debts=st.debts.filter(d=>d.customerId===c.id&&d.balance>0),payments=debts.flatMap(d=>d.payments||[]),last=payments.sort((a,b)=>String(b.createdAt).localeCompare(String(a.createdAt)))[0];return {c,balance:customerDebt(st,c.id),last:last?.createdAt||""}}).filter(x=>x.balance>0&&(!x.last||new Date(x.last).getTime()<cut));return rows.length?`Khách còn nợ và chưa trả trong ${days} ngày:\n${rows.slice(0,15).map(x=>`• ${x.c.name}: ${formatMoney(x.balance)}${x.last?` · lần trả gần nhất ${new Date(x.last).toLocaleDateString("vi-VN")}`:" · chưa có lần trả"}`).join("\n")}`:"Không có khách phù hợp."}
   if(q.includes("no tren")||q.includes("nợ trên")){const amount=parseAmountAfter(msg,["nợ trên","no tren"]).amount||200000,rows=st.customers.map(c=>({name:c.name,d:customerDebt(st,c.id)})).filter(x=>x.d>amount).sort((a,b)=>b.d-a.d);return rows.length?`Khách nợ trên ${formatMoney(amount)}:\n${rows.map(x=>`• ${x.name}: ${formatMoney(x.d)}`).join("\n")}`:"Không có khách phù hợp."}
   const monthReq=parseMonthRequest(msg);if(context.customerId&&monthReq&&(q.includes("xem")||q.includes("lich su")||q.includes("lịch sử")||context.lastIntent==="debtHistory")){const c=st.customers.find(x=>x.id===context.customerId),rows=debtHistoryForMonth(st,c.id,monthReq.year,monthReq.month);return rows.length?`${c.name} – công nợ tháng ${monthReq.month}/${monthReq.year}:\n${rows.map(d=>`• ${new Date(d.createdAt).toLocaleDateString("vi-VN")}: ${formatMoney(d.amount)} · còn ${formatMoney(d.balance)} · ${d.note||""}`).join("\n")}`:`${c.name} không có khoản nợ trong tháng ${monthReq.month}/${monthReq.year}.`}
-  if(q.includes("doanh thu")){const cats=[...new Set(st.products.map(p=>p.category).filter(Boolean))],cat=cats.find(c=>q.includes(norm(c))),mr=parseMonthRequest(msg);if(cat||mr){const range=mr?monthRange(mr.year,mr.month):weekRange(0),x=periodSales(st,range[0],range[1],cat||"");return `${cat?`Doanh thu ${cat}`:"Doanh thu"}${mr?` tháng ${mr.month}/${mr.year}`:" 7 ngày gần nhất"}: ${formatMoney(x.revenue)} · lợi nhuận ${formatMoney(x.profit)} · ${x.qty} sản phẩm.`}}
+  if(q.includes("doanh thu")){const cats=[...new Set(st.products.map(p=>p.category).filter(Boolean))],cat=cats.find(c=>q.includes(norm(c))),mr=parseMonthRequest(msg);if(cat||mr){if(mr){const key=`${mr.year}-${String(mr.month).padStart(2,"0")}`,x=auditPeriodEstimate(st,key,cat||"");return `${cat?`Doanh thu ${cat}`:"Doanh thu"} tháng ${mr.month}/${mr.year}: thực tế từ đơn ${formatMoney(x.actualRevenue)} · suy ra từ kiểm kho ${formatMoney(x.derivedRevenue)} · tổng ước tính ${formatMoney(x.estimatedRevenue)} · lợi nhuận ước tính ${formatMoney(x.estimatedProfit)}${x.lossCost?` · hao hụt theo giá vốn ${formatMoney(x.lossCost)}`:""}${x.unclassifiedQty?` · còn ${x.unclassifiedQty} SP chênh lệch chưa phân loại`:""}.`}const range=weekRange(0),x=periodSales(st,range[0],range[1],cat||"");return `${cat?`Doanh thu ${cat}`:"Doanh thu"} 7 ngày gần nhất: ${formatMoney(x.revenue)} · lợi nhuận ${formatMoney(x.profit)} · ${x.qty} sản phẩm.`}}
   if((q.includes("neu ban")||q.includes("nếu bán"))&&pr){const m=msg.match(/(\d+(?:[.,]\d+)?)\s*(?:ly|cốc|coc)?/i),quantity=m?Number(m[1].replace(",",".")):1,n=productRecipeNeed(pr,quantity);return `Nếu bán ${quantity} ${pr.name}, ước tính cần: cà phê phin ${n.phin_g.toFixed(0)}g; cà phê máy ${n.machine_g.toFixed(0)}g; sữa đặc ${n.condensed_ml.toFixed(0)}ml; sữa tươi ${n.fresh_ml.toFixed(0)}ml; bột kem muối ${n.salt_g.toFixed(0)}g; đường ${n.sugar_g.toFixed(0)}g.`}
 
   return null

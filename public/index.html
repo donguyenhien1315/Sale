@@ -12,7 +12,7 @@
   <div id="boot" class="boot">Đang đồng bộ dữ liệu…</div>
   <header class="topbar">
     <div>
-      <div class="eyebrow">CANTIN AI NEXT 4.12.1</div>
+      <div class="eyebrow">CANTIN AI NEXT 4.12.2</div>
       <h1 id="storeName">Cửa hàng chính</h1>
     </div>
     <div class="top-actions">
@@ -96,8 +96,27 @@
 </div>
         <div id="auditCategoryChips" class="category-chips compact-category-chips"></div>
         <div id="auditProducts" class="audit-list"></div>
-        <label>Ghi chú<input id="auditNote" placeholder="VD: kiểm cuối tuần"></label>
+        <div class="form-grid audit-period-controls">
+          <label>Ngày kiểm<input id="auditDate" type="datetime-local"></label>
+          <label>Kỳ doanh thu<input id="auditPeriodMonth" type="month"></label>
+          <label class="wide">Chênh lệch giảm tồn mặc định
+            <select id="auditDefaultReconcile">
+              <option value="unrecorded_sale">Bán chưa ghi nhận</option>
+              <option value="loss">Hao hụt / hỏng / mất</option>
+              <option value="adjustment">Điều chỉnh khác</option>
+            </select>
+          </label>
+          <label class="wide">Ghi chú<input id="auditNote" placeholder="VD: chốt kỳ tháng 7"></label>
+        </div>
+        <p class="hint audit-period-hint">Doanh thu suy ra từ kiểm kho được tính theo <b>kỳ tháng</b>, không gán vào ngày kiểm. Chỉ phần chọn “Bán chưa ghi nhận” mới được cộng vào doanh thu tháng.</p>
         <button id="saveAudit" class="primary full">Chốt kiểm kho</button>
+      </article>
+      <article class="panel audit-period-report-panel">
+        <div class="panel-head">
+          <div><h3>Doanh thu theo kỳ kiểm kho</h3><p class="hint">Tách doanh thu từ đơn và doanh thu suy ra; không cộng trùng.</p></div>
+          <input id="auditReportMonth" type="month">
+        </div>
+        <div id="auditPeriodReport"></div>
       </article>
       <article class="panel"><div class="panel-head"><h3>Lịch sử kiểm kho</h3></div><div id="auditHistory" class="list empty"></div></article>
     

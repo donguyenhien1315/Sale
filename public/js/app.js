@@ -34,8 +34,8 @@ async function boot(){
 function renderAll(){
   $("#storeName").textContent=state.store.meta?.name||"Cửa hàng";
   $("#storeSelect").innerHTML=state.stores.map(s=>`<option value="${s.id}" ${s.id===state.storeId?"selected":""}>${esc(s.name)}</option>`).join("");
-  $("#saleDate").value=$("#saleDate").value||dtLocal();$("#stockinDate").value=$("#stockinDate").value||dtLocal();
-  renderDataSafety();renderDashboard();renderIngredients();renderProducts();renderSaleCustomers();renderSales();renderCustomers();renderStockin();renderAudit();renderTransactions();renderSnapshots();renderStores();renderQuickProducts();renderCart();renderAliases();renderAIContext();renderAISettings();renderAIOperationHistory();
+  $("#saleDate").value=$("#saleDate").value||dtLocal();$("#stockinDate").value=$("#stockinDate").value||dtLocal();$("#auditDate").value=$("#auditDate").value||dtLocal();$("#auditPeriodMonth").value=$("#auditPeriodMonth").value||defaultAuditPeriodKey($("#auditDate").value);$("#auditReportMonth").value=$("#auditReportMonth").value||monthKeyLocal(new Date());
+  renderDataSafety();renderDashboard();renderIngredients();renderProducts();renderSaleCustomers();renderSales();renderCustomers();renderStockin();renderAudit();renderAuditPeriodReport();renderTransactions();renderSnapshots();renderStores();renderQuickProducts();renderCart();renderAliases();renderAIContext();renderAISettings();renderAIOperationHistory();
 }
 function navigate(page){
   $$(".page").forEach(p=>p.classList.toggle("active",p.dataset.page===page));
@@ -459,9 +459,77 @@ function showStockinEdit(r){
   showModal(`<h3>Sửa phiếu nhập kho</h3><label>Ngày nhập<input id="editReceiptDate" type="datetime-local" value="${dtLocal(r.createdAt)}"></label><label>Ghi chú<input id="editReceiptNote" value="${esc(r.note||"")}"></label><div class="receipt-edit-lines">${(r.lines||[]).map(l=>`<div class="sale-edit-line" data-id="${l.productId}"><span>${esc(l.name||state.store.products.find(p=>p.id===l.productId)?.name||"")}</span><input class="receipt-edit-qty" type="number" min="0" value="${l.quantity}" inputmode="numeric"></div>`).join("")}</div><p class="hint">Sửa theo tổng số lượng nhập. Hệ thống chỉ cộng/trừ phần chênh lệch để không phá các giao dịch phát sinh sau phiếu.</p><button id="saveReceiptEdit" class="primary full">Lưu phiếu nhập</button>`);
   $("#saveReceiptEdit").onclick=async()=>{const lines=$$(".sale-edit-line").map(x=>({productId:x.dataset.id,quantity:Number(x.querySelector(".receipt-edit-qty").value)||0})).filter(x=>x.quantity>0);if(!lines.length)return toast("Phiếu nhập phải còn ít nhất một mặt hàng",true);try{await mutate("stockin.update",{id:r.id,createdAt:new Date($("#editReceiptDate").value).toISOString(),note:$("#editReceiptNote").value,lines});closeModal();toast("Đã sửa phiếu nhập")}catch(e){toast(e.message,true)}}
 }
-function renderAudit(){const q=norm($("#auditSearch").value),category=renderCategoryButtons("#auditCategoryChips","audit",state.store.products.filter(p=>p.trackStock!==false&&p.active!==false),renderAudit),arr=state.store.products.filter(p=>p.trackStock!==false&&p.active!==false&&(!q||norm(p.name+" "+p.category).includes(q))&&(!category||String(p.category||"Khác")===category));$("#auditProducts").innerHTML=arr.length?arr.map(p=>`<div class="audit-row" data-id="${p.id}"><div><strong>${esc(p.name)}</strong><small>${esc(p.category||"Khác")} · tồn hệ thống ${num(p.stock)} ${esc(p.unit||"")}</small></div><input class="actual" type="number" min="0" value="${p.stock}" inputmode="numeric"></div>`).join(""):`<div class="hint">Không có mặt hàng phù hợp.</div>`;const hist=[...state.store.audits].reverse().slice(0,100);$("#auditHistory").className=`list${hist.length?"":" empty"}`;$("#auditHistory").innerHTML=hist.length?hist.map(a=>`<div class="list-row" data-id="${a.id}"><div><strong>${new Date(a.createdAt).toLocaleString("vi-VN")}</strong><small>${esc(a.note||"Kiểm kho")} · ${a.lines.length} mặt hàng</small></div><button class="ghost editAudit">Sửa</button></div>`).join(""):"Chưa có lần kiểm kho.";$("#auditHistory").querySelectorAll(".editAudit").forEach(b=>b.onclick=()=>showAuditEdit(state.store.audits.find(a=>a.id===b.closest(".list-row").dataset.id)))}
-$("#auditSearch").oninput=renderAudit;$("#saveAudit").onclick=async()=>{const lines=$$("#auditProducts .audit-row").map(r=>({productId:r.dataset.id,actual:+r.querySelector(".actual").value||0}));if(!lines.length)return toast("Không có mặt hàng để kiểm kho",true);try{await mutate("audit.create",{note:$("#auditNote").value,lines});toast("Đã chốt kiểm kho")}catch(e){toast(e.message,true)}};
-function showAuditEdit(a){showModal(`<h3>Chỉnh đơn kiểm kho</h3><label>Ghi chú<input id="auditEditNote" value="${esc(a.note||"")}"></label>${a.lines.map(l=>`<label>${esc(l.name)}<input class="auditEditActual" data-id="${l.productId}" type="number" value="${l.actual}"></label>`).join("")}<div class="row"><button id="saveAuditEdit" class="primary">Lưu</button><button id="deleteAudit" class="file-btn" style="background:#b42318">Xóa</button></div>`);$("#saveAuditEdit").onclick=async()=>{const lines=$$(".auditEditActual").map(i=>({productId:i.dataset.id,actual:+i.value||0}));try{await mutate("audit.update",{id:a.id,note:$("#auditEditNote").value,lines});closeModal();toast("Đã sửa kiểm kho")}catch(e){toast(e.message,true)}};$("#deleteAudit").onclick=async()=>{if(confirm("Xóa đơn kiểm kho?"))try{await mutate("audit.delete",{id:a.id});closeModal();toast("Đã xóa")}catch(e){toast(e.message,true)}}}
+
+function monthKeyLocal(dateLike){
+  const d=dateLike instanceof Date?new Date(dateLike):new Date(dateLike||Date.now());if(Number.isNaN(d.getTime()))return "";
+  return `${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,"0")}`
+}
+function defaultAuditPeriodKey(dateLike){
+  const d=dateLike?new Date(dateLike):new Date();if(Number.isNaN(d.getTime()))return "";
+  if(d.getDate()<=3)d.setMonth(d.getMonth()-1);
+  return monthKeyLocal(d)
+}
+function periodLabel(key){const m=String(key||"").match(/^(\d{4})-(\d{2})$/);return m?`${m[2]}/${m[1]}`:"Chưa gán kỳ"}
+function previousAuditForProductClient(audit,productId){
+  return (state.store.audits||[]).filter(a=>a.id!==audit.id&&new Date(a.createdAt)<new Date(audit.createdAt)&&(a.lines||[]).some(l=>l.productId===productId)).sort((a,b)=>String(b.createdAt).localeCompare(String(a.createdAt)))[0]||null
+}
+function auditLinePeriodMetric(audit,line){
+  const p=state.store.products.find(x=>x.id===line.productId),prev=previousAuditForProductClient(audit,line.productId);
+  const unexplained=Math.max(0,(+line.before||0)-(+line.actual||0)),surplus=Math.max(0,(+line.actual||0)-(+line.before||0));
+  const type=line.reconcileType||"unclassified",salePrice=line.salePriceSnapshot??p?.salePrice??0,costPrice=line.costPriceSnapshot??p?.costPrice??0;
+  return {audit,line,p,prev,type,unexplained,surplus,salePrice,costPrice,revenue:prev&&type==="unrecorded_sale"?unexplained*salePrice:0,profit:prev&&type==="unrecorded_sale"?unexplained*(salePrice-costPrice):0,lossCost:prev&&type==="loss"?unexplained*costPrice:0}
+}
+function auditPeriodMonthReport(key){
+  const sales=(state.store.sales||[]).filter(s=>String(s.createdAt).slice(0,7)===key);
+  let actualRevenue=0,actualProfit=0;for(const s of sales){actualRevenue+=+s.total||0;actualProfit+=+s.profit||0}
+  const rows=[];let derivedRevenue=0,derivedProfit=0,lossCost=0,unclassifiedQty=0,baselineQty=0,surplusQty=0;
+  for(const a of state.store.audits||[]){if(a.periodKey!==key)continue;for(const l of a.lines||[]){const x=auditLinePeriodMetric(a,l);if(!x.prev){baselineQty+=x.unexplained;continue}derivedRevenue+=x.revenue;derivedProfit+=x.profit;lossCost+=x.lossCost;surplusQty+=x.surplus;if(x.type==="unclassified")unclassifiedQty+=x.unexplained;if(x.unexplained>0||x.surplus>0)rows.push(x)}}
+  return {key,sales,actualRevenue,actualProfit,derivedRevenue,derivedProfit,lossCost,unclassifiedQty,baselineQty,surplusQty,estimatedRevenue:actualRevenue+derivedRevenue,estimatedProfit:actualProfit+derivedProfit-lossCost,rows}
+}
+function renderAuditPeriodReport(){
+  const box=$("#auditPeriodReport"),key=$("#auditReportMonth")?.value;if(!box||!key||!state.store)return;
+  const r=auditPeriodMonthReport(key),derivedRows=r.rows.filter(x=>x.type==="unrecorded_sale"&&x.unexplained>0).sort((a,b)=>b.revenue-a.revenue);
+  box.innerHTML=`<div class="period-summary-grid">
+    <div><span>Doanh thu từ đơn</span><b>${money(r.actualRevenue)}</b><small>Chính xác theo ngày bán</small></div>
+    <div><span>Suy ra từ kiểm kho</span><b>${money(r.derivedRevenue)}</b><small>Không gán vào từng ngày</small></div>
+    <div class="period-total"><span>Tổng doanh thu tháng</span><b>${money(r.estimatedRevenue)}</b><small>Ước tính theo kỳ kiểm kho</small></div>
+    <div><span>Lợi nhuận ước tính</span><b>${money(r.estimatedProfit)}</b><small>Đã trừ hao hụt đã phân loại</small></div>
+  </div>
+  <div class="period-flags">
+    ${r.lossCost?`<span class="period-flag loss">Hao hụt theo giá vốn: ${money(r.lossCost)}</span>`:""}
+    ${r.unclassifiedQty?`<span class="period-flag warn">${num(r.unclassifiedQty)} SP chưa phân loại</span>`:""}
+    ${r.baselineQty?`<span class="period-flag neutral">Phiếu đầu tiên là mốc gốc, không tính ${num(r.baselineQty)} SP chênh lệch</span>`:""}
+    ${!r.unclassifiedQty&&!r.baselineQty&&!r.lossCost?`<span class="period-flag good">Các kỳ đã phân loại đầy đủ</span>`:""}
+  </div>
+  <details class="period-details"><summary>Bán chưa ghi nhận từ kiểm kho (${derivedRows.length})</summary>
+    <div class="period-derived-list">${derivedRows.length?derivedRows.map(x=>`<div class="period-derived-row"><div><strong>${esc(x.p?.name||x.line.name||"Sản phẩm")}</strong><small>${new Date(x.prev.createdAt).toLocaleDateString("vi-VN")} → ${new Date(x.audit.createdAt).toLocaleDateString("vi-VN")} · ${num(x.unexplained)} ${esc(x.p?.unit||"")}</small></div><b>${money(x.revenue)}</b></div>`).join(""):'<div class="hint">Không có doanh thu suy ra trong kỳ này.</div>'}</div>
+  </details>
+  <p class="hint period-method">Phần suy ra dùng <b>tồn hệ thống trước kiểm − tồn thực tế</b>. Tồn hệ thống đã trừ các đơn bán và cộng các phiếu nhập, nên phần này không cộng trùng với đơn đã ghi.</p>`;
+}
+$("#auditReportMonth")?.addEventListener("change",renderAuditPeriodReport);
+$("#auditDate")?.addEventListener("change",()=>{$("#auditPeriodMonth").value=defaultAuditPeriodKey($("#auditDate").value)});
+
+function renderAudit(){
+  const q=norm($("#auditSearch").value),category=renderCategoryButtons("#auditCategoryChips","audit",state.store.products.filter(p=>p.trackStock!==false&&p.active!==false),renderAudit),arr=state.store.products.filter(p=>p.trackStock!==false&&p.active!==false&&(!q||norm(p.name+" "+p.category).includes(q))&&(!category||String(p.category||"Khác")===category));
+  $("#auditProducts").innerHTML=arr.length?arr.map(p=>`<div class="audit-row" data-id="${p.id}"><div><strong>${esc(p.name)}</strong><small>${esc(p.category||"Khác")} · tồn hệ thống ${num(p.stock)} ${esc(p.unit||"")}</small></div><input class="actual" type="number" min="0" value="${p.stock}" inputmode="numeric"></div>`).join(""):`<div class="hint">Không có mặt hàng phù hợp.</div>`;
+  const hist=[...state.store.audits].sort((a,b)=>String(b.createdAt).localeCompare(String(a.createdAt))).slice(0,100);
+  $("#auditHistory").className=`list${hist.length?"":" empty"}`;
+  $("#auditHistory").innerHTML=hist.length?hist.map(a=>{const metrics=(a.lines||[]).map(l=>auditLinePeriodMetric(a,l)),derived=metrics.reduce((z,x)=>z+x.revenue,0),loss=metrics.reduce((z,x)=>z+x.lossCost,0),unclassified=metrics.reduce((z,x)=>z+(x.type==="unclassified"&&x.prev?x.unexplained:0),0);return `<div class="list-row audit-history-row" data-id="${a.id}"><div><strong>${new Date(a.createdAt).toLocaleString("vi-VN")}</strong><small>Kỳ ${periodLabel(a.periodKey)} · ${a.lines.length} mặt hàng${derived?` · suy ra ${money(derived)}`:""}${loss?` · hao hụt ${money(loss)}`:""}${unclassified?` · ${num(unclassified)} SP chưa phân loại`:""}</small><small>${esc(a.note||"Kiểm kho")}</small></div><button class="ghost editAudit">Sửa</button></div>`}).join(""):"Chưa có lần kiểm kho.";
+  $("#auditHistory").querySelectorAll(".editAudit").forEach(b=>b.onclick=()=>showAuditEdit(state.store.audits.find(a=>a.id===b.closest(".list-row").dataset.id)));
+}
+$("#auditSearch").oninput=renderAudit;
+$("#saveAudit").onclick=async()=>{
+  const lines=$$("#auditProducts .audit-row").map(r=>({productId:r.dataset.id,actual:+r.querySelector(".actual").value||0,reconcileType:$("#auditDefaultReconcile").value}));
+  if(!lines.length)return toast("Không có mặt hàng để kiểm kho",true);
+  const createdAt=$("#auditDate").value?new Date($("#auditDate").value).toISOString():new Date().toISOString(),periodKey=$("#auditPeriodMonth").value||defaultAuditPeriodKey(createdAt);
+  try{await mutate("audit.create",{createdAt,periodKey,defaultReconcileType:$("#auditDefaultReconcile").value,note:$("#auditNote").value,lines});$("#auditNote").value="";toast(`Đã chốt kiểm kho · kỳ ${periodLabel(periodKey)}`)}catch(e){toast(e.message,true)}
+};
+function showAuditEdit(a){
+  const lineHtml=(a.lines||[]).map(l=>{const x=auditLinePeriodMetric(a,l),type=l.reconcileType||"unclassified";return `<div class="audit-edit-period-line" data-id="${l.productId}"><div class="audit-edit-title"><strong>${esc(l.name)}</strong><small>Hệ thống trước kiểm ${num(l.before)} → thực tế ${num(l.actual)}${x.prev?` · chênh giảm ${num(x.unexplained)}`:" · mốc kiểm đầu tiên"}</small></div><label>Tồn thực tế<input class="auditEditActual" type="number" value="${l.actual}" min="0"></label><label>Phân loại chênh lệch<select class="auditEditType"><option value="unrecorded_sale" ${type==="unrecorded_sale"?"selected":""}>Bán chưa ghi nhận</option><option value="loss" ${type==="loss"?"selected":""}>Hao hụt / hỏng / mất</option><option value="adjustment" ${type==="adjustment"?"selected":""}>Điều chỉnh khác</option><option value="unclassified" ${type==="unclassified"?"selected":""}>Chưa phân loại</option></select></label></div>`}).join("");
+  showModal(`<h3>Chỉnh đơn kiểm kho</h3><div class="form-grid"><label>Ngày kiểm<input value="${dtLocal(a.createdAt)}" disabled></label><label>Kỳ doanh thu<input id="auditEditPeriod" type="month" value="${esc(a.periodKey||"")}"></label><label class="wide">Ghi chú<input id="auditEditNote" value="${esc(a.note||"")}"></label></div><p class="hint">Chỉ “Bán chưa ghi nhận” được cộng vào doanh thu kỳ. “Hao hụt” chỉ tính chi phí hao hụt; “Điều chỉnh khác” không tính doanh thu.</p><div class="audit-edit-period-list">${lineHtml}</div><div class="row"><button id="saveAuditEdit" class="primary">Lưu</button><button id="deleteAudit" class="file-btn" style="background:#b42318">Xóa</button></div>`);
+  $("#saveAuditEdit").onclick=async()=>{const lines=$$(".audit-edit-period-line").map(r=>({productId:r.dataset.id,actual:+r.querySelector(".auditEditActual").value||0,reconcileType:r.querySelector(".auditEditType").value}));try{await mutate("audit.update",{id:a.id,periodKey:$("#auditEditPeriod").value,note:$("#auditEditNote").value,lines});closeModal();toast("Đã sửa kiểm kho và cập nhật kỳ doanh thu")}catch(e){toast(e.message,true)}};
+  $("#deleteAudit").onclick=async()=>{if(confirm("Xóa đơn kiểm kho? Tồn hiện tại sẽ được hoàn tác theo phần chênh lệch của phiếu này."))try{await mutate("audit.delete",{id:a.id});closeModal();toast("Đã xóa kiểm kho")}catch(e){toast(e.message,true)}}
+}
 
 function renderTransactions(){const arr=[...state.store.transactions].reverse().slice(0,200);$("#transactions").className=`list${arr.length?"":" empty"}`;$("#transactions").innerHTML=arr.length?arr.map(t=>`<div class="list-row"><div><strong>${esc(t.summary)}</strong><small>${new Date(t.createdAt).toLocaleString("vi-VN")} · ${esc(t.id)}</small></div></div>`).join(""):"Chưa có giao dịch."}
 function renderSnapshots(){const arr=[...state.store.snapshots].reverse();$("#snapshots").className=`list${arr.length?"":" empty"}`;$("#snapshots").innerHTML=arr.length?arr.map(s=>`<div class="list-row" data-id="${s.id}"><div><strong>${esc(s.label)}</strong><small>${new Date(s.createdAt).toLocaleString("vi-VN")}</small></div><button class="ghost restoreSnapshot">Khôi phục</button></div>`).join(""):"Chưa có snapshot.";$("#snapshots").querySelectorAll(".restoreSnapshot").forEach(b=>b.onclick=async()=>{if(confirm("Khôi phục snapshot này?"))try{await mutate("snapshot.restore",{id:b.closest(".list-row").dataset.id});toast("Đã khôi phục")}catch(e){toast(e.message,true)}})}
@@ -586,7 +654,7 @@ function sheetRows(){
     Debts:(st.debts||[]).map(d=>({customer:d.customer||st.customers.find(c=>c.id===d.customerId)?.name||"",amount:d.amount,paid:d.paid,balance:d.balance,note:d.note,createdAt:d.createdAt,saleId:d.saleId||""})),
     Sales:(st.sales||[]).map(s=>({id:s.id,createdAt:s.createdAt,customer:s.customer||"",paymentMethod:s.paymentMethod,total:s.total,costTotal:s.costTotal,profit:s.profit,note:s.note||"",items:(s.items||[]).map(i=>`${i.name} x${i.quantity}`).join(" | ")})),
     StockReceipts:(st.stockReceipts||[]).flatMap(r=>(r.lines||[]).map(l=>({receiptId:r.id,createdAt:r.createdAt,note:r.note||"",product:l.name||st.products.find(p=>p.id===l.productId)?.name||"",quantity:l.quantity}))),
-    Audits:(st.audits||[]).flatMap(a=>(a.lines||[]).map(l=>({auditId:a.id,createdAt:a.createdAt,note:a.note||"",product:l.name||st.products.find(p=>p.id===l.productId)?.name||"",before:l.before,actual:l.actual,delta:l.delta})))
+    Audits:(st.audits||[]).flatMap(a=>(a.lines||[]).map(l=>({auditId:a.id,createdAt:a.createdAt,periodKey:a.periodKey||"",note:a.note||"",product:l.name||st.products.find(p=>p.id===l.productId)?.name||"",before:l.before,actual:l.actual,delta:l.delta,reconcileType:l.reconcileType||"unclassified",salePriceSnapshot:l.salePriceSnapshot??"",costPriceSnapshot:l.costPriceSnapshot??""})))
   }
 }
 async function exportExcel(){await ensureXLSX();const wb=window.XLSX.utils.book_new();for(const [name,rows] of Object.entries(sheetRows()))window.XLSX.utils.book_append_sheet(wb,window.XLSX.utils.json_to_sheet(rows),name);window.XLSX.writeFile(wb,`cantin-${todayKey()}.xlsx`)}
