@@ -520,6 +520,45 @@ function renderAudit(){
 }
 $("#auditSearch").oninput=renderAudit;
 
+
+$("#resetBusinessHistoryBtn")?.addEventListener("click",()=>{
+  const salesCount=(state.store.sales||[]).length,auditCount=(state.store.audits||[]).length,debtCount=(state.store.debts||[]).length;
+  showModal(`<h3>Reset doanh thu, lợi nhuận & đơn hàng</h3>
+    <div class="reset-warning reset-business-warning">
+      <strong>Đây là reset dữ liệu kinh doanh lớn</strong>
+      <p>Sau khi thực hiện:</p>
+      <ul>
+        <li><b>Doanh thu = 0 ₫</b></li>
+        <li><b>Lợi nhuận = 0 ₫</b></li>
+        <li><b>Đơn hàng = 0</b> (${salesCount} đơn hiện tại sẽ bị xóa)</li>
+        <li>Toàn bộ ${auditCount} phiếu kiểm kho sẽ bị xóa nên doanh thu suy ra từ kiểm kho cũng về 0.</li>
+        <li><b>Giữ nguyên ${debtCount} khoản công nợ</b>, số còn nợ và lịch sử trả nợ.</li>
+        <li>Giữ khách hàng, sản phẩm và tồn kho hiện tại để tiếp tục sử dụng.</li>
+        <li>Giữ phiếu nhập kho.</li>
+        <li>Tạo snapshot trước khi reset để có thể khôi phục.</li>
+      </ul>
+    </div>
+    <label class="confirm-reset-label">Nhập chính xác <b>RESET ALL</b> để xác nhận
+      <input id="confirmBusinessResetText" autocomplete="off" placeholder="RESET ALL">
+    </label>
+    <button id="confirmBusinessResetBtn" class="danger full" disabled>Reset doanh thu & đơn hàng</button>`);
+  const input=$("#confirmBusinessResetText"),btn=$("#confirmBusinessResetBtn");
+  input.oninput=()=>{btn.disabled=input.value.trim().toUpperCase()!=="RESET ALL"};
+  btn.onclick=async()=>{
+    if(input.value.trim().toUpperCase()!=="RESET ALL")return;
+    btn.disabled=true;btn.textContent="Đang reset…";
+    try{
+      await mutate("business.reset.keep_debts",{});
+      closeModal();
+      state.cart={};
+      renderDashboard();renderSales();renderCustomers();renderAudit();renderAuditPeriodReport();renderTransactions();
+      toast("Đã reset doanh thu, lợi nhuận và đơn hàng; công nợ được giữ nguyên");
+    }catch(e){
+      btn.disabled=false;btn.textContent="Reset doanh thu & đơn hàng";toast(e.message,true)
+    }
+  };
+});
+
 $("#resetAllAuditsBtn")?.addEventListener("click",()=>{
   const count=(state.store.audits||[]).length;
   if(!count)return toast("Không có lịch sử kiểm kho để reset");
@@ -528,7 +567,7 @@ $("#resetAllAuditsBtn")?.addEventListener("click",()=>{
       <strong>Sẽ xóa ${count} phiếu kiểm kho</strong>
       <p>Hệ thống sẽ xóa toàn bộ lịch sử kiểm kho và toàn bộ doanh thu/lợi nhuận suy ra từ kiểm kho.</p>
       <ul>
-        <li>Giữ nguyên tồn kho hiện tại.</li>
+        <li><b>Hoàn tác toàn bộ ảnh hưởng kiểm kho lên tồn kho.</b> Ví dụ tồn trước kiểm 30, kiểm còn 0 thì reset sẽ trả lại 30.</li>
         <li>Giữ nguyên đơn bán thật.</li>
         <li>Giữ nguyên công nợ, khách hàng, sản phẩm và phiếu nhập kho.</li>
         <li>Tự tạo snapshot trước khi reset.</li>
@@ -547,7 +586,7 @@ $("#resetAllAuditsBtn")?.addEventListener("click",()=>{
       closeModal();
       if($("#auditReportMonth"))$("#auditReportMonth").value=monthKeyLocal(new Date());
       renderAuditPeriodReport();renderDashboard();renderAudit();
-      toast("Đã reset toàn bộ kiểm kho an toàn");
+      toast("Đã reset kiểm kho và hoàn tồn về trước các lần kiểm");
     }catch(e){btn.disabled=false;btn.textContent="Reset an toàn";toast(e.message,true)}
   };
 });

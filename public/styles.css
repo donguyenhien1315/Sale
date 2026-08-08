@@ -357,3 +357,7 @@ body{padding-bottom:calc(78px + env(safe-area-inset-bottom))}
 .reset-warning{border:1px solid #f0b9b3;background:#fff8f7;border-radius:12px;padding:12px;margin:8px 0 12px}
 .reset-warning strong{color:#b42318}.reset-warning p{margin:6px 0}.reset-warning ul{margin:8px 0 0;padding-left:20px;color:#5f6e6b;font-size:.85rem;line-height:1.5}
 .confirm-reset-label{margin-top:10px}
+
+.reset-action-row{display:flex;gap:6px;flex-wrap:wrap;justify-content:flex-end}
+.reset-business-warning{border-color:#e59b93;background:#fff5f4}
+@media(max-width:520px){.reset-action-row{width:100%;justify-content:stretch}.reset-action-row button{flex:1}}

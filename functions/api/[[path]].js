@@ -27,7 +27,7 @@ async function readRootRaw(){
   return v;
 }
 
-function emptyStore(name="Cửa hàng chính"){return {meta:{name,createdAt:now(),version:"4.12.4"},config:{money:{under1000MeansThousands:true},ai:{preview:true,safetyMode:"preview",autoIngredientDeduct:false},ui:{compactDebt:true}},products:[],ingredients:[{"id": "ing-ca-phe-phin", "name": "Cà phê phin", "purchasePrice": 1085000, "packageQty": 7000, "unit": "g", "unitCost": 155, "stock": 0, "note": "240g pha được 500ml cà phê phin"}, {"id": "ing-ca-phe-may", "name": "Cà phê máy", "purchasePrice": 234000, "packageQty": 1000, "unit": "g", "unitCost": 234, "stock": 0, "note": "Tạm tính gói 1kg; sửa nếu khác"}, {"id": "ing-bot-kem-muoi", "name": "Bột kem muối", "purchasePrice": 80000, "packageQty": 500, "unit": "g", "unitCost": 160, "stock": 0, "note": "Người dùng cung cấp"}, {"id": "ing-sua-dac", "name": "Sữa đặc", "purchasePrice": 450000, "packageQty": 9120, "unit": "ml", "unitCost": 49.3421052632, "stock": 0, "note": "24 hộp x 380ml"}, {"id": "ing-sua-tuoi", "name": "Sữa tươi", "purchasePrice": 35000, "packageQty": 1000, "unit": "ml", "unitCost": 35, "stock": 0, "note": "1 lít giá 35.000"}, {"id": "ing-duong", "name": "Đường", "purchasePrice": 25000, "packageQty": 1000, "unit": "g", "unitCost": 25, "stock": 0, "note": "Tạm tính 25.000/kg; sửa theo thực tế"}],customers:[],debts:[],sales:[],stockReceipts:[],audits:[],transactions:[],snapshots:[],aliases:[]}}
+function emptyStore(name="Cửa hàng chính"){return {meta:{name,createdAt:now(),version:"4.12.7"},config:{money:{under1000MeansThousands:true},ai:{preview:true,safetyMode:"preview",autoIngredientDeduct:false},ui:{compactDebt:true}},products:[],ingredients:[{"id": "ing-ca-phe-phin", "name": "Cà phê phin", "purchasePrice": 1085000, "packageQty": 7000, "unit": "g", "unitCost": 155, "stock": 0, "note": "240g pha được 500ml cà phê phin"}, {"id": "ing-ca-phe-may", "name": "Cà phê máy", "purchasePrice": 234000, "packageQty": 1000, "unit": "g", "unitCost": 234, "stock": 0, "note": "Tạm tính gói 1kg; sửa nếu khác"}, {"id": "ing-bot-kem-muoi", "name": "Bột kem muối", "purchasePrice": 80000, "packageQty": 500, "unit": "g", "unitCost": 160, "stock": 0, "note": "Người dùng cung cấp"}, {"id": "ing-sua-dac", "name": "Sữa đặc", "purchasePrice": 450000, "packageQty": 9120, "unit": "ml", "unitCost": 49.3421052632, "stock": 0, "note": "24 hộp x 380ml"}, {"id": "ing-sua-tuoi", "name": "Sữa tươi", "purchasePrice": 35000, "packageQty": 1000, "unit": "ml", "unitCost": 35, "stock": 0, "note": "1 lít giá 35.000"}, {"id": "ing-duong", "name": "Đường", "purchasePrice": 25000, "packageQty": 1000, "unit": "g", "unitCost": 25, "stock": 0, "note": "Tạm tính 25.000/kg; sửa theo thực tế"}],customers:[],debts:[],sales:[],stockReceipts:[],audits:[],transactions:[],snapshots:[],aliases:[]}}
 function ensureStore(s,name){const x=s&&typeof s==="object"?s:{};const e=emptyStore(name);for(const k of Object.keys(e))if(x[k]===undefined)x[k]=clone(e[k]);for(const k of ["products","ingredients","customers","debts","sales","stockReceipts","audits","transactions","snapshots","aliases"])if(!Array.isArray(x[k]))x[k]=[];x.meta={...e.meta,...(x.meta||{})};x.config={...e.config,...(x.config||{})};x.config.ai={...e.config.ai,...(x.config.ai||{})};x.config.money={...e.config.money,...(x.config.money||{})};x.config.ui={...e.config.ui,...(x.config.ui||{})};if(!Array.isArray(x.ingredients)||!x.ingredients.length)x.ingredients=clone([{"id": "ing-ca-phe-phin", "name": "Cà phê phin", "purchasePrice": 1085000, "packageQty": 7000, "unit": "g", "unitCost": 155, "stock": 0, "note": "240g pha được 500ml cà phê phin"}, {"id": "ing-ca-phe-may", "name": "Cà phê máy", "purchasePrice": 234000, "packageQty": 1000, "unit": "g", "unitCost": 234, "stock": 0, "note": "Tạm tính gói 1kg; sửa nếu khác"}, {"id": "ing-bot-kem-muoi", "name": "Bột kem muối", "purchasePrice": 80000, "packageQty": 500, "unit": "g", "unitCost": 160, "stock": 0, "note": "Người dùng cung cấp"}, {"id": "ing-sua-dac", "name": "Sữa đặc", "purchasePrice": 450000, "packageQty": 9120, "unit": "ml", "unitCost": 49.3421052632, "stock": 0, "note": "24 hộp x 380ml"}, {"id": "ing-sua-tuoi", "name": "Sữa tươi", "purchasePrice": 35000, "packageQty": 1000, "unit": "ml", "unitCost": 35, "stock": 0, "note": "1 lít giá 35.000"}, {"id": "ing-duong", "name": "Đường", "purchasePrice": 25000, "packageQty": 1000, "unit": "g", "unitCost": 25, "stock": 0, "note": "Tạm tính 25.000/kg; sửa theo thực tế"}]);for(const i of x.ingredients)i.category=i.category||"Nguyên liệu cà phê";return x}
 
 function dataWeight(root){
@@ -42,7 +42,7 @@ function dataWeight(root){
 function normalizeLegacyStore(input,name="Cửa hàng chính"){
   const src=clone(input||{});
   const out=ensureStore(src);
-  out.meta={...(out.meta||{}),name:out.meta?.name||name,version:"4.12.4"};
+  out.meta={...(out.meta||{}),name:out.meta?.name||name,version:"4.12.7"};
   // Preserve legacy arrays instead of dropping them.
   if((!Array.isArray(out.audits)||!out.audits.length)&&Array.isArray(src.weeklyAudits)){
     out.audits=src.weeklyAudits.map(a=>({
@@ -117,7 +117,7 @@ async function writeRoot(root){
 
   root.revision=(Number(root.revision)||0)+1;
   const token=uid();
-  root.persist={token,writtenAt:now(),version:"4.12.4"};
+  root.persist={token,writtenAt:now(),version:"4.12.7"};
 
   await rpc("cantin_write_store_public",{p_data:root});
 
@@ -228,7 +228,7 @@ function auditPeriodEstimate(st,periodKey,category=""){
 
 function applyAction(root,action,p){
   const holder=active(root),st=holder.data;
-  if(action!=="snapshot.create"&&action!=="snapshot.restore"&&action!=="store.switch"&&action!=="audit.reset.safe")snapshot(st,`Trước: ${action}`);
+  if(action!=="snapshot.create"&&action!=="snapshot.restore"&&action!=="store.switch"&&action!=="audit.reset.safe"&&action!=="business.reset.keep_debts")snapshot(st,`Trước: ${action}`);
 
   switch(action){
     case "recovery.import": {
@@ -421,12 +421,41 @@ function applyAction(root,action,p){
       for(const old of a.lines||[]){if(!requested.has(old.productId))continue;const pr=st.products.find(x=>x.id===old.productId);if(!pr)continue;const req=requested.get(old.productId),next=req.actual,prev=qty(old.actual),correction=next-prev;pr.stock=qty(pr.stock)+correction;old.actual=next;old.delta=next-qty(old.before);old.sold=Math.max(0,qty(old.before)-next);if(req.reconcileType)old.reconcileType=String(req.reconcileType);if(old.salePriceSnapshot===undefined)old.salePriceSnapshot=+pr.salePrice||0;if(old.costPriceSnapshot===undefined)old.costPriceSnapshot=+pr.costPrice||0}
       if(p.periodKey!==undefined)a.periodKey=String(p.periodKey||"");a.revenuePeriodEnabled=true;a.note=String(p.note||"");tx(st,action,`Chỉnh đơn kiểm kho theo chênh lệch · kỳ ${a.periodKey||"chưa gán"}`);break;
     }
+    case "business.reset.keep_debts": {
+      const salesCount=(st.sales||[]).length,auditCount=(st.audits||[]).length;
+      snapshot(st,"Trước reset doanh thu, lợi nhuận và đơn hàng");
+      const stockGuard=new Map((st.products||[]).map(pr=>[pr.id,qty(pr.stock)]));
+      st.sales=[];
+      st.audits=[];
+      for(const d of st.debts||[]){
+        if(d.saleId)d.saleId="";
+        if(d.source==="sale")d.source="manual-preserved";
+      }
+      for(const pr of st.products||[])if(stockGuard.has(pr.id))pr.stock=stockGuard.get(pr.id);
+      st.transactions=[];
+      tx(st,action,`Reset doanh thu/lợi nhuận/đơn hàng · xóa ${salesCount} đơn bán và ${auditCount} phiếu kiểm kho · giữ nguyên công nợ · KHÔNG thay đổi tồn kho`,[]);
+      break;
+    }
     case "audit.reset.safe": {
       const count=(st.audits||[]).length;
       if(!count){tx(st,action,"Reset kiểm kho: không có dữ liệu để xóa");break}
       snapshot(st,"Trước reset toàn bộ kiểm kho");
+      const restoreByProduct=new Map();
+      for(const a of st.audits||[]){
+        for(const l of a.lines||[]){
+          const delta=qty(l.actual)-qty(l.before);
+          restoreByProduct.set(l.productId,(restoreByProduct.get(l.productId)||0)-delta);
+        }
+      }
+      const stockChanges=[];
+      for(const [productId,restoreDelta] of restoreByProduct){
+        const pr=st.products.find(x=>x.id===productId);if(!pr)continue;
+        const before=qty(pr.stock),after=before+restoreDelta;
+        pr.stock=after;
+        stockChanges.push({productId,before,after,note:"Hoàn tác toàn bộ ảnh hưởng kiểm kho"});
+      }
       st.audits=[];
-      tx(st,action,`Reset an toàn toàn bộ kiểm kho · đã xóa ${count} phiếu · giữ nguyên tồn hiện tại`,[]);
+      tx(st,action,`Reset toàn bộ kiểm kho · đã xóa ${count} phiếu · hoàn tồn về trạng thái không có kiểm kho`,stockChanges);
       break;
     }
     case "audit.delete": {
